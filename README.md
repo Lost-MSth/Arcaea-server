@@ -17,8 +17,12 @@ Instructions and other contents are under construction.
 - Windows操作系统 Windows operating system
 - Python 3
 - Flask模块 Flask module
+- Charles
 
 ## 环境搭建 Environment construction
+
+[中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA)  
+[English(building)](https://github.com/Lost-MSth/Arcaea-server/wiki/Environment-construction)
 
 ## 使用说明 Instruction for use
 
