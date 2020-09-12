@@ -22,9 +22,12 @@ Instructions and other contents are under construction.
 ## 环境搭建 Environment construction
 
 [中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA)  
-[English(building)](https://github.com/Lost-MSth/Arcaea-server/wiki/Environment-construction)
+[English](https://github.com/Lost-MSth/Arcaea-server/wiki/Environment-construction)
 
 ## 使用说明 Instruction for use
+
+[中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E)  
+[English](https://github.com/Lost-MSth/Arcaea-server/wiki/Instruction-for-use)
 
 ## 注意 Attentions
 
