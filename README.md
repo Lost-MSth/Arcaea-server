@@ -41,7 +41,9 @@ Instructions and other contents are under construction.
 邮箱 Email：th84292@foxmail.com
 
 ## 支持一下 Support me
-生活不易。 Life is not easy.
+生活不易。 Life is not easy.  
+[支付宝 Alipay](https://github.com/Lost-MSth/Arcaea-server/blob/master/pic/Alipay.jpg)  
+[微信 WeChat](https://github.com/Lost-MSth/Arcaea-server/blob/master/pic/WeChat.png)
 
 ## 使用许可 Use license
 [MIT](LICENSE) © Lost
