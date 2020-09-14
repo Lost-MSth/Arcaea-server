@@ -31,6 +31,7 @@ Instructions and other contents are under construction.
 
 ## 注意 Attentions
 [中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E6%B3%A8%E6%84%8F)  
+[English](https://github.com/Lost-MSth/Arcaea-server/wiki/Attentions)
 
 ## 鸣谢 Thanks
 歌曲数据库来自 Using song database from
