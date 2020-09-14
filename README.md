@@ -8,8 +8,8 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 > It looks stupid, but it works!
 
 ## 说明 Statement
-使用说明及其它内容正在建设中。  
-Instructions and other contents are under construction.
+只是很有趣，用处探索中。  
+It is just so interesting. What it can do is under exploration.
 
 ## 更新日志 Update log
 ### Version 1.0
