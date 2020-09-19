@@ -12,6 +12,16 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 It is just so interesting. What it can do is under exploration.
 
 ## 更新日志 Update log
+### Version 1.1
+- 适用于Arcaea 3.2.0版本 For Arcaea 3.2.0
+- 更新了歌曲数据库 Update the song database.
+- 角色**梦**可以看到觉醒立绘了 The drawing of uncapped character **Yume** can be seen.
+- 修复了一个Bug，现在剧情可以全部解锁了 Fix a bug. Now the plot can be unlocked.
+> 更新说明：您若需要做数据迁移，请使用原来的数据库文件**arcaea_database.db**，并使用数据库操作软件打开数据库修改角色数据，SQL命令为
+> `Update user_char set is_uncapped=1, is_uncapped_override=1 where character_id=21;`  
+
+> Update note: If you need to do data migration, please use the original database file **arcaea_ database.db**, and use the database operation software to open the database to modify the character data. The SQL command is
+> `Update user_char set is_uncapped=1, is_uncapped_override=1 where character_id=21;`
 ### Version 1.0
 - 适用于Arcaea 3.1.2版本 For Arcaea 3.1.2
 
