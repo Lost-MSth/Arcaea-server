@@ -18,9 +18,11 @@ It is just so interesting. What it can do is under exploration.
 - 修改了character表结构，这将方便以后的角色更新 The character table structure has been modified, which will facilitate the character update in the future.
 - 修复了best_score表的时间记录，应该是精确到秒的Unix时间戳 Fix the time record of best_score table. It should be a UNIX timestamp accurate to seconds.
 - 修复了一个bug，recent30现在会考虑同一首歌的不同难度 Fix a bug. Now recent30 will consider different difficulties of one song.
-> 更新说明：现在你可以使用web管理页面来迁移旧数据了，后台固定账号admin，密码admin
+> 更新说明：现在你可以使用web管理页面来迁移旧数据了，后台固定账号admin，密码admin  
+> 如果使用数据迁移，那么请先清空recent30表数据，或者在迁移后打30首歌手动清除recent30，这次更新后web页面读取原来的recent30表将会报错
 
-> Update note: Now you can use the web management page to migrate old data. Background account is fixed. Username is admin, and password is admin.
+> Update note: Now you can use the web management page to migrate old data. Background account is fixed. Username is admin, and password is admin.  
+> If you use data migration, please clear the data in the recent30 table first, or manually clear recent30 by playing 30 songs after the migration. After this update, an error will be reported when the web page reads the past recent30 table.
 
 ### Version 1.1
 - 适用于Arcaea 3.2.0版本 For Arcaea 3.2.0
