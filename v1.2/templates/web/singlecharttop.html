@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Single chart top{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    <label for="sid">SID of the song</label>
+    <span>模糊查询，只返回第一个</span>
+    <span>Fuzzy query,and only return the first one.</span>
+    <input name="sid" id="sid">
+    <label for="difficulty">Difficulty</label>
+    <select name='difficulty' id='difficulty'>
+        <option value="0" selected>Past</option>
+        <option value="1">Present</option>
+        <option value="2">Future</option>
+        <option value="3">Beyond</option>
+    </select>
+    <br />
+    <input type="submit" value="Find">
+    </br>
+    </br>
+    </br>
+    {% if song_id %}
+    <div>
+        <span class="song-title">
+            {{song_id}}
+        </span>
+
+        {% if difficulty == 0 %}
+        <span class="difficulty_pst">PST</span>
+        {% elif difficulty == 1 %}
+        <span class="difficulty_prs">PRS</span>
+        {% elif difficulty == 2 %}
+        <span class="difficulty_ftr">FTR</span>
+        {% else %}
+        <span class="difficulty_byd">BYD</span>
+
+        {% endif %}
+        <br />
+        <div class="song-title">
+            {{song_name_en}}
+        </div>
+    </div>
+    {% endif %}
+    <br />
+    <hr />
+    {% for post in posts %}
+    <div class="score-item">
+        <div>
+            <span class='rank_big'>{{'#' ~ post['rank']}}</span>
+            <span class="name">
+                {{post['name']}}
+            </span>
+            <span class="rank">UID: {{post['user_id']}}</span>
+        </div>
+
+        <div class="song-detail">
+            <table>
+                <tbody>
+                    <tr>
+                        <td>PURE: </td>
+                        <td>{{post['perfect_count']}}</td>
+                        <td> {{'(' ~ post['shiny_perfect_count'] ~ ')'}}</td>
+                    </tr>
+                    <tr>
+                        <td>FAR: </td>
+                        <td>{{post['near_count']}}</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>LOST: </td>
+                        <td>{{post['miss_count']}}</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="song-score">{{post['score']}}</div>
+        <div class="song-clear-type">
+            {% if post['clear_type'] == 3 %}Pure Memory
+            {% elif post['clear_type'] == 2 %}Full Recall
+            {% elif post['clear_type'] == 5 %}Hard Clear
+            {% elif post['clear_type'] == 1 %}Normal Clear
+            {% elif post['clear_type'] == 4 %}Easy Clear
+            {% else%}Track Lost
+            {% endif %}
+            <span class="song-clear-type" style="margin-left: 1.875em;">
+                {% if post['best_clear_type'] == 3 %}(Pure Memory)
+                {% elif post['best_clear_type'] == 2 %}(Full Recall)
+                {% elif post['best_clear_type'] == 5 %}(Hard Clear)
+                {% elif post['best_clear_type'] == 1 %}(Normal Clear)
+                {% elif post['best_clear_type'] == 4 %}(Easy Clear)
+                {% else%}(Track Lost)
+                {% endif %}
+            </span>
+        </div>
+        <div class="song-clear-date">日期 Date:
+            {{post['time_played']}}
+        </div>
+    </div>
+
+    {% if not loop.last %}
+    </br>
+    {% endif %}
+    {% endfor %}
+</form>
+{% endblock %}

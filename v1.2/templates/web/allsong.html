@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}All songs{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+{% if posts %}<br />
+{% for song in posts %}
+
+<div class="score-item">
+    <span>Sid: </span>
+    <span class="song-title">{{song['song_id']}}</span>
+    <br />
+    <span>Name_en: </span>
+    <span class="song-title">{{song['name_en']}}</span>
+    <br />
+    <div>铺面定数 Chart const: </div>
+    {% if song['rating_pst'] %}
+    <span class="difficulty_pst">PST</span>
+    <span class="song-rating">{{song['rating_pst']}}</span>
+    {% endif %}
+    <br />
+    {% if song['rating_prs'] %}
+    <span class="difficulty_prs">PRS</span>
+    <span class="song-rating">{{song['rating_prs']}}</span>
+    {% endif %}
+    <br />
+    {% if song['rating_ftr'] %}
+    <span class="difficulty_ftr">FTR</span>
+    <span class="song-rating">{{song['rating_ftr']}}</span>
+    {% endif %}
+    <br />
+    {% if song['rating_byn'] %}
+    <span class="difficulty_byd">BYD</span>
+    <span class="song-rating">{{song['rating_byn']}}</span>
+    {% endif %}
+
+
+</div>
+{% if not loop.last %}
+<br />
+<hr />
+<br />
+{% endif %}
+{% endfor %}
+
+{% endif %}
+{% endblock %}
