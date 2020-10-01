@@ -12,6 +12,16 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 It is just so interesting. What it can do is under exploration.
 
 ## 更新日志 Update log
+### Version 1.2
+- 仍然适用于Arcaea 3.2.0版本 Still for Arcaea 3.2.0
+- 新增了网页管理页面，可以通过 http:// IP : HOST /web 进行访问 Add a new management webpage, you can visit http:// IP : HOST /web to use it.
+- 修改了character表结构，这将方便以后的角色更新 The character table structure has been modified, which will facilitate the character update in the future.
+- 修复了best_score表的时间记录，应该是精确到秒的Unix时间戳 Fix the time record of best_score table. It should be a UNIX timestamp accurate to seconds.
+- 修复了一个bug，recent30现在会考虑同一首歌的不同难度 Fix a bug. Now recent30 will consider different difficulties of one song.
+> 更新说明：现在你可以使用web管理页面来迁移旧数据了，后台固定账号admin，密码admin
+
+> Update note: Now you can use the web management page to migrate old data. Background account is fixed. Username is admin, and password is admin.
+
 ### Version 1.1
 - 适用于Arcaea 3.2.0版本 For Arcaea 3.2.0
 - 更新了歌曲数据库 Update the song database.
@@ -22,6 +32,7 @@ It is just so interesting. What it can do is under exploration.
 
 > Update note: If you need to do data migration, please use the original database file **arcaea_ database.db**, and use the database operation software to open the database to modify the character data. The SQL command is
 > `Update user_char set is_uncapped=1, is_uncapped_override=1 where character_id=21;`
+
 ### Version 1.0
 - 适用于Arcaea 3.1.2版本 For Arcaea 3.1.2
 
