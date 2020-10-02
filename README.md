@@ -14,7 +14,7 @@ It is just so interesting. What it can do is under exploration.
 ## 更新日志 Update log
 ### Version 1.2
 - 仍然适用于Arcaea 3.2.0版本 Still for Arcaea 3.2.0
-- 新增了网页管理页面，可以通过 http:// IP : HOST /web 进行访问 Add a new management webpage, you can visit http:// IP : HOST /web to use it.
+- 新增了网页管理页面，可以通过 http:// HOST IP : PORT /web 进行访问 Add a new management webpage, you can visit http:// HOST IP : PORT /web to use it.
 - 修改了character表结构，这将方便以后的角色更新 The character table structure has been modified, which will facilitate the character update in the future.
 - 修复了best_score表的时间记录，应该是精确到秒的Unix时间戳 Fix the time record of best_score table. It should be a UNIX timestamp accurate to seconds.
 - 修复了一个bug，recent30现在会考虑同一首歌的不同难度 Fix a bug. Now recent30 will consider different difficulties of one song.
