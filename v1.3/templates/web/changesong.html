@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Change the songs{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/web/changesong/addsong" method="post">
+    <div class="title">Add the song</div>
+    <label for="sid">SID of the song</label>
+    <input name="sid" id="sid" required>
+    <label for="name_en">English name of the song(Not important but neccessary)</label>
+    <input name="name_en" id="name_en" required>
+
+    <label for="rating_pst">Past chart const</label>
+    <input name="rating_pst" id="rating_pst" required>
+    <label for="rating_prs">Present chart const</label>
+    <input name="rating_prs" id="rating_prs" required>
+    <label for="rating_ftr">Future chart const</label>
+    <input name="rating_ftr" id="rating_ftr" required>
+    <label for="rating_byd">Beyond chart const</label>
+    <input name="rating_byd" id="rating_byd" required>
+    <div class="content">如果没有某个铺面，应该填入-1。</div>
+    <div class="content">If there is no some chart, fill in -1 please.</div>
+    <input type="submit" value="Add">
+</form>
+<br />
+<hr />
+<form action="/web/changesong/deletesong" method="post">
+    <div class="title">Delete the song</div>
+    <label for="sid">SID of the song</label>
+    <input name="sid" id="sid" required>
+
+    <input type="submit" value="Delete">
+</form>
+{% endblock %}

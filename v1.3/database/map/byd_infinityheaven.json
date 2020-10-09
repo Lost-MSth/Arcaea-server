@@ -1,0 +1,91 @@
+{
+    "map_id": "byd_infinityheaven",
+    "is_legacy": false,
+    "chapter": 1001,
+    "available_from": -1,
+    "available_to": 9999999999999,
+    "is_repeatable": false,
+    "require_id": "infinityheaven2",
+    "require_type": "chart_unlock",
+    "coordinate": "650,900",
+    "is_beyond": true,
+    "stamina_cost": 3,
+    "beyond_health": 200,
+    "character_affinity": [0, 1],
+    "affinity_multiplier": [2.5, 1.5],
+    "step_count": 9,
+    "custom_bg": "",
+    "curr_position": 0,
+    "curr_capture": 0,
+    "is_locked": false,
+    "steps": [{
+        "map_id": "byd_infinityheaven",
+        "position": 0,
+        "capture": 25
+    }, {
+        "map_id": "byd_infinityheaven",
+        "position": 1,
+        "capture": 25,
+        "items": [{
+            "type": "fragment",
+            "amount": 100
+        }]
+    }, {
+        "map_id": "byd_infinityheaven",
+        "position": 2,
+        "capture": 25,
+        "items": [{
+            "type": "fragment",
+            "amount": 100
+        }]
+    }, {
+        "map_id": "byd_infinityheaven",
+        "position": 3,
+        "capture": 25,
+        "items": [{
+            "type": "fragment",
+            "amount": 100
+        }]
+    }, {
+        "map_id": "byd_infinityheaven",
+        "position": 4,
+        "capture": 25,
+        "items": [{
+            "type": "core",
+            "id": "core_generic",
+            "amount": 2
+        }]
+    }, {
+        "map_id": "byd_infinityheaven",
+        "position": 5,
+        "capture": 25,
+        "items": [{
+            "type": "fragment",
+            "amount": 100
+        }]
+    }, {
+        "map_id": "byd_infinityheaven",
+        "position": 6,
+        "capture": 25,
+        "items": [{
+            "type": "fragment",
+            "amount": 100
+        }]
+    }, {
+        "map_id": "byd_infinityheaven",
+        "position": 7,
+        "capture": 25,
+        "items": [{
+            "type": "fragment",
+            "amount": 100
+        }]
+    }, {
+        "map_id": "byd_infinityheaven",
+        "position": 8,
+        "capture": 0,
+        "items": [{
+            "id": "infinityheaven3",
+            "type": "world_song"
+        }]
+    }]
+}

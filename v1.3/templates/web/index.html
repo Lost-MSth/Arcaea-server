@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Index{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<h1>说明 Statement</h1>
+<p>这是Arcaea Server的后台管理协助系统，可以进行一些简单的操作</br>
+    This is the background management assistance system of Arcaea Server, which can be used to do some simple
+    operations.
+</p>
+<h1>游戏方面 Game</h1>
+<a href="{{ url_for('index.single_player_score') }}">单个玩家成绩查询 Single player score</a></br></br>
+<a href="{{ url_for('index.single_player_ptt') }}">单个玩家PTT详情查询 Single player ptt</a></br></br>
+<a href="{{ url_for('index.all_player') }}">所有玩家信息查询 All players</a></br></br>
+<a href="{{ url_for('index.all_song') }}">铺面信息查询 All songs</a></br></br>
+<a href="{{ url_for('index.single_chart_top') }}">单个铺面排行榜查询 Single song chart tops</a>
+<hr>
+<h1>系统方面 System</h1>
+<a href="{{ url_for('index.update_database') }}">数据库更新 Update databases</a></br></br>
+<a href="{{ url_for('index.change_song') }}">歌曲修改 Change the songs</a>
+
+
+{% endblock %}
