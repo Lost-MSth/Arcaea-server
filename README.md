@@ -12,6 +12,15 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 It is just so interesting. What it can do is under exploration.
 
 ## 更新日志 Update log
+### Version 1.3
+- 适用于Arcaea 3.2.1版本 For Arcaea 3.2.1
+- 新增了可自定义的世界模式 Add customizable World Mode.
+- 对于官方版本，解锁几乎所有歌曲 For the official version, unlock almost all songs.
+
+> 更新说明：本次更新无法从旧版本同步数据，请使用游戏内数据同步功能上传best_score数据
+
+> Update note: In this update you cannot synchronize data from an older version. Please use the data synchronization function in game to upload best_score data.
+
 ### Version 1.2
 - 仍然适用于Arcaea 3.2.0版本 Still for Arcaea 3.2.0
 - 新增了网页管理页面，可以通过 http:// HOST IP : PORT /web 进行访问 Add a new management webpage, you can visit http:// HOST IP : PORT /web to use it.
