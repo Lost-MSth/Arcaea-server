@@ -12,6 +12,8 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 - 登录、注册 Login and registration
 - 成绩上传 Score upload
 - PTT
+- 排名 Rank
+- 好友系统 Friends
 - 数据同步 Data synchronization
 - 爬梯 Climbing steps
 - 自定义世界模式 Customizable World Mode
@@ -24,6 +26,7 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 - 角色特性 Character characteristics
 - 购买 Purchase
 - 歌曲解锁、曲包解锁 Songs unlocking and music packs unlocking
+- 反作弊系统 Anti cheating system
 - 服务器安全性保证 Server security assurance
 
 可能有问题 There may be problems：
