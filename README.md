@@ -7,45 +7,49 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 > 虽然看起来很蠢，但是可以用！
 > It looks stupid, but it works!
 
+## 特性 Features
+有 We have：
+- 登录、注册 Login and registration
+- 成绩上传 Score upload
+- PTT
+- 数据同步 Data synchronization
+- 爬梯 Climbing steps
+- 自定义世界模式 Customizable World Mode
+- 全角色立绘 All character drawings
+- 全剧情解锁 Unlock all the storys
+- 后台查分 Background search scores
+- 后台自定义歌曲定数 Customize chart consts in the background
+
+没有以下 We don't have：
+- 角色特性 Character characteristics
+- 购买 Purchase
+- 歌曲解锁、曲包解锁 Songs unlocking and music packs unlocking
+- 服务器安全性保证 Server security assurance
+
+可能有问题 There may be problems：
+- Recent 30
+
 ## 说明 Statement
 只是很有趣，用处探索中。  
 It is just so interesting. What it can do is under exploration.
 
+进行了一下项目改进，可能目录有所变化  
+Some project improvements have been made and the catalog may have changed.
+
+## 下载 Download
+[这里 Here](https://github.com/Lost-MSth/Arcaea-server/releases)
+
 ## 更新日志 Update log
+只保留最新版本 Only keep the latest version.
 ### Version 1.3
 - 适用于Arcaea 3.2.1版本 For Arcaea 3.2.1
+- 更新了歌曲数据库 Update the song database.
 - 新增了可自定义的世界模式 Add customizable World Mode.
 - 对于官方版本，解锁几乎所有歌曲 For the official version, unlock almost all songs.
 
 > 更新说明：本次更新无法从旧版本同步数据，请使用游戏内数据同步功能上传best_score数据
 
 > Update note: In this update you cannot synchronize data from an older version. Please use the data synchronization function in game to upload best_score data.
-
-### Version 1.2
-- 仍然适用于Arcaea 3.2.0版本 Still for Arcaea 3.2.0
-- 新增了网页管理页面，可以通过 http:// HOST IP : PORT /web 进行访问 Add a new management webpage, you can visit http:// HOST IP : PORT /web to use it.
-- 修改了character表结构，这将方便以后的角色更新 The character table structure has been modified, which will facilitate the character update in the future.
-- 修复了best_score表的时间记录，应该是精确到秒的Unix时间戳 Fix the time record of best_score table. It should be a UNIX timestamp accurate to seconds.
-- 修复了一个bug，recent30现在会考虑同一首歌的不同难度 Fix a bug. Now recent30 will consider different difficulties of one song.
-> 更新说明：现在你可以使用web管理页面来迁移旧数据了，后台固定账号admin，密码admin  
-> 如果使用数据迁移，那么请先清空recent30表数据，或者在迁移后打30首歌手动清除recent30，这次更新后web页面读取原来的recent30表将会报错
-
-> Update note: Now you can use the web management page to migrate old data. Background account is fixed. Username is admin, and password is admin.  
-> If you use data migration, please clear the data in the recent30 table first, or manually clear recent30 by playing 30 songs after the migration. After this update, an error will be reported when the web page reads the past recent30 table.
-
-### Version 1.1
-- 适用于Arcaea 3.2.0版本 For Arcaea 3.2.0
-- 更新了歌曲数据库 Update the song database.
-- 角色**梦**可以看到觉醒立绘了 The drawing of uncapped character **Yume** can be seen.
-- 修复了一个Bug，现在剧情可以全部解锁了 Fix a bug. Now the plot can be unlocked.
-> 更新说明：您若需要做数据迁移，请使用原来的数据库文件**arcaea_database.db**，并使用数据库操作软件打开数据库修改角色数据，SQL命令为
-> `Update user_char set is_uncapped=1, is_uncapped_override=1 where character_id=21;`  
-
-> Update note: If you need to do data migration, please use the original database file **arcaea_ database.db**, and use the database operation software to open the database to modify the character data. The SQL command is
-> `Update user_char set is_uncapped=1, is_uncapped_override=1 where character_id=21;`
-
-### Version 1.0
-- 适用于Arcaea 3.1.2版本 For Arcaea 3.1.2
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows操作系统 Windows operating system
