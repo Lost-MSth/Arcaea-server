@@ -8,7 +8,7 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 > It looks stupid, but it works!
 
 ## 特性 Features
-有 We have：
+有以下 We have：
 - 登录、注册 Login and registration
 - 成绩上传 Score upload
 - PTT
@@ -17,6 +17,7 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 - 数据同步 Data synchronization
 - 爬梯 Climbing steps
 - 自定义世界模式 Customizable World Mode
+- 自定义歌曲下载 Customizable songs download
 - 全角色立绘 All character drawings
 - 全剧情解锁 Unlock all the storys
 - 后台查分 Background search scores
@@ -36,23 +37,23 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 只是很有趣，用处探索中。  
 It is just so interesting. What it can do is under exploration.
 
-进行了一下项目改进，可能目录有所变化  
-Some project improvements have been made and the catalog may have changed.
+不太会apk反编译，想破解songlists hash验证和应用签名验证，有人教我吗（  
+I don't know APK decompilation very well. I want to crack the songlists hash verification and application signature verification. Help.
 
 ## 下载 Download
 [这里 Here](https://github.com/Lost-MSth/Arcaea-server/releases)
 
 ## 更新日志 Update log
 只保留最新版本 Only keep the latest version.
-### Version 1.3
-- 适用于Arcaea 3.2.1版本 For Arcaea 3.2.1
+### Version 1.4
+- 适用于Arcaea 3.2.2版本 For Arcaea 3.2.2
 - 更新了歌曲数据库 Update the song database.
-- 新增了可自定义的世界模式 Add customizable World Mode.
-- 对于官方版本，解锁几乎所有歌曲 For the official version, unlock almost all songs.
+- 新增自定义歌曲下载功能 Add the customizable song download function.
+- 角色**咲弥**可以看到立绘了 The drawing of character **Etude** can be seen.
 
-> 更新说明：本次更新无法从旧版本同步数据，请使用游戏内数据同步功能上传best_score数据
+> 提醒：从3.2.2版本开始，似乎有防反编译功能，重签名后Arcaea闪退
 
-> Update note: In this update you cannot synchronize data from an older version. Please use the data synchronization function in game to upload best_score data.
+> Tips: Since version 3.2.2, it seems to have anti decompilation function. After re-signing, Arcaea will immediately exit.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows操作系统 Windows operating system
