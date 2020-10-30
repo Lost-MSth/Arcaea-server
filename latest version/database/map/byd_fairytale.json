@@ -1,0 +1,45 @@
+{
+    "map_id": "byd_fairytale",
+    "is_legacy": false,
+    "chapter": 1001,
+    "available_from": -1,
+    "available_to": 9999999999999,
+    "is_repeatable": false,
+    "require_id": "fairytale2",
+    "require_type": "chart_unlock",
+    "coordinate": "400,650",
+    "is_beyond": true,
+    "stamina_cost": 3,
+    "beyond_health": 200,
+    "character_affinity": [0, 1],
+    "affinity_multiplier": [2.5, 1.5],
+    "step_count": 3,
+    "custom_bg": "",
+    "curr_position": 0,
+    "curr_capture": 0,
+    "is_locked": false,
+    "steps": [{
+        "map_id": "byd_fairytale",
+        "position": 0,
+        "capture": 100,
+        "step_type": ["speedlimit"],
+        "speed_limit_value": 65
+    }, {
+        "map_id": "byd_fairytale",
+        "position": 1,
+        "capture": 100,
+        "items": [{
+            "type": "core",
+            "id": "core_generic",
+            "amount": 4
+        }]
+    }, {
+        "map_id": "byd_fairytale",
+        "position": 2,
+        "capture": 0,
+        "items": [{
+            "id": "fairytale3",
+            "type": "world_song"
+        }]
+    }]
+}

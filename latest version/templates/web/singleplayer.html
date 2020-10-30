@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Single player score{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+    <label for="name">Arcaea Username</label>
+    <input name="name" id="name">
+    or<br />
+    <label for="user_code">Arcaea User Code</label>
+    <input name="user_code" id="user_code">
+    <input type="submit" value="Find">
+    </br>
+    </br>
+    </br>
+    {% for post in posts %}
+    <div class="score-item">
+        <span class="song-title">
+            {{post['song_id']}}
+        </span>
+        {% if post['difficulty'] == 0 %}
+        <span class="difficulty_pst">PST</span>
+        {% elif post['difficulty'] == 1 %}
+        <span class="difficulty_prs">PRS</span>
+        {% elif post['difficulty'] == 2 %}
+        <span class="difficulty_ftr">FTR</span>
+        {% else %}
+        <span class="difficulty_byd">BYD</span>
+        {% endif %}
+        <span class='rank'>{{'#' ~ post['rank']}}</span>
+
+        <div class="song-detail">
+            </br>
+            <table>
+                <tbody>
+                    <tr>
+                        <td>PURE: </td>
+                        <td>{{post['perfect_count']}}</td>
+                        <td> {{'(' ~ post['shiny_perfect_count'] ~ ')'}}</td>
+                    </tr>
+                    <tr>
+                        <td>FAR: </td>
+                        <td>{{post['near_count']}}</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>LOST: </td>
+                        <td>{{post['miss_count']}}</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="song-score">{{post['score']}}</div>
+        <div class="song-clear-type">
+            {% if post['clear_type'] == 3 %}Pure Memory
+            {% elif post['clear_type'] == 2 %}Full Recall
+            {% elif post['clear_type'] == 5 %}Hard Clear
+            {% elif post['clear_type'] == 1 %}Normal Clear
+            {% elif post['clear_type'] == 4 %}Easy Clear
+            {% else%}Track Lost
+            {% endif %}
+            <span class="song-clear-type" style="margin-left: 1.875em;">
+                {% if post['best_clear_type'] == 3 %}(Pure Memory)
+                {% elif post['best_clear_type'] == 2 %}(Full Recall)
+                {% elif post['best_clear_type'] == 5 %}(Hard Clear)
+                {% elif post['best_clear_type'] == 1 %}(Normal Clear)
+                {% elif post['best_clear_type'] == 4 %}(Easy Clear)
+                {% else%}(Track Lost)
+                {% endif %}
+            </span>
+        </div>
+        <div class="song-rating">成绩评价 Rating: {{post['rating']}}</div>
+        <div class="song-clear-date">日期 Date:
+            {{post['time_played']}}
+        </div>
+    </div>
+
+    {% if not loop.last %}
+    </br>
+    {% endif %}
+    {% endfor %}
+</form>
+{% endblock %}
