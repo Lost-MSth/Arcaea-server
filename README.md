@@ -37,8 +37,8 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 只是很有趣，用处探索中。  
 It is just so interesting. What it can do is under exploration.
 
-不太会apk反编译，想破解songlists hash验证和应用签名验证，有人教我吗（  
-I don't know APK decompilation very well. I want to crack the songlists hash verification and application signature verification. Help.
+不太会apk反编译，想破解songlists hash验证，有人教我吗（  
+I don't know APK decompilation very well. I want to crack the songlists hash verification. Help.
 
 ## 下载 Download
 [这里 Here](https://github.com/Lost-MSth/Arcaea-server/releases)
@@ -51,9 +51,9 @@ I don't know APK decompilation very well. I want to crack the songlists hash ver
 - 新增自定义歌曲下载功能 Add the customizable song download function.
 - 角色**咲弥**可以看到立绘了 The drawing of character **Etude** can be seen.
 
-> 提醒：从3.2.2版本开始，似乎有防反编译功能，重签名后Arcaea闪退
+> 提醒：反编译只对c版本有效，对谷歌版本无效
 
-> Tips: Since version 3.2.2, it seems to have anti decompilation function. After re-signing, Arcaea will immediately exit.
+> Tips: Decompilation is only valid for c version, not for Google version.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows操作系统 Windows operating system
