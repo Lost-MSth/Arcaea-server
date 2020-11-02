@@ -19,15 +19,16 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 - 自定义世界模式 Customizable World Mode
 - 自定义歌曲下载 Customizable songs download
 - 全角色立绘 All character drawings
+- 角色技能 Character skills
 - 全剧情解锁 Unlock all the storys
 - 后台查分 Background search scores
 - 后台自定义歌曲定数 Customize chart consts in the background
+- 成绩校验 Score check
 
 没有以下 We don't have：
-- 角色特性 Character characteristics
+- 角色数值 Character characteristic value
 - 购买 Purchase
 - 歌曲解锁、曲包解锁 Songs unlocking and music packs unlocking
-- 反作弊系统 Anti cheating system
 - 服务器安全性保证 Server security assurance
 
 可能有问题 There may be problems：
@@ -37,23 +38,23 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 只是很有趣，用处探索中。  
 It is just so interesting. What it can do is under exploration.
 
-不太会apk反编译，想破解songlists hash验证，有人教我吗（  
-I don't know APK decompilation very well. I want to crack the songlists hash verification. Help.
 
 ## 下载 Download
 [这里 Here](https://github.com/Lost-MSth/Arcaea-server/releases)
 
+[Arcaea](https://konmai.cn/#arcaea)
+
 ## 更新日志 Update log
 只保留最新版本 Only keep the latest version.
-### Version 1.4
-- 适用于Arcaea 3.2.2版本 For Arcaea 3.2.2
-- 更新了歌曲数据库 Update the song database.
-- 新增自定义歌曲下载功能 Add the customizable song download function.
-- 角色**咲弥**可以看到立绘了 The drawing of character **Etude** can be seen.
 
-> 提醒：反编译只对c版本有效，对谷歌版本无效
+> 提醒：更新时请注意保留原先的数据库，以防数据丢失
+>
+> Tips: When updating, please keep the original database in case of data loss.
 
-> Tips: Decompilation is only valid for c version, not for Google version.
+### Version 1.5
+- 仍然适用于Arcaea 3.2.2版本 Still for Arcaea 3.2.2
+- 新增了角色技能 Add character skills.
+- 新增了分数校验系统 Add score check system.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows操作系统 Windows operating system

@@ -62,18 +62,6 @@ def arc_register(name: str, password: str):  # 注册
         else:
             return 2000001
 
-    # def insert_user_char(c, user_id):
-    #     # 为用户添加所有可用角色
-    #     for i in range(0, 38):
-    #         if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21]:
-    #             sql = 'insert into user_char values('+str(user_id)+','+str(
-    #                 i)+''',30,25000,25000,90,90,90,'',0,0,'',0,1,1)'''
-    #             c.execute(sql)
-    #         else:
-    #             if i != 5:
-    #                 sql = 'insert into user_char values('+str(user_id)+','+str(
-    #                     i)+''',30,25000,25000,90,90,90,'',0,0,'',0,0,0)'''
-    #                 c.execute(sql)
     def insert_user_char(c, user_id):
         # 为用户添加所有可用角色
         c.execute('''select * from character''')

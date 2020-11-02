@@ -16,6 +16,8 @@ wsgi_app = app.wsgi_app
 
 
 def error_return(error_code):  # 错误返回
+    # 2 Arcaea服务器正在维护
+    # 5 请更新Arcaea到最新版本
     # 100 无法在此ip地址下登录游戏
     # 101 用户名占用
     # 102 电子邮箱已注册
@@ -307,6 +309,8 @@ def song_score_post():
     headers = request.headers
     token = headers['Authorization']
     token = token[7:]
+    song_token = request.form['song_token']
+    song_hash = request.form['song_hash']
     song_id = request.form['song_id']
     difficulty = int(request.form['difficulty'])
     score = int(request.form['score'])
@@ -318,10 +322,15 @@ def song_score_post():
     modifier = int(request.form['modifier'])
     beyond_gauge = int(request.form['beyond_gauge'])
     clear_type = int(request.form['clear_type'])
+    submission_hash = request.form['submission_hash']
 
     try:
         user_id = server.auth.token_get_id(token)
         if user_id is not None:
+            # 增加成绩校验
+            if not server.arcscore.arc_score_check(user_id, song_id, difficulty, score, shiny_perfect_count, perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type, song_token, song_hash, submission_hash):
+                return error_return(107)
+
             r, re = server.arcscore.arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count,
                                                    perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type)
             if r:

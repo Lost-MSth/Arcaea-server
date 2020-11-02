@@ -2,6 +2,7 @@ import sqlite3
 import time
 import json
 import server.arcworld
+import hashlib
 
 
 def b2int(x):
@@ -18,6 +19,16 @@ def int2b(x):
         return False
     else:
         return True
+
+
+def md5(code):
+    # md5加密算法
+    code = code.encode()
+    md5s = hashlib.md5()
+    md5s.update(code)
+    codes = md5s.hexdigest()
+
+    return codes
 
 
 def get_score(c, user_id, song_id, difficulty):
@@ -478,6 +489,29 @@ def arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count, per
     conn.commit()
     conn.close()
     return ptt, re
+
+
+def arc_score_check(user_id, song_id, difficulty, score, shiny_perfect_count, perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type, song_token, song_hash, submission_hash):
+    # 分数校验，返回布尔值
+    if shiny_perfect_count < 0 or perfect_count < 0 or near_count < 0 or miss_count < 0 or score < 0:
+        return False
+    if difficulty not in [0, 1, 2, 3]:
+        return False
+
+    all_note = perfect_count + near_count + miss_count
+    ascore = 10000000 / all_note * \
+        (perfect_count + near_count/2) + shiny_perfect_count
+    if abs(ascore - score) >= 5:
+        return False
+
+    x = song_token + song_hash + song_id + str(difficulty) + str(score) + str(shiny_perfect_count) + str(
+        perfect_count) + str(near_count) + str(miss_count) + str(health) + str(modifier) + str(clear_type)
+    y = str(user_id) + song_hash
+    checksum = md5(x+md5(y))
+    if checksum != submission_hash:
+        return False
+
+    return True
 
 
 def arc_all_post(user_id, scores_data, clearlamps_data):
