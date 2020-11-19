@@ -24,6 +24,7 @@
             <span class="rank">User code: {{user['user_code']}}</span>
         </div>
         <div class="join-date">注册于 Registered in: {{user['join_date']}}</div>
+        <div class="ptt">Memories: {{user['ticket']}}</div>
         <div class="ptt">PTT: {{user['rating_ptt']//100 ~ '.' ~ user['rating_ptt']%100}}</div>
         <div class="ptt">Best 30 PTT: {{bestptt}}</div>
         <div class="ptt">Recent 10 PTT: {{recentptt}}</div>

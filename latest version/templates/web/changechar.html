@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Change the characters{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/web/changesong/editchar" method="post">
+    <div class="title">Edit the character</div>
+    <label for="id">ID of the character</label>
+    <input name="id" id="sid" required>
+
+    <label for="level">Level</label>
+    <input name="level" id="level">
+
+    <label for="frag">Frag</label>
+    <input name="frag" id="frag">
+
+    <label for="prog">Prog</label>
+    <input name="prog" id="prog">
+
+    <label for="overdrive">Overdrive</label>
+    <input name="overdrive" id="overdrive">
+
+    <div>
+        <select name="skill_id">
+            <option value="">Skill id</option>
+            {% for skill_id in skill_ids %}
+            <option value={{ skill_id }}>{{ skill_id }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <select name="skill_id_uncap">
+            <option value="">Uncapped skill id</option>
+            {% for skill_id in skill_ids %}
+            <option value={{ skill_id }}>{{ skill_id }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <br />
+    <div class="content">如果某些不需要修改，留空即可</div>
+    <div class="content">If some things do not need to be modified, leave it blank.</div>
+    <div class="content">更新时角色数据表不会同步</div>
+    <div class="content">The character table will not be synchronized when updated.</div>
+    <input type="submit" value="Edit">
+</form>
+<br />
+<hr />
+<form action="/web/changesong/updatechar" method="post">
+    <div class="title">Update the character</div>
+    <div class="content">更新所有用户拥有的角色</div>
+    <div class="content">Update all users' characters.</div>
+    <input type="submit" value="Update">
+</form>
+{% endblock %}

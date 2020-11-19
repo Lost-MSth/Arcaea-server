@@ -157,7 +157,8 @@ def all_player():
                           'miss_count': i[17],
                           'time_played': time_played,
                           'clear_type': i[21],
-                          'rating': i[22]
+                          'rating': i[22],
+                          'ticket': i[26]
                           })
     else:
         error = '没有玩家数据 No player data.'
@@ -358,3 +359,213 @@ def delete_song():
         flash(error)
 
     return redirect(url_for('index.change_song'))
+
+
+@bp.route('/allchar', methods=['GET'])
+@login_required
+def all_character():
+    # 所有角色数据
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    c.execute('''select * from character''')
+    x = c.fetchall()
+    error = None
+    if x:
+        posts = []
+        for i in x:
+            posts.append({'character_id': i[0],
+                          'name': i[1],
+                          'level': i[2],
+                          'frag': i[5],
+                          'prog': i[6],
+                          'overdrive': i[7],
+                          'skill_id': i[8],
+                          'skill_id_uncap': i[11],
+                          'char_type': i[12],
+                          'is_uncapped': i[14] == 1
+                          })
+    else:
+        error = '没有角色数据 No character data.'
+
+    conn.commit()
+    conn.close()
+    if error:
+        flash(error)
+        return render_template('web/allchar.html')
+    else:
+        return render_template('web/allchar.html', posts=posts)
+
+
+@bp.route('/changechar', methods=['GET'])
+@login_required
+def change_character():
+    # 修改角色数据
+    skill_ids = ['No_skill', 'gauge_easy', 'note_mirror', 'gauge_hard', 'frag_plus_10_pack_stellights', 'gauge_easy|frag_plus_15_pst&prs', 'gauge_hard|fail_frag_minus_100', 'frag_plus_5_side_light', 'visual_hide_hp', 'frag_plus_5_side_conflict', 'challenge_fullcombo_0gauge', 'gauge_overflow', 'gauge_easy|note_mirror', 'note_mirror', 'visual_tomato_pack_tonesphere',
+                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume']
+    return render_template('web/changechar.html', skill_ids=skill_ids)
+
+
+@bp.route('/changesong/editchar', methods=['POST'])
+@login_required
+def edit_char():
+    # 修改角色数据
+
+    error = None
+
+    try:
+        character_id = int(request.form['id'])
+        level = request.form['level']
+        frag = request.form['frag']
+        prog = request.form['prog']
+        overdrive = request.form['overdrive']
+        skill_id = request.form['skill_id']
+        skill_id_uncap = request.form['skill_id_uncap']
+        if level:
+            level = int(level)
+        else:
+            level = None
+        if frag:
+            frag = float(frag)
+        else:
+            frag = None
+        if prog:
+            prog = float(prog)
+        else:
+            prog = None
+        if overdrive:
+            overdrive = float(overdrive)
+        else:
+            overdrive = None
+    except:
+        error = '数据错误 Wrong data.'
+        flash(error)
+        return redirect(url_for('index.change_character'))
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    c.execute(
+        '''select exists(select * from character where character_id=:a)''', {'a': character_id})
+    if c.fetchone() == (1,):
+        if not level and not frag and not prog and not overdrive and not skill_id and not skill_id_uncap:
+            error = '无修改 No change.'
+        else:
+
+            sql = '''update character set level_exp=25000'''
+            sql_dict = {'character_id': character_id}
+            if level:
+                sql += ', level = :level'
+                sql_dict['level'] = level
+            if frag:
+                sql += ', frag = :frag'
+                sql_dict['frag'] = frag
+            if prog:
+                sql += ', prog = :prog'
+                sql_dict['prog'] = prog
+            if overdrive:
+                sql += ', overdrive = :overdrive'
+                sql_dict['overdrive'] = overdrive
+            if skill_id:
+                sql += ', skill_id = :skill_id'
+                if skill_id == 'No_skill':
+                    sql_dict['skill_id'] = ''
+                else:
+                    sql_dict['skill_id'] = skill_id
+            if skill_id_uncap:
+                sql += ', skill_id_uncap = :skill_id_uncap'
+                if skill_id_uncap == 'No_skill':
+                    sql_dict['skill_id_uncap'] = ''
+                else:
+                    sql_dict['skill_id_uncap'] = skill_id_uncap
+            sql += ' where character_id = :character_id'
+            c.execute(sql, sql_dict)
+            flash('角色修改成功 Successfully edit the character.')
+    else:
+        error = '角色不存在 The character does not exist.'
+
+    conn.commit()
+    conn.close()
+
+    if error:
+        flash(error)
+
+    return redirect(url_for('index.change_character'))
+
+
+@bp.route('/changesong/updatechar', methods=['POST'])
+@login_required
+def update_character():
+    # 更新角色数据
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    web.system.update_user_char(c)
+    conn.commit()
+    conn.close()
+
+    flash('数据更新成功 Success update data.')
+    return redirect(url_for('index.change_character'))
+
+
+@bp.route('/changeuser', methods=['GET'])
+@login_required
+def change_user():
+    # 修改用户信息
+
+    return render_template('web/changeuser.html')
+
+
+@bp.route('/changeuser/edituser', methods=['POST'])
+@login_required
+def edit_user():
+    # 修改用户数据
+
+    error = None
+    name = request.form['name']
+    user_code = request.form['user_code']
+
+    if name or user_code:
+        conn = sqlite3.connect('./database/arcaea_database.db')
+        c = conn.cursor()
+        if user_code:
+            c.execute('''select user_id from user where user_code=:a''', {
+                'a': user_code})
+        else:
+            c.execute(
+                '''select user_id from user where name=:a''', {'a': name})
+
+        user_id = c.fetchone()
+        posts = []
+        if user_id:
+            user_id = user_id[0]
+            try:
+                ticket = request.form['ticket']
+                if ticket:
+                    ticket = int(ticket)
+                else:
+                    ticket = None
+            except:
+                error = '数据错误 Wrong data.'
+                flash(error)
+                return redirect(url_for('index.change_user'))
+
+            if not ticket:
+                error = '无修改 No change.'
+            else:
+                sql = '''update user set ticket = :ticket where user_id = :user_id'''
+                sql_dict = {'ticket': ticket, 'user_id': user_id}
+                c.execute(sql, sql_dict)
+                flash('用户信息修改成功 Successfully edit the user information.')
+
+        else:
+            error = '玩家不存在 The player does not exist.'
+
+    else:
+        error = '输入为空 Null Input.'
+
+    conn.commit()
+    conn.close()
+
+    if error:
+        flash(error)
+
+    return redirect(url_for('index.change_user'))

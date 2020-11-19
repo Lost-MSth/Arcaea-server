@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}All characters{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+{% if posts %}<br />
+{% for char in posts %}
+
+<div class="char-item">
+    <span>Id: </span>
+    <span class="char-id">{{char['character_id']}}</span>
+    <br />
+
+    <span>Name: </span>
+    <span class="char-name">{{char['name']}}</span>
+    <br />
+
+    <span>Level: </span>
+    <span class="char-num">{{char['level']}}</span>
+    <br />
+
+    <span>Frag: </span>
+    <span class="char-num">{{char['frag']}}</span>
+    <br />
+
+    <span>Prog: </span>
+    <span class="char-num">{{char['prog']}}</span>
+    <br />
+
+    <span>Overdrive: </span>
+    <span class="char-num">{{char['overdrive']}}</span>
+    <br />
+
+    <span>Skill id: </span>
+    <span class="char-num">{{char['skill_id']}}</span>
+    <br />
+
+    <span>Uncapped skill id: </span>
+    <span class="char-num">{{char['skill_id_uncap']}}</span>
+    <br />
+
+    <span>Is uncapped: </span>
+    <span class="char-num">{{char['is_uncapped']}}</span>
+    <br />
+
+
+
+
+</div>
+{% if not loop.last %}
+<br />
+<hr />
+<br />
+{% endif %}
+{% endfor %}
+
+{% endif %}
+{% endblock %}

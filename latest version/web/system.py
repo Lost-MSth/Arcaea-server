@@ -2,6 +2,111 @@ import os
 import sqlite3
 
 
+def get_table_info(c, table_name):
+    # 得到表结构，返回主键列表和字段名列表
+    pk = []
+    name = []
+
+    c.execute('''pragma table_info ("'''+table_name+'''")''')
+    x = c.fetchall()
+    if x:
+        for i in x:
+            name.append(i[1])
+            if i[5] != 0:
+                pk.append(i[1])
+
+    return pk, name
+
+
+def get_sql_select_table(table_name, get_field, where_field=[], where_value=[]):
+    # sql语句拼接，select ... from ... where ...
+    sql = 'select '
+    sql_dict = {}
+    if len(get_field) >= 2:
+        sql += get_field[0]
+        for i in range(1, len(get_field)):
+            sql += ',' + get_field[i]
+        sql += ' from ' + table_name
+    elif len(get_field) == 1:
+        sql += get_field[0] + ' from ' + table_name
+    else:
+        sql += '* from ' + table_name
+
+    if where_field and where_value:
+        sql += ' where '
+        sql += where_field[0] + '=:' + where_field[0]
+        sql_dict[where_field[0]] = where_value[0]
+        if len(where_field) >= 1:
+            for i in range(1, len(where_field)):
+                sql_dict[where_field[i]] = where_value[i]
+                sql += ' and ' + where_field[i] + '=:' + where_field[i]
+
+    sql += ' order by rowid'
+    return sql, sql_dict
+
+
+def get_sql_insert_table(table_name, field, value):
+    # sql语句拼接，insert into ...(...) values(...)
+    sql = 'insert into ' + table_name + '('
+    sql_dict = {}
+    sql2 = ''
+    if len(field) >= 2:
+        sql += field[0]
+        sql2 += ':' + field[0]
+        sql_dict[field[0]] = value[0]
+        for i in range(1, len(field)):
+            sql += ',' + field[i]
+            sql2 += ', :' + field[i]
+            sql_dict[field[i]] = value[i]
+
+        sql += ') values('
+
+    elif len(field) == 1:
+        sql += field[0] + ') values('
+        sql2 += ':' + field[0]
+        sql_dict[field[0]] = value[0]
+
+    else:
+        return 'error', {}
+
+    sql += sql2 + ')'
+
+    return sql, sql_dict
+
+
+def update_one_table(c1, c2, table_name):
+    # 从c1向c2更新数据表，c2中存在的信息不变
+    db1_pk, db1_name = get_table_info(c1, table_name)
+    db2_pk, db2_name = get_table_info(c2, table_name)
+    if db1_pk != db2_pk:
+        return 'error'
+
+    field = []
+    for i in db1_name:
+        if i in db2_name:
+            field.append(i)
+
+    sql, sql_dict = get_sql_select_table(table_name, db1_pk)
+    c1.execute(sql)
+    x = c1.fetchall()
+    sql, sql_dict = get_sql_select_table(table_name, field)
+    c1.execute(sql)
+    y = c1.fetchall()
+    if x:
+        for i in range(0, len(x)):
+            sql, sql_dict = get_sql_select_table(
+                table_name, [], db1_pk, list(x[i]))
+            sql = 'select exists(' + sql + ')'
+            c2.execute(sql, sql_dict)
+
+            if c2.fetchone() == (0,):
+                sql, sql_dict = get_sql_insert_table(
+                    table_name, field, list(y[i]))
+                c2.execute(sql, sql_dict)
+
+    return None
+
+
 def update_user_char(c):
     # 用character数据更新user_char
     c.execute('''select * from character''')
@@ -27,62 +132,14 @@ def update_database():
         conn2 = sqlite3.connect('./database/arcaea_database.db')
         c2 = conn2.cursor()
 
-        # user
-        c1.execute('''select * from user''')
-        x = c1.fetchall()
-        if x:
-            for i in x:
-                c2.execute(
-                    '''select exists(select * from user where user_id=:a)''', {'a': i[0]})
-                if c2.fetchone() == (0,):
-                    c2.execute('''insert into user values(:a0,:a1,:a2,:a3,:a4,:a5,:a6,:a7,:a8,:a9,:a10,:a11,:a12,:a13,:a14,:a15,:a16,:a17,:a18,:a19,:a20,:a21,:a22,:a23,:a24,:a25)''', {
-                        'a0': i[0], 'a1': i[1], 'a2': i[2], 'a3': i[3], 'a4': i[4], 'a5': i[5], 'a6': i[6], 'a7': i[7], 'a8': i[8], 'a9': i[9], 'a10': i[10], 'a11': i[11], 'a12': i[12], 'a13': i[13], 'a14': i[14], 'a15': i[15], 'a16': i[16], 'a17': i[17], 'a18': i[18], 'a19': i[19], 'a20': i[20], 'a21': i[21], 'a22': i[22], 'a23': i[23], 'a24': i[24], 'a25': i[25]})
-
-        # friend
-        c1.execute('''select * from friend''')
-        x = c1.fetchall()
-        if x:
-            for i in x:
-                c2.execute(
-                    '''select exists(select * from friend where user_id_me=:a and user_id_other=:b)''', {'a': i[0], 'b': i[1]})
-                if c2.fetchone() == (0,):
-                    c2.execute('''insert into friend values(:a,:b)''', {
-                               'a': i[0], 'b': i[1]})
-
-        # best_score
-        c1.execute('''select * from best_score''')
-        x = c1.fetchall()
-        if x:
-            for i in x:
-                c2.execute('''select exists(select * from best_score where user_id=:a and song_id=:b and difficulty=:c)''', {
-                           'a': i[0], 'b': i[1], 'c': i[2]})
-                if c2.fetchone() == (0,):
-                    c2.execute('''insert into best_score values(:a0,:a1,:a2,:a3,:a4,:a5,:a6,:a7,:a8,:a9,:a10,:a11,:a12,:a13)''', {
-                        'a0': i[0], 'a1': i[1], 'a2': i[2], 'a3': i[3], 'a4': i[4], 'a5': i[5], 'a6': i[6], 'a7': i[7], 'a8': i[8], 'a9': i[9], 'a10': i[10], 'a11': i[11], 'a12': i[12], 'a13': i[13]})
-
-        # recent30
-        c1.execute('''select * from recent30''')
-        x = c1.fetchall()
-        if x:
-            for i in x:
-                c2.execute(
-                    '''select exists(select * from recent30 where user_id=:a)''', {'a': i[0]})
-                if c2.fetchone() == (0,):
-                    c2.execute('''insert into recent30 values(:a0,:a1,:a2,:a3,:a4,:a5,:a6,:a7,:a8,:a9,:a10,:a11,:a12,:a13,:a14,:a15,:a16,:a17,:a18,:a19,:a20,:a21,:a22,:a23,:a24,:a25,:a26,:a27,:a28,:a29,:a30,:a31,:a32,:a33,:a34,:a35,:a36,:a37,:a38,:a39,:a40,:a41,:a42,:a43,:a44,:a45,:a46,:a47,:a48,:a49,:a50,:a51,:a52,:a53,:a54,:a55,:a56,:a57,:a58,:a59,:a60)''', {'a0': i[0], 'a1': i[1], 'a2': i[2], 'a3': i[3], 'a4': i[4], 'a5': i[5], 'a6': i[6], 'a7': i[7], 'a8': i[8], 'a9': i[9], 'a10': i[10], 'a11': i[11], 'a12': i[12], 'a13': i[13], 'a14': i[14], 'a15': i[15], 'a16': i[16], 'a17': i[17], 'a18': i[
-                        18], 'a19': i[19], 'a20': i[20], 'a21': i[21], 'a22': i[22], 'a23': i[23], 'a24': i[24], 'a25': i[25], 'a26': i[26], 'a27': i[27], 'a28': i[28], 'a29': i[29], 'a30': i[30], 'a31': i[31], 'a32': i[32], 'a33': i[33], 'a34': i[34], 'a35': i[35], 'a36': i[36], 'a37': i[37], 'a38': i[38], 'a39': i[39], 'a40': i[40], 'a41': i[41], 'a42': i[42], 'a43': i[43], 'a44': i[44], 'a45': i[45], 'a46': i[46], 'a47': i[47], 'a48': i[48], 'a49': i[49], 'a50': i[50], 'a51': i[51], 'a52': i[52], 'a53': i[53], 'a54': i[54], 'a55': i[55], 'a56': i[56], 'a57': i[57], 'a58': i[58], 'a59': i[59], 'a60': i[60]})
-
-        # user_world
-        c1.execute('''select * from user_world''')
-        x = c1.fetchall()
-        if x:
-            for i in x:
-                c2.execute(
-                    '''select exists(select * from user_world where user_id=:a and map_id=:b)''', {'a': i[0], 'b': i[1]})
-                if c2.fetchone() == (0,):
-                    c2.execute('''insert into user_world values(:a0,:a1,:a2,:a3,:a4)''', {
-                               'a0': i[0], 'a1': i[1], 'a2': i[2], 'a3': i[3], 'a4': i[4]})
+        update_one_table(c1, c2, 'user')
+        update_one_table(c1, c2, 'friend')
+        update_one_table(c1, c2, 'best_score')
+        update_one_table(c1, c2, 'recent30')
+        update_one_table(c1, c2, 'user_world')
 
         update_user_char(c2)
+
         conn1.commit()
         conn1.close()
         conn2.commit()
@@ -96,15 +153,7 @@ def update_database():
         conn2 = sqlite3.connect('./database/arcsong.db')
         c2 = conn2.cursor()
 
-        c1.execute('''select * from songs''')
-        x = c1.fetchall()
-        if x:
-            for i in x:
-                c2.execute(
-                    '''select exists(select * from songs where sid=:a)''', {'a': i[0]})
-                if c2.fetchone() == (0,):
-                    c2.execute('''insert into songs values(:a0,:a1,:a2,:a3,:a4,:a5,:a6,:a7,:a8,:a9,:a10,:a11,:a12,:a13,:a14,:a15,:a16,:a17,:a18,:a19,:a20,:a21,:a22,:a23,:a24,:a25,:a26,:a27)''', {'a0': i[0], 'a1': i[1], 'a2': i[2], 'a3': i[3], 'a4': i[4], 'a5': i[5], 'a6': i[6], 'a7': i[7], 'a8': i[
-                               8], 'a9': i[9], 'a10': i[10], 'a11': i[11], 'a12': i[12], 'a13': i[13], 'a14': i[14], 'a15': i[15], 'a16': i[16], 'a17': i[17], 'a18': i[18], 'a19': i[19], 'a20': i[20], 'a21': i[21], 'a22': i[22], 'a23': i[23], 'a24': i[24], 'a25': i[25], 'a26': i[26], 'a27': i[27]})
+        update_one_table(c1, c2, 'songs')
 
         conn1.commit()
         conn1.close()

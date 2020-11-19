@@ -139,7 +139,7 @@ def get_value_0(c, user_id):
              "name": x[1],
              "user_code": x[4],
              "display_name": x[1],
-             "ticket": 114514,
+             "ticket": x[26],
              "character": x[6],
              "is_locked_name_duplicate": False,
              "is_skill_sealed": int2b(x[7]),
@@ -149,8 +149,8 @@ def get_value_0(c, user_id):
              "max_stamina_ts": 1586274871917,
              "stamina": 12,
              "world_unlocks": [],
-             "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis"],
-             "singles": ["dataerror", "yourvoiceso", "crosssoul", "impurebird", "auxesia", "modelista", "yozakurafubuki", "surrender", "metallicpunisher", "carminescythe", "bethere", "callmyname", "fallensquare", "dropdead", "alexandrite", "astraltale", "phantasia", "empireofwinter", "libertas", "dottodot", "dreadnought", "mirzam", "heavenlycaress", "filament", "avantraze", "battlenoone", "saikyostronger", "izana", "einherjar", "laqryma", "amygdata", "altale", "feelssoright", "scarletcage", "teriqma", "mahoroba", "badtek", "maliciousmischance", "buchigireberserker", "galaxyfriends", "buchigireberserker2", "xeraphinite"],
+             "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream"],
+             "singles": ["dataerror", "yourvoiceso", "crosssoul", "impurebird", "auxesia", "modelista", "yozakurafubuki", "surrender", "metallicpunisher", "carminescythe", "bethere", "callmyname", "fallensquare", "dropdead", "alexandrite", "astraltale", "phantasia", "empireofwinter", "libertas", "dottodot", "dreadnought", "mirzam", "heavenlycaress", "filament", "avantraze", "battlenoone", "saikyostronger", "izana", "einherjar", "laqryma", "amygdata", "altale", "feelssoright", "scarletcage", "teriqma", "mahoroba", "badtek", "maliciousmischance", "buchigireberserker", "galaxyfriends", "buchigireberserker2", "xeraphinite", "xanatos"],
              "packs": ["vs", "extend", "dynamix", "prelude", "core", "yugamu", "omatsuri", "zettai", "mirai", "shiawase", "chunithm", "nijuusei", "groovecoaster", "rei", "tonesphere", "lanota"],
              "characters": characters,
              "cores": [],
@@ -180,7 +180,6 @@ def arc_aggregate_small(user_id):
 
 def arc_aggregate_big(user_id):
     # 返回用户数据和地图歌曲信息
-    # 因为没有整理地图和曲包数据（不需要世界模式），所以直接复制了
 
     conn = sqlite3.connect('./database/arcaea_database.db')
     c = conn.cursor()

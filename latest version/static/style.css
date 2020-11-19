@@ -210,8 +210,28 @@ input[type=submit] {
     font-weight: bold;
 }
 
-.footer{
+.footer {
     font-size: 0.5em;
     color: grey;
     text-align: center;
+}
+
+.char-item {
+    margin-bottom: 10px;
+    clear: both;
+}
+
+.char-name {
+    font-size: 1.3em;
+    font-weight: bold;
+    display: inline-block;
+}
+
+.char-id {
+    font-size: 1em;
+    display: inline-block;
+}
+
+.char-num {
+    font-size: 1em;
 }

@@ -64,7 +64,8 @@ def get_user(c, user_id):
              'miss_count': x[17],
              'time_played': time_played,
              'clear_type': x[21],
-             'rating': x[22]
+             'rating': x[22],
+             'ticket': x[26]
              }
 
     return r

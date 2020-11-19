@@ -31,7 +31,8 @@ clear_type int,
 rating real,
 favorite_character int,
 max_stamina_notification_enabled int,
-current_map text
+current_map text,
+ticket int
 );''')
 c.execute('''create table if not exists login(access_token text,
 user_id int,
@@ -243,8 +244,8 @@ def arc_register(name: str, password: str):
         user_id = build_user_id(c)
         now = int(time.time() * 1000)
         c.execute('''insert into user(user_id, name, password, join_date, user_code, rating_ptt, 
-        character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, is_hide_rating, favorite_character, max_stamina_notification_enabled, current_map)
-        values(:user_id, :name, :password, :join_date, :user_code, 1250, 1, 0, 1, 0, 0, -1, 0, '')
+        character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, is_hide_rating, favorite_character, max_stamina_notification_enabled, current_map, ticket)
+        values(:user_id, :name, :password, :join_date, :user_code, 1250, 1, 0, 1, 0, 0, -1, 0, '', 114514)
         ''', {'user_code': user_code, 'user_id': user_id, 'join_date': now, 'name': name, 'password': hash_pwd})
         c.execute('''insert into recent30(user_id) values(:user_id)''', {
                   'user_id': user_id})

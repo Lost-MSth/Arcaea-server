@@ -20,7 +20,8 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 - 自定义歌曲下载 Customizable songs download
 - 全角色立绘 All character drawings
 - 角色技能 Character skills
-- 全剧情解锁 Unlock all the storys
+- 自定义角色属性 Customizable characters attributes
+- 全剧情解锁 Unlock all the stories
 - 后台查分 Background search scores
 - 后台自定义歌曲定数 Customize chart consts in the background
 - 成绩校验 Score check
@@ -29,6 +30,7 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 - 角色数值 Character characteristic value
 - 购买 Purchase
 - 歌曲解锁、曲包解锁 Songs unlocking and music packs unlocking
+- 数据同步的时间和设备记录 The record of time and device for data synchronization 
 - 服务器安全性保证 Server security assurance
 
 可能有问题 There may be problems：
@@ -51,10 +53,13 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss.
 
-### Version 1.5
-- 仍然适用于Arcaea 3.2.2版本 Still for Arcaea 3.2.2
-- 新增了角色技能 Add character skills.
-- 新增了分数校验系统 Add score check system.
+### Version 1.6
+- 适用于Arcaea 3.2.3版本 For Arcaea 3.2.3
+- 更新了歌曲数据库 Update the song database.
+- 新增了自定义角色属性 Add customizable characters attributes.
+- 用户的记忆源点可以修改了，但仍然没有实际用途 The users' memories can be modified, but still is of no practical use.
+- 网页端安全性增强，用户名及密码可修改 The security of webpage is enhanced, and the username and password can be modified now.
+- 改进了数据库更新方式，可以一定程度上应对数据表结构修改 The method of database updating is improved, which can deal with the modification of data table structure to some extent.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows操作系统 Windows operating system

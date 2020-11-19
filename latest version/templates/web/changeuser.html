@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Change user information{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/web/changeuser/edituser" method="post">
+    <div class="title">Edit the user</div>
+    <label for="name">Arcaea Username</label>
+    <input name="name" id="name">
+    or<br />
+    <label for="user_code">Arcaea User Code</label>
+    <input name="user_code" id="user_code">
+    <br />
+    <br />
+
+    <label for="ticket">Memories</label>
+    <input name="ticket" id="ticket">
+
+
+    <br />
+    <div class="content">如果某些不需要修改，留空即可</div>
+    <div class="content">If some things do not need to be modified, leave it blank.</div>
+    <div class="content">目前只支持修改记忆源点</div>
+    <div class="content">At present, only memories can be modified.</div>
+    <input type="submit" value="Edit">
+</form>
+{% endblock %}
