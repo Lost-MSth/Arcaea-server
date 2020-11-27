@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}All items{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+{% if posts %}<br />
+{% for item in posts %}
+
+<div class="char-item">
+    <span>Id: </span>
+    <span class="name">{{item['item_id']}}</span>
+    <br />
+
+    <span>Type: </span>
+    <span class="char-num">{{item['type']}}</span>
+    <br />
+
+    <span>Is available: </span>
+    <span class="char-num">{{item['is_available']}}</span>
+    <br />
+
+    <span>Price: </span>
+    <span class="char-num">{{item['price']}}</span>
+    <br />
+
+    <span>Original price: </span>
+    <span class="char-num">{{item['orig_price']}}</span>
+    <br />
+
+    <span>Discount from: </span>
+    <span class="char-num">{{item['discount_from']}}</span>
+    <br />
+
+    <span>Discount to: </span>
+    <span class="char-num">{{item['discount_to']}}</span>
+    <br />
+
+
+
+
+</div>
+{% if not loop.last %}
+<br />
+<hr />
+<br />
+{% endif %}
+{% endfor %}
+
+{% endif %}
+{% endblock %}

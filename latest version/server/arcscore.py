@@ -1390,7 +1390,18 @@ def arc_all_get(user_id):
             }, {
                 "complete": 1,
                 "unlock_key": "dreaminattraction|1|0"
-            }]
+            }, {
+                "complete": 1,
+                "unlock_key": "buchigireberserker|2|0"
+            }, {
+                "complete": 1,
+                "unlock_key": "gothiveofra|2|0"
+            }, {
+                "complete": 1,
+                "unlock_key": "gothiveofra|1|0"
+            }
+
+            ]
         }, "clearedsongs": {
             "": song_1
         },

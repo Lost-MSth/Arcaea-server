@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Change user purchase information{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/web/changeuserpurchase/edituser" method="post">
+    <div class="title">Edit the user</div>
+    <label for="name">Arcaea Username</label>
+    <input name="name" id="name">
+    or<br />
+    <label for="user_code">Arcaea User Code</label>
+    <input name="user_code" id="user_code">
+    <br />
+    <br />
+
+    <div>对所有单曲和曲包的操作 Operation to all singles and packs:
+        <br />
+        <br />
+        <label><input type="radio" name="method" value="0">解锁 Unlock</label>
+        <br />
+        <label><input type="radio" name="method" value="1">封绝 Lock</label>
+    </div>
+
+
+    <br />
+    <input type="submit" value="Execute">
+</form>
+<br />
+<hr />
+<form action="/web/changeuserpurchase/" method="post">
+    <div class="title">Edit all the users</div>
+    <br />
+    <div>对所有单曲和曲包的操作 Operation to all singles and packs:
+        <br />
+        <br />
+        <label><input type="radio" name="method" value="0">解锁 Unlock</label>
+        <br />
+        <label><input type="radio" name="method" value="1">封绝 Lock</label>
+    </div>
+    <br />
+    <input type="submit" value="Execute">
+</form>
+{% endblock %}

@@ -1,5 +1,14 @@
 import os
 import sqlite3
+import time
+
+
+def int2b(x):
+    # int与布尔值转换
+    if x is None or x == 0:
+        return False
+    else:
+        return True
 
 
 def get_table_info(c, table_name):
@@ -76,6 +85,13 @@ def get_sql_insert_table(table_name, field, value):
 
 def update_one_table(c1, c2, table_name):
     # 从c1向c2更新数据表，c2中存在的信息不变
+    c1.execute(
+        '''select * from sqlite_master where type = 'table' and name = :a''', {'a': table_name})
+    c2.execute(
+        '''select * from sqlite_master where type = 'table' and name = :a''', {'a': table_name})
+    if not c1.fetchone() or not c2.fetchone():
+        return 'error'
+
     db1_pk, db1_name = get_table_info(c1, table_name)
     db2_pk, db2_name = get_table_info(c2, table_name)
     if db1_pk != db2_pk:
@@ -124,7 +140,7 @@ def update_user_char(c):
 
 def update_database():
     # 将old数据库不存在数据加入到新数据库上，并删除old数据库
-    # 对于arcaea_datebase.db，更新best_score，friend，recent30，user，user_world并用character数据更新user_char
+    # 对于arcaea_datebase.db，更新best_score，friend，recent30，user，user_world, user_item并用character数据更新user_char
     # 对于arcsong.db，更新songs
     if os.path.isfile("database/old_arcaea_database.db") and os.path.isfile("database/arcaea_database.db"):
         conn1 = sqlite3.connect('./database/old_arcaea_database.db')
@@ -137,6 +153,7 @@ def update_database():
         update_one_table(c1, c2, 'best_score')
         update_one_table(c1, c2, 'recent30')
         update_one_table(c1, c2, 'user_world')
+        update_one_table(c1, c2, 'user_item')
 
         update_user_char(c2)
 
@@ -160,3 +177,69 @@ def update_database():
         conn2.commit()
         conn2.close()
         os.remove('database/old_arcsong.db')
+
+
+def unlock_all_user_item(c):
+    # 解锁所有用户购买
+
+    c.execute('''select user_id from user''')
+    x = c.fetchall()
+    c.execute('''select item_id, type from item''')
+    y = c.fetchall()
+    c.execute('''delete from user_item''')
+    if x and y:
+        for i in x:
+            for j in y:
+                c.execute('''insert into user_item values(:a,:b,:c)''', {
+                    'a': i[0], 'b': j[0], 'c': j[1]})
+
+    return
+
+
+def unlock_user_item(c, user_id):
+    # 解锁用户购买
+
+    c.execute('''select item_id, type from item''')
+    y = c.fetchall()
+
+    for j in y:
+        c.execute('''select exists(select * from user_item where user_id=:a and item_id=:b and type=:c)''', {
+            'a': user_id, 'b': j[0], 'c': j[1]})
+        if c.fetchone() == (0,):
+            c.execute('''insert into user_item values(:a,:b,:c)''', {
+                'a': user_id, 'b': j[0], 'c': j[1]})
+
+    return
+
+
+def get_all_item():
+    # 所有购买数据查询
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    c.execute('''select * from item''')
+    x = c.fetchall()
+    re = []
+    if x:
+        for i in x:
+            discount_from = None
+            discount_to = None
+
+            if i[5] and i[5] >= 0:
+                discount_from = time.strftime(
+                    "%Y-%m-%d %H:%M:%S", time.localtime(int(i[5])/1000))
+            if i[6] and i[6] >= 0:
+                discount_to = time.strftime(
+                    "%Y-%m-%d %H:%M:%S", time.localtime(int(i[6])//1000))
+
+            re.append({'item_id': i[0],
+                       'type': i[1],
+                       'is_available': int2b(i[2]),
+                       'price': i[3],
+                       'orig_price': i[4],
+                       'discount_from': discount_from,
+                       'discount_to': discount_to
+                       })
+
+    conn.commit()
+    conn.close()
+    return re

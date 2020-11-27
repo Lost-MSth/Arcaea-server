@@ -1,5 +1,7 @@
 import sqlite3
 import server.arcworld
+import server.arcpurchase
+import time
 
 
 def int2b(x):
@@ -56,7 +58,7 @@ def get_user_character(c, user_id):
             y = c.fetchone()
             if y is not None:
                 char_name = y[0]
-            s.append({
+            char = {
                 "is_uncapped_override": int2b(i[14]),
                 "is_uncapped": int2b(i[13]),
                 "uncap_cores": [],
@@ -73,7 +75,10 @@ def get_user_character(c, user_id):
                 "level": i[2],
                 "name": char_name,
                 "character_id": i[1]
-            })
+            }
+            if i[1] == 21:
+                char["voice"] = [0, 1, 2, 3, 100, 1000, 1001]
+            s.append(char)
 
         return s
     else:
@@ -115,6 +120,34 @@ def get_user_friend(c, user_id):
     return s
 
 
+def get_user_singles(c, user_id):
+    # 得到用户的单曲，返回列表
+    c.execute('''select * from user_item where user_id = :user_id and type = "single"''',
+              {'user_id': user_id})
+    x = c.fetchall()
+    if not x:
+        return []
+
+    re = []
+    for i in x:
+        re.append(i[1])
+    return re
+
+
+def get_user_packs(c, user_id):
+    # 得到用户的曲包，返回列表
+    c.execute('''select * from user_item where user_id = :user_id and type = "pack"''',
+              {'user_id': user_id})
+    x = c.fetchall()
+    if not x:
+        return []
+
+    re = []
+    for i in x:
+        re.append(i[1])
+    return re
+
+
 def get_value_0(c, user_id):
     # 构造value id=0的数据，返回字典
     c.execute('''select * from user where user_id = :x''', {'x': user_id})
@@ -148,10 +181,11 @@ def get_value_0(c, user_id):
              "next_fragstam_ts": -1,
              "max_stamina_ts": 1586274871917,
              "stamina": 12,
-             "world_unlocks": [],
-             "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream"],
-             "singles": ["dataerror", "yourvoiceso", "crosssoul", "impurebird", "auxesia", "modelista", "yozakurafubuki", "surrender", "metallicpunisher", "carminescythe", "bethere", "callmyname", "fallensquare", "dropdead", "alexandrite", "astraltale", "phantasia", "empireofwinter", "libertas", "dottodot", "dreadnought", "mirzam", "heavenlycaress", "filament", "avantraze", "battlenoone", "saikyostronger", "izana", "einherjar", "laqryma", "amygdata", "altale", "feelssoright", "scarletcage", "teriqma", "mahoroba", "badtek", "maliciousmischance", "buchigireberserker", "galaxyfriends", "buchigireberserker2", "xeraphinite", "xanatos"],
-             "packs": ["vs", "extend", "dynamix", "prelude", "core", "yugamu", "omatsuri", "zettai", "mirai", "shiawase", "chunithm", "nijuusei", "groovecoaster", "rei", "tonesphere", "lanota"],
+             "world_unlocks": ["scenery_chap1", "scenery_chap2", "scenery_chap3", "scenery_chap4", "scenery_chap5"],
+             "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3"],
+             "singles": get_user_singles(c, user_id),  # ["dataerror", "yourvoiceso", "crosssoul", "impurebird", "auxesia", "modelista", "yozakurafubuki", "surrender", "metallicpunisher", "carminescythe", "bethere", "callmyname", "fallensquare", "dropdead", "alexandrite", "astraltale", "phantasia", "empireofwinter", "libertas", "dottodot", "dreadnought", "mirzam", "heavenlycaress", "filament", "avantraze", "battlenoone", "saikyostronger", "izana", "einherjar", "laqryma", "amygdata", "altale", "feelssoright", "scarletcage", "teriqma", "mahoroba", "badtek", "maliciousmischance", "buchigireberserker", "galaxyfriends", "xeraphinite", "xanatos"]
+             "packs": get_user_packs(c, user_id),
+             # ["vs", "extend", "dynamix", "prelude", "core", "yugamu", "omatsuri", "zettai", "mirai", "shiawase", "chunithm", "nijuusei", "groovecoaster", "rei", "tonesphere", "lanota"]
              "characters": characters,
              "cores": [],
              "recent_score": get_recent_score(c, user_id),
@@ -189,185 +223,7 @@ def arc_aggregate_big(user_id):
              "value": get_value_0(c, user_id)
          }, {
              "id": 1,
-             "value": [{
-                 "name": "core",
-                 "items": [{
-                     "id": "core",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500,
-                 "discount_from": 1583712000000,
-                 "discount_to": 1584316799000
-             }, {
-                 "name": "shiawase",
-                 "items": [{
-                     "id": "shiawase",
-                     "type": "pack",
-                     "is_available": True
-                 }, {
-                     "id": "kou",
-                     "type": "character",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500,
-                 "discount_from": 1552089600000,
-                 "discount_to": 1552694399000
-             }, {
-                 "name": "dynamix",
-                 "items": [{
-                     "id": "dynamix",
-                     "type": "pack",
-                     "is_available": True
-                 }, {
-                     "id": "sapphire",
-                     "type": "character",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500,
-                 "discount_from": 1583712000000,
-                 "discount_to": 1584316799000
-             }, {
-                 "name": "mirai",
-                 "items": [{
-                     "id": "mirai",
-                     "type": "pack",
-                     "is_available": True
-                 }, {
-                     "id": "lethe",
-                     "type": "character",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500,
-                 "discount_from": 1552089600000,
-                 "discount_to": 1552694399000
-             }, {
-                 "name": "yugamu",
-                 "items": [{
-                     "id": "yugamu",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500,
-                 "discount_from": 1583712000000,
-                 "discount_to": 1584316799000
-             }, {
-                 "name": "lanota",
-                 "items": [{
-                     "id": "lanota",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500,
-                 "discount_from": 1583712000000,
-                 "discount_to": 1584316799000
-             }, {
-                 "name": "nijuusei",
-                 "items": [{
-                     "id": "nijuusei",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500,
-                 "discount_from": 1583712000000,
-                 "discount_to": 1584316799000
-             }, {
-                 "name": "rei",
-                 "items": [{
-                     "id": "rei",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500,
-                 "discount_from": 1583712000000,
-                 "discount_to": 1584316799000
-             }, {
-                 "name": "tonesphere",
-                 "items": [{
-                     "id": "tonesphere",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500,
-                 "discount_from": 1583712000000,
-                 "discount_to": 1584316799000
-             }, {
-                 "name": "groovecoaster",
-                 "items": [{
-                     "id": "groovecoaster",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500,
-                 "discount_from": 1583712000000,
-                 "discount_to": 1584316799000
-             }, {
-                 "name": "zettai",
-                 "items": [{
-                     "id": "zettai",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500,
-                 "discount_from": 1583712000000,
-                 "discount_to": 1584316799000
-             }, {
-                 "name": "chunithm",
-                 "items": [{
-                     "id": "chunithm",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 300,
-                 "orig_price": 300
-             }, {
-                 "name": "prelude",
-                 "items": [{
-                     "id": "prelude",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 400,
-                 "orig_price": 400
-             }, {
-                 "name": "omatsuri",
-                 "items": [{
-                     "id": "omatsuri",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500
-             }, {
-                 "name": "vs",
-                 "items": [{
-                     "id": "vs",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 500,
-                 "orig_price": 500
-             }, {
-                 "name": "extend",
-                 "items": [{
-                     "id": "extend",
-                     "type": "pack",
-                     "is_available": True
-                 }],
-                 "price": 700,
-                 "orig_price": 700
-             }]
+             "value": server.arcpurchase.get_item(c, 'pack')
          }, {
              "id": 2,
              "value": {}
@@ -377,7 +233,7 @@ def arc_aggregate_big(user_id):
                  "max_stamina": 12,
                  "stamina_recover_tick": 1800000,
                  "core_exp": 250,
-                 "curr_ts": 1599547606825,
+                 "curr_ts": int(time.time())*1000,
                  "level_steps": [{
                      "level": 1,
                      "level_exp": 0

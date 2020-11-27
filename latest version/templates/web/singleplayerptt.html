@@ -25,7 +25,7 @@
         </div>
         <div class="join-date">注册于 Registered in: {{user['join_date']}}</div>
         <div class="ptt">Memories: {{user['ticket']}}</div>
-        <div class="ptt">PTT: {{user['rating_ptt']//100 ~ '.' ~ user['rating_ptt']%100}}</div>
+        <div class="ptt">PTT: {{'%0.2f'|format(user['rating_ptt']/100|float)}}</div>
         <div class="ptt">Best 30 PTT: {{bestptt}}</div>
         <div class="ptt">Recent 10 PTT: {{recentptt}}</div>
         <div>

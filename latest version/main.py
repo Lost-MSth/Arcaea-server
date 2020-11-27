@@ -9,13 +9,19 @@ import web.login
 import web.index
 import server.arcworld
 import server.arcdownload
+import server.arcpurchase
 import os
+
 
 app = Flask(__name__)
 wsgi_app = app.wsgi_app
 
 
 def error_return(error_code):  # 错误返回
+    # -7 处理交易时发生了错误
+    # -5 所有的曲目都已经下载完毕
+    # -4 您的账号已在别处登录
+    # -3 无法连接至服务器
     # 2 Arcaea服务器正在维护
     # 5 请更新Arcaea到最新版本
     # 100 无法在此ip地址下登录游戏
@@ -32,19 +38,27 @@ def error_return(error_code):  # 错误返回
     # 121 账户冻结
     # 122 账户暂时冻结
     # 123 账户被限制
+    # 124 你今天不能再使用这个IP地址创建新的账号
     # 150 非常抱歉您已被限制使用此功能
     # 151 目前无法使用此功能
     # 401 用户不存在
     # 403 无法连接至服务器
-    # 501 502 此物品目前无法获取
+    # 501 502 -6 此物品目前无法获取
     # 504 无效的序列码
     # 505 此序列码已被使用
     # 506 你已拥有了此物品
     # 601 好友列表已满
     # 602 此用户已是好友
     # 604 你不能加自己为好友
+    # 903 下载量超过了限制，请24小时后重试
+    # 905 请在再次使用此功能前等待24小时
     # 1001 设备数量达到上限
-    # 1002 该设备已使用过本功能
+    # 1002 此设备已使用过此功能
+    # 9801 下载歌曲时发生问题，请再试一次
+    # 9802 保存歌曲时发生问题，请检查设备空间容量
+    # 9905 没有在云端发现任何数据
+    # 9907 更新数据时发生了问题
+    # 9908 服务器只支持最新的版本，请更新Arcaea
     # 其它 发生未知错误
     return jsonify({
         "success": False,
@@ -55,6 +69,15 @@ def error_return(error_code):  # 错误返回
 @app.route('/')
 def hello():
     return "Hello World!"
+
+
+@app.route('/favicon.ico', methods=['GET'])  # 图标
+def favicon():
+    # Pixiv ID: 82374369
+    # 我觉得这张图虽然并不是那么精细，但很有感觉，色彩的强烈对比下给人带来一种惊艳
+    # 然后在压缩之下什么也看不清了:(
+
+    return app.send_static_file('favicon.ico')
 
 
 @app.route('/coffee/12/auth/login', methods=['POST'])  # 登录接口
@@ -92,7 +115,8 @@ def register():
         return error_return(108)
 
 
-@app.route('/coffee/12/compose/aggregate', methods=['GET'])  # 用户信息获取
+# 集成式请求，没想到什么好办法处理，就先这样写着
+@app.route('/coffee/12/compose/aggregate', methods=['GET'])
 def aggregate():
     calls = request.args.get('calls')
     headers = request.headers
@@ -432,12 +456,20 @@ def cloud_post():
         return error_return(108)
 
 
-@app.route('/coffee/12/purchase/me/redeem', methods=['POST'])  # 兑换码，自然没有用
+@app.route('/coffee/12/purchase/me/redeem', methods=['POST'])  # 兑换码，依然没有用
 def redeem():
     return error_return(504)
 
 
-# 购买，自然没有用，只是为了world模式boost一下
+# 礼物确认
+@app.route('/coffee/12/present/me/claim/<present_id>', methods=['POST'])
+def claim_present(present_id):
+    return jsonify({
+        "success": True
+    })
+
+
+# 购买，为了world模式boost一下
 @app.route('/coffee/12/purchase/me/item', methods=['POST'])
 def item():
     return jsonify({
@@ -445,27 +477,32 @@ def item():
     })
 
 
-@app.route('/coffee/12/purchase/me/pack', methods=['POST'])  # 购买，自然没有用
+@app.route('/coffee/12/purchase/me/pack', methods=['POST'])  # 曲包和单曲购买
 def pack():
+    headers = request.headers
+    token = headers['Authorization']
+    token = token[7:]
+    try:
+        user_id = server.auth.token_get_id(token)
+        if user_id:
+            if 'pack_id' in request.form:
+                return jsonify(server.arcpurchase.buy_pack(user_id, request.form['pack_id']))
+            if 'single_id' in request.form:
+                return jsonify(server.arcpurchase.buy_single(user_id, request.form['single_id']))
+        else:
+            return error_return(108)
+    except:
+        return error_return(108)
     return jsonify({
         "success": True
     })
 
 
-@app.route('/coffee/12/purchase/bundle/single', methods=['GET'])  # 单曲购买，自然没有用
+@app.route('/coffee/12/purchase/bundle/single', methods=['GET'])  # 单曲购买信息获取
 def single():
     return jsonify({
         "success": True,
-        "value": [{
-            "name": "testsingle",
-            "items": [{
-                    "id": "testsingle",
-                "type": "single",
-                        "is_available": False
-            }],
-            "price": 100,
-            "orig_price": 100
-        }]
+        "value": server.arcpurchase.get_single_purchase()
     })
 
 
@@ -475,6 +512,7 @@ def world_all():
     token = headers['Authorization']
     token = token[7:]
     try:
+
         user_id = server.auth.token_get_id(token)
         if user_id:
             return jsonify({
@@ -539,21 +577,22 @@ def download_song():
     token = headers['Authorization']
     token = token[7:]
     song_ids = request.args.getlist('sid')
-
     try:
         user_id = server.auth.token_get_id(token)
         if user_id:
-            re = {}
-            if not song_ids:
-                re = server.arcdownload.get_all_songs()
-            else:
-                for song_id in song_ids:
-                    re.update(server.arcdownload.get_one_song(song_id))
+            if server.arcdownload.is_able_download(user_id):
+                re = {}
+                if not song_ids:
+                    re = server.arcdownload.get_all_songs(user_id)
+                else:
+                    re = server.arcdownload.get_some_songs(user_id, song_ids)
 
-            return jsonify({
-                "success": True,
-                "value": re
-            })
+                return jsonify({
+                    "success": True,
+                    "value": re
+                })
+            else:
+                return error_return(903)
         else:
             return error_return(108)
     except:
@@ -562,12 +601,17 @@ def download_song():
 
 @app.route('/download/<path:file_path>', methods=['GET'])  # 下载
 def download(file_path):
+    t = request.args.get('t')
     try:
-        path = os.path.join('./database/songs', file_path)
-        if os.path.isfile(path) and not('../' in path or '..\\' in path):
-            return send_from_directory('./database/songs', file_path, as_attachment=True)
+        message = server.arcdownload.is_token_able_download(t)
+        if message == 0:
+            path = os.path.join('./database/songs', file_path)
+            if os.path.isfile(path) and not('../' in path or '..\\' in path):
+                return send_from_directory('./database/songs', file_path, as_attachment=True)
+            else:
+                return error_return(109)
         else:
-            return error_return(109)
+            return error_return(message)
     except:
         return error_return(108)
 

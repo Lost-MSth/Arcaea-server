@@ -1,6 +1,7 @@
 import sqlite3
 import hashlib
 import time
+import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
@@ -171,59 +172,116 @@ fragment_multiply int,
 prog_boost_multiply int,
 primary key(user_id, song_id, difficulty)
 );''')
+c.execute('''create table if not exists download_token(user_id int,
+song_id text,
+file_name text,
+token text,
+time int,
+primary key(user_id, song_id, file_name)
+);''')
+c.execute('''create table if not exists user_download(user_id int,
+token text,
+time int,
+primary key(user_id, token, time)
+);''')
+c.execute('''create table if not exists item(item_id text,
+type text,
+is_available int,
+price int,
+orig_price int,
+discount_from int,
+discount_to int,
+_id text,
+primary key(item_id, type)
+);''')
+c.execute('''create table if not exists user_item(user_id int,
+item_id text,
+type text,
+primary key(user_id, item_id, type)
+);''')
 
-char = ['Hikari','Tairitsu','Kou','Sapphire','Lethe','','Tairitsu(Axium)'
-,'Tairitsu(Grievous Lady)','Stella','Hikari & Fisica','Ilith','Eto','Luna'
-,'Shirabe','Hikari(Zero)','Hikari(Fracture)','Hikari(Summer)','Tairitsu(Summer)'
-,'Tairitsu&Trin','Ayu','Eto&Luna','Yume','Seine & Hikari','Saya','Tairitsu & Chuni Penguin'
-,'Chuni Penguin','Haruna','Nono','MTA-XXX','MDA-21','Kanae','Hikari(Fantasia)','Tairitsu(Sonata)','Sia','DORO*C'
-,'Tairitsu(Tempest)','Brillante','Ilith(Summer)','Etude']
+char = ['Hikari', 'Tairitsu', 'Kou', 'Sapphire', 'Lethe', '', 'Tairitsu(Axium)', 'Tairitsu(Grievous Lady)', 'Stella', 'Hikari & Fisica', 'Ilith', 'Eto', 'Luna', 'Shirabe', 'Hikari(Zero)', 'Hikari(Fracture)', 'Hikari(Summer)', 'Tairitsu(Summer)', 'Tairitsu&Trin',
+        'Ayu', 'Eto&Luna', 'Yume', 'Seine & Hikari', 'Saya', 'Tairitsu & Chuni Penguin', 'Chuni Penguin', 'Haruna', 'Nono', 'MTA-XXX', 'MDA-21', 'Kanae', 'Hikari(Fantasia)', 'Tairitsu(Sonata)', 'Sia', 'DORO*C', 'Tairitsu(Tempest)', 'Brillante', 'Ilith(Summer)', 'Etude']
 
-skill_id = ['gauge_easy','','','','note_mirror','','','gauge_hard','frag_plus_10_pack_stellights','gauge_easy|frag_plus_15_pst&prs'
-            ,'gauge_hard|fail_frag_minus_100','frag_plus_5_side_light','visual_hide_hp','frag_plus_5_side_conflict'
-            ,'challenge_fullcombo_0gauge','gauge_overflow','gauge_easy|note_mirror','note_mirror'
-            ,'visual_tomato_pack_tonesphere','frag_rng_ayu','gaugestart_30|gaugegain_70','combo_100-frag_1'
-            ,'audio_gcemptyhit_pack_groovecoaster','gauge_saya','gauge_chuni','kantandeshou'
-            ,'gauge_haruna','frags_nono','gauge_pandora','gauge_regulus','omatsuri_daynight'
-            ,'','','sometimes(note_mirror|frag_plus_5)','scoreclear_aa|visual_scoregauge','gauge_tempest'
-            ,'gauge_hard','gauge_ilith_summer','']
+skill_id = ['gauge_easy', '', '', '', 'note_mirror', '', '', 'gauge_hard', 'frag_plus_10_pack_stellights', 'gauge_easy|frag_plus_15_pst&prs', 'gauge_hard|fail_frag_minus_100', 'frag_plus_5_side_light', 'visual_hide_hp', 'frag_plus_5_side_conflict', 'challenge_fullcombo_0gauge', 'gauge_overflow', 'gauge_easy|note_mirror', 'note_mirror', 'visual_tomato_pack_tonesphere',
+            'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', '', '', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', '']
 
-skill_id_uncap = ['','','frags_kou','','visual_ink','','','','','','','','','shirabe_entry_fee','','','','','','','','frags_yume','','','','','','','','','','','','','','','','','']
+skill_id_uncap = ['', '', 'frags_kou', '', 'visual_ink', '', '', '', '', '', '', '', '', 'shirabe_entry_fee',
+                  '', '', '', '', '', '', '', 'frags_yume', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
 
 for i in range(0, 39):
     if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21]:
-        sql = 'insert into character values('+str(i)+',"'+char[i]+'''",30,25000,25000,90,90,90,"'''+skill_id[i]+'''",0,0,"'''+skill_id_uncap[i]+'''",0,'',1,1)'''
+        sql = 'insert into character values('+str(
+            i)+',"'+char[i]+'''",30,25000,25000,90,90,90,"'''+skill_id[i]+'''",0,0,"'''+skill_id_uncap[i]+'''",0,'',1,1)'''
         c.execute(sql)
     else:
         if i != 5:
-            sql = 'insert into character values('+str(i)+',"'+char[i]+'''",30,25000,25000,90,90,90,"'''+skill_id[i]+'''",0,0,"'''+skill_id_uncap[i]+'''",0,'',0,0)'''
+            sql = 'insert into character values('+str(
+                i)+',"'+char[i]+'''",30,25000,25000,90,90,90,"'''+skill_id[i]+'''",0,0,"'''+skill_id_uncap[i]+'''",0,'',0,0)'''
             c.execute(sql)
 
 
+def b2int(x):
+    # int与布尔值转换
+    if x:
+        return 1
+    else:
+        return 0
+
+
+def insert_items(c, items):
+    # 物品数据导入
+    for i in items:
+        if 'discount_from' not in i:
+            discount_from = -1
+        else:
+            discount_from = i['discount_from']
+        if 'discount_to' not in i:
+            discount_to = -1
+        else:
+            discount_to = i['discount_to']
+        for j in i['items']:
+            if "_id" not in j:
+                _id = ''
+            else:
+                _id = j['_id']
+            if j['type'] != 'character':
+                c.execute('''insert into item(item_id, type, is_available, price, orig_price, discount_from, discount_to, _id) values(:a,:b,:c,:d,:e,:f,:g,:h)''', {
+                    'a': j['id'], 'b': j['type'], 'c': b2int(j['is_available']), 'd': i['price'], 'e': i['orig_price'], 'f': discount_from, 'g': discount_to, 'h': _id})
+
+
+f = open('singles.json', 'r')
+singles = json.load(f)
+f.close()
+insert_items(c, singles)
+
+f = open('packs.json', 'r')
+packs = json.load(f)
+f.close()
+insert_items(c, packs)
 
 conn.commit()
 conn.close()
 
 
-
-def arc_register(name: str, password: str): 
+def arc_register(name: str, password: str):
     def build_user_code(c):
         return '123456789'
 
     def build_user_id(c):
         return 2000000
 
-##    def insert_user_char(c, user_id):
-##        for i in range(0, 38):
-##            if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21]:
-##                sql = 'insert into user_char values('+str(user_id)+','+str(
-##                    i)+''',30,25000,25000,90,90,90,'',0,0,'',0,1,1)'''
-##                c.execute(sql)
-##            else:
-##                if i != 5:
-##                    sql = 'insert into user_char values('+str(user_id)+','+str(
-##                        i)+''',30,25000,25000,90,90,90,'',0,0,'',0,0,0)'''
-##                    c.execute(sql)
+# def insert_user_char(c, user_id):
+# for i in range(0, 38):
+# if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21]:
+# sql = 'insert into user_char values('+str(user_id)+','+str(
+# i)+''',30,25000,25000,90,90,90,'',0,0,'',0,1,1)'''
+# c.execute(sql)
+# else:
+# if i != 5:
+# sql = 'insert into user_char values('+str(user_id)+','+str(
+# i)+''',30,25000,25000,90,90,90,'',0,0,'',0,0,0)'''
+# c.execute(sql)
     def insert_user_char(c, user_id):
         # 为用户添加所有可用角色
         c.execute('''select * from character''')
@@ -233,7 +291,6 @@ def arc_register(name: str, password: str):
                 c.execute('''insert into user_char values(:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o)''', {
                           'a': user_id, 'b': i[0], 'c': i[2], 'd': i[3], 'e': i[4], 'f': i[5], 'g': i[6], 'h': i[7], 'i': i[8], 'j': i[9], 'k': i[10], 'l': i[11], 'm': i[12], 'n': i[14], 'o': i[15]})
 
-    
     conn = sqlite3.connect('arcaea_database.db')
     c = conn.cursor()
     hash_pwd = hashlib.sha256(password.encode("utf8")).hexdigest()
@@ -243,13 +300,14 @@ def arc_register(name: str, password: str):
         user_code = build_user_code(c)
         user_id = build_user_id(c)
         now = int(time.time() * 1000)
-        c.execute('''insert into user(user_id, name, password, join_date, user_code, rating_ptt, 
+        c.execute('''insert into user(user_id, name, password, join_date, user_code, rating_ptt,
         character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, is_hide_rating, favorite_character, max_stamina_notification_enabled, current_map, ticket)
         values(:user_id, :name, :password, :join_date, :user_code, 1250, 1, 0, 1, 0, 0, -1, 0, '', 114514)
         ''', {'user_code': user_code, 'user_id': user_id, 'join_date': now, 'name': name, 'password': hash_pwd})
         c.execute('''insert into recent30(user_id) values(:user_id)''', {
                   'user_id': user_id})
-        c.execute('''insert into best_score values(2000000,'vexaria',3,10000000,100,0,0,0,100,0,1599667200,3,3,10.8)''')
+        c.execute(
+            '''insert into best_score values(2000000,'vexaria',3,10000000,100,0,0,0,100,0,1599667200,3,3,10.8)''')
         insert_user_char(c, user_id)
         conn.commit()
         conn.close()

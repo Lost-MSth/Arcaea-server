@@ -447,31 +447,31 @@ def edit_char():
     c.execute(
         '''select exists(select * from character where character_id=:a)''', {'a': character_id})
     if c.fetchone() == (1,):
-        if not level and not frag and not prog and not overdrive and not skill_id and not skill_id_uncap:
+        if level is None and frag is None and prog is None and overdrive is None and skill_id is None and skill_id_uncap is None:
             error = '无修改 No change.'
         else:
 
             sql = '''update character set level_exp=25000'''
             sql_dict = {'character_id': character_id}
-            if level:
+            if level is not None:
                 sql += ', level = :level'
                 sql_dict['level'] = level
-            if frag:
+            if frag is not None:
                 sql += ', frag = :frag'
                 sql_dict['frag'] = frag
-            if prog:
+            if prog is not None:
                 sql += ', prog = :prog'
                 sql_dict['prog'] = prog
-            if overdrive:
+            if overdrive is not None:
                 sql += ', overdrive = :overdrive'
                 sql_dict['overdrive'] = overdrive
-            if skill_id:
+            if skill_id is not None:
                 sql += ', skill_id = :skill_id'
                 if skill_id == 'No_skill':
                     sql_dict['skill_id'] = ''
                 else:
                     sql_dict['skill_id'] = skill_id
-            if skill_id_uncap:
+            if skill_id_uncap is not None:
                 sql += ', skill_id_uncap = :skill_id_uncap'
                 if skill_id_uncap == 'No_skill':
                     sql_dict['skill_id_uncap'] = ''
@@ -520,12 +520,42 @@ def edit_user():
     # 修改用户数据
 
     error = None
-    name = request.form['name']
-    user_code = request.form['user_code']
+    flag = True
+    name = None
+    user_code = None
+    try:
+        ticket = request.form['ticket']
+        if ticket:
+            ticket = int(ticket)
+        else:
+            ticket = None
+    except:
+        error = '数据错误 Wrong data.'
+        flash(error)
+        return redirect(url_for('index.change_user'))
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+
+    # 全修改
+    if 'name' not in request.form and 'user_code' not in request.form:
+        flag = False
+        if not ticket:
+            error = '无修改 No change.'
+        else:
+            sql = '''update user set ticket = :ticket'''
+            sql_dict = {'ticket': ticket}
+            c.execute(sql, sql_dict)
+            flash("全部用户信息修改成功 Successfully edit all the users' information.")
+
+    else:
+        name = request.form['name']
+        user_code = request.form['user_code']
+
+    # 指定修改
 
     if name or user_code:
-        conn = sqlite3.connect('./database/arcaea_database.db')
-        c = conn.cursor()
+
         if user_code:
             c.execute('''select user_id from user where user_code=:a''', {
                 'a': user_code})
@@ -537,16 +567,6 @@ def edit_user():
         posts = []
         if user_id:
             user_id = user_id[0]
-            try:
-                ticket = request.form['ticket']
-                if ticket:
-                    ticket = int(ticket)
-                else:
-                    ticket = None
-            except:
-                error = '数据错误 Wrong data.'
-                flash(error)
-                return redirect(url_for('index.change_user'))
 
             if not ticket:
                 error = '无修改 No change.'
@@ -560,12 +580,190 @@ def edit_user():
             error = '玩家不存在 The player does not exist.'
 
     else:
-        error = '输入为空 Null Input.'
+        if flag:
+            error = '输入为空 Null Input.'
 
     conn.commit()
     conn.close()
-
     if error:
         flash(error)
 
     return redirect(url_for('index.change_user'))
+
+
+@bp.route('/changeuserpurchase', methods=['GET'])
+@login_required
+def change_user_purchase():
+    # 修改用户购买
+
+    return render_template('web/changeuserpurchase.html')
+
+
+@bp.route('/changeuserpurchase/edituser', methods=['POST'])
+@login_required
+def edit_user_purchase():
+    # 修改用户购买
+
+    error = None
+    flag = True
+    name = None
+    user_code = None
+    try:
+        method = request.form['method']
+    except:
+        flash('输入为空 Null Input.')
+        return redirect(url_for('index.change_user_purchase'))
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+
+    # 全修改
+    if 'name' not in request.form and 'user_code' not in request.form:
+        flag = False
+        if method == '0':
+            web.system.unlock_all_user_item(c)
+        else:
+            c.execute('''delete from user_item''')
+
+        flash("全部用户购买信息修改成功 Successfully edit all the users' purchase information.")
+
+    else:
+        name = request.form['name']
+        user_code = request.form['user_code']
+
+    # 指定修改
+    if name or user_code:
+
+        if user_code:
+            c.execute('''select user_id from user where user_code=:a''', {
+                'a': user_code})
+        else:
+            c.execute(
+                '''select user_id from user where name=:a''', {'a': name})
+
+        user_id = c.fetchone()
+        posts = []
+        if user_id:
+            user_id = user_id[0]
+
+            if method == '0':
+                web.system.unlock_user_item(c, user_id)
+            else:
+                c.execute('''delete from user_item where user_id=:a''', {
+                          'a': user_id})
+            flash('用户购买信息修改成功 Successfully edit the user purchase information.')
+
+        else:
+            error = '玩家不存在 The player does not exist.'
+
+    else:
+        if flag:
+            error = '输入为空 Null Input.'
+
+    conn.commit()
+    conn.close()
+    if error:
+        flash(error)
+
+    return redirect(url_for('index.change_user_purchase'))
+
+
+@bp.route('/allitem', methods=['GET'])
+@login_required
+def all_item():
+    # 所有购买数据
+
+    error = None
+    posts = web.system.get_all_item()
+    if not posts:
+        error = '没有购买数据 No item data.'
+
+    if error:
+        flash(error)
+        return redirect(url_for('index.all_item'))
+    else:
+        return render_template('web/allitem.html', posts=posts)
+
+
+@bp.route('/changeitem', methods=['GET', 'POST'])
+@login_required
+def change_item():
+    # 修改购买信息
+
+    error = None
+    if request.method == 'POST':
+        try:
+            item_id = request.form['item_id']
+            item_type = request.form['type']
+            price = request.form['price']
+            orig_price = request.form['orig_price']
+            discount_from = request.form['discount_from']
+            discount_to = request.form['discount_to']
+            try:
+                is_available = request.form['is_available']
+                if is_available:
+                    is_available = int(is_available)
+                else:
+                    is_available = None
+            except:
+                is_available = None
+
+            if price:
+                price = int(price)
+            else:
+                price = None
+            if orig_price:
+                orig_price = int(orig_price)
+            else:
+                orig_price = None
+            if discount_from:
+                discount_from = int(time.mktime(time.strptime(discount_from, "%Y-%m-%dT%H:%M"))) * 1000
+            else:
+                discount_from = None
+            if discount_to:
+                discount_to = int(time.mktime(time.strptime(discount_to, "%Y-%m-%dT%H:%M"))) * 1000
+            else:
+                discount_to = None
+        except:
+            error = '数据错误 Wrong data.'
+            flash(error)
+            return redirect(url_for('index.change_item'))
+
+        conn = sqlite3.connect('./database/arcaea_database.db')
+        c = conn.cursor()
+        c.execute(
+            '''select exists(select * from item where item_id=:a and type=:b)''', {'a': item_id, 'b': item_type})
+        if c.fetchone() == (1,):
+            if is_available is None and price is None and orig_price is None and not discount_from and not discount_to:
+                error = '无修改 No change.'
+            else:
+                sql = '''update item set type=:type'''
+                sql_dict = {'item_id': item_id, 'type': item_type}
+                if price is not None:
+                    sql += ', price = :price'
+                    sql_dict['price'] = price
+                if orig_price is not None:
+                    sql += ', orig_price = :orig_price'
+                    sql_dict['orig_price'] = orig_price
+                if discount_from is not None:
+                    sql += ', discount_from = :discount_from'
+                    sql_dict['discount_from'] = discount_from
+                if discount_to is not None:
+                    sql += ', discount_to = :discount_to'
+                    sql_dict['discount_to'] = discount_to
+                if is_available is not None:
+                    sql += ', is_available = :is_available'
+                    sql_dict['is_available'] = is_available
+
+                sql += ' where item_id = :item_id and type = :type'
+                c.execute(sql, sql_dict)
+                flash('购买项目修改成功 Successfully edit the item.')
+        else:
+            error = '购买项目不存在 The item does not exist.'
+
+        conn.commit()
+        conn.close()
+        if error:
+            flash(error)
+
+    return render_template('web/changeitem.html')

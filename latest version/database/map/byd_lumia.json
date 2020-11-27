@@ -1,0 +1,70 @@
+{
+	"map_id": "byd_lumia",
+	"is_legacy": false,
+	"chapter": 1001,
+	"available_from": -1,
+	"available_to": 9999999999999,
+	"is_repeatable": false,
+	"require_id": "lumia2",
+	"require_type": "chart_unlock",
+	"coordinate": "650,-650",
+	"is_beyond": true,
+	"stamina_cost": 3,
+	"beyond_health": 150,
+	"character_affinity": [0, 15, 14, 16],
+	"affinity_multiplier": [2.4, 1.9, 2.4, 2.9],
+	"step_count": 6,
+	"custom_bg": "",
+	"curr_position": 0,
+	"curr_capture": 0,
+	"is_locked": false,
+	"steps": [{
+		"map_id": "byd_lumia",
+		"position": 0,
+		"capture": 10,
+		"restrict_id": "core",
+		"restrict_type": "pack_id"
+	}, {
+		"map_id": "byd_lumia",
+		"position": 1,
+		"capture": 20,
+		"items": [{
+			"type": "fragment",
+			"amount": 200
+		}]
+	}, {
+		"map_id": "byd_lumia",
+		"position": 2,
+		"capture": 30,
+		"items": [{
+			"type": "core",
+			"id": "core_generic",
+			"amount": 1
+		}]
+	}, {
+		"map_id": "byd_lumia",
+		"position": 3,
+		"capture": 40,
+		"items": [{
+			"type": "fragment",
+			"amount": 250
+		}]
+	}, {
+		"map_id": "byd_lumia",
+		"position": 4,
+		"capture": 50,
+		"items": [{
+			"type": "core",
+			"id": "core_generic",
+			"amount": 1
+		}]
+	}, {
+		"map_id": "byd_lumia",
+		"position": 5,
+		"capture": 0,
+		"items": [{
+			"id": "lumia3",
+			"type": "world_song"
+		}]
+	}]
+}

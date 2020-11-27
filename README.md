@@ -18,23 +18,24 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 - 爬梯 Climbing steps
 - 自定义世界模式 Customizable World Mode
 - 自定义歌曲下载 Customizable songs download
+- 单曲和曲包购买（没啥用） Single songs and song packs purchase(useless)
 - 全角色立绘 All character drawings
 - 角色技能 Character skills
 - 自定义角色属性 Customizable characters attributes
 - 全剧情解锁 Unlock all the stories
-- 后台查分 Background search scores
-- 后台自定义歌曲定数 Customize chart consts in the background
+- 后台查询 Background search
+- 后台自定义信息 Customize some things in the background
 - 成绩校验 Score check
+- 下载校验 Download check
 
 没有以下 We don't have：
 - 角色数值 Character characteristic value
-- 购买 Purchase
-- 歌曲解锁、曲包解锁 Songs unlocking and music packs unlocking
 - 数据同步的时间和设备记录 The record of time and device for data synchronization 
 - 服务器安全性保证 Server security assurance
 
 可能有问题 There may be problems：
 - Recent 30
+- 一些歌曲的解锁 Some Songs' unlocking
 
 ## 说明 Statement
 只是很有趣，用处探索中。  
@@ -53,13 +54,16 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss.
 
-### Version 1.6
-- 适用于Arcaea 3.2.3版本 For Arcaea 3.2.3
+### Version 1.7
+- 仍然适用于Arcaea 3.2.3版本 Still for Arcaea 3.2.3
 - 更新了歌曲数据库 Update the song database.
-- 新增了自定义角色属性 Add customizable characters attributes.
-- 用户的记忆源点可以修改了，但仍然没有实际用途 The users' memories can be modified, but still is of no practical use.
-- 网页端安全性增强，用户名及密码可修改 The security of webpage is enhanced, and the username and password can be modified now.
-- 改进了数据库更新方式，可以一定程度上应对数据表结构修改 The method of database updating is improved, which can deal with the modification of data table structure to some extent.
+- 新增了购买系统，包括单曲购买和曲包购买 Add purchase system, including single purchase and pack purchase.
+- 后台查询与修改项目增多 Increase background query and modification items.
+- 新增用户下载量限制和下载校验 Add user download limit and download verification.
+- 新增了**梦**的语音 Add the voice of **Yume**.
+- 新增了网站图标 Add a favicon.
+- 尝试解锁了所有的场景 Try to unlock all the scenes.
+- 修复了一些Bug Fix some bugs.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows操作系统 Windows operating system
@@ -81,7 +85,9 @@ It is just so interesting. What it can do is under exploration.
 
 ## 鸣谢 Thanks
 歌曲数据库来自 Using song database from
-[BotArcAPI releases](https://github.com/TheSnowfield/BotArcAPI/releases)
+[BotArcAPI releases](https://github.com/TheSnowfield/BotArcAPI/releases)  
+
+网站图标来自 Using favicon from [black fate - てんてん - pixiv](https://www.pixiv.net/artworks/82374369)
 
 ## 联系方式 Contact
 如有必要，可以联系本人 Contact me if necessary  

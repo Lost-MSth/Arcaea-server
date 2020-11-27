@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Change the items{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/web/changeitem" method="post">
+    <div class="title">Change the item</div>
+    <label for="item_id">ID of the item</label>
+    <input name="item_id" id="item_id" required>
+    <label for="type">Type</label>
+    <div>
+        <select name="type">
+            <option value='single'>Single</option>
+            <option value='pack'>Pack</option>
+        </select>
+    </div>
+    <br />
+    <div class="content">可修改项 Modifiable items:</div>
+    <div><label for="is_available">是否可用 Is available:</label>
+        <br />
+        <br />
+        <label><input type="radio" name="is_available" value=1>True</label>
+        <br />
+        <label><input type="radio" name="is_available" value=0>False</label>
+    </div>
+    <label for="price">Price</label>
+    <input name="price" id="price">
+    <label for="orig_price">Original price</label>
+    <input name="orig_price" id="orig_price">
+    <label for="discount_from">Discount from</label>
+    <input type="datetime-local" name="discount_from" id="discount_from">
+    <label for="discount_to">Discount to</label>
+    <input type="datetime-local" name="discount_to" id="discount_to">
+    <div class="content">如果某些不需要修改，留空即可</div>
+    <div class="content">If some things do not need to be modified, leave it blank.</div>
+    <div class="content">时间填写是一个HTML5控件</div>
+    <div class="content">Time filling is an HTML5 control.</div>
+    <input type="submit" value="Edit">
+</form>
+{% endblock %}
