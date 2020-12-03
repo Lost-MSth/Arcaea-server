@@ -3,7 +3,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "core",
-		"_id": "5fb5b68a68273a03de60f205",
+		"_id": "5fc8306209787401bb857d1b",
 		"is_available": true
 	}],
 	"price": 500,
@@ -15,12 +15,12 @@
 	"items": [{
 		"type": "pack",
 		"id": "shiawase",
-		"_id": "5fb5b68a68273a03de60f234",
+		"_id": "5fc8306209787401bb857d3b",
 		"is_available": true
 	}, {
 		"type": "character",
 		"id": "kou",
-		"_id": "5fb5b68a68273a03de60f233",
+		"_id": "5fc8306209787401bb857d3a",
 		"is_available": true
 	}],
 	"price": 500,
@@ -32,12 +32,12 @@
 	"items": [{
 		"type": "pack",
 		"id": "dynamix",
-		"_id": "5fb5b68a68273a03de60f238",
+		"_id": "5fc8306209787401bb857d33",
 		"is_available": true
 	}, {
 		"type": "character",
 		"id": "sapphire",
-		"_id": "5fb5b68a68273a03de60f237",
+		"_id": "5fc8306209787401bb857d32",
 		"is_available": true
 	}],
 	"price": 500,
@@ -49,12 +49,12 @@
 	"items": [{
 		"type": "pack",
 		"id": "mirai",
-		"_id": "5fb5b68a68273a03de60f23e",
+		"_id": "5fc8306209787401bb857d37",
 		"is_available": true
 	}, {
 		"type": "character",
 		"id": "lethe",
-		"_id": "5fb5b68a68273a03de60f23d",
+		"_id": "5fc8306209787401bb857d36",
 		"is_available": true
 	}],
 	"price": 500,
@@ -66,7 +66,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "yugamu",
-		"_id": "5fb5b68a68273a03de60f206",
+		"_id": "5fc8306209787401bb857d1c",
 		"is_available": true
 	}],
 	"price": 500,
@@ -78,7 +78,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "lanota",
-		"_id": "5fb5b68a68273a03de60f211",
+		"_id": "5fc8306209787401bb857d26",
 		"is_available": true
 	}],
 	"price": 500,
@@ -90,7 +90,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "nijuusei",
-		"_id": "5fb5b68a68273a03de60f207",
+		"_id": "5fc8306209787401bb857d1d",
 		"is_available": true
 	}],
 	"price": 500,
@@ -102,7 +102,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "rei",
-		"_id": "5fb5b68a68273a03de60f1fd",
+		"_id": "5fc8306209787401bb857cfa",
 		"is_available": true
 	}],
 	"price": 500,
@@ -114,7 +114,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "tonesphere",
-		"_id": "5fb5b68a68273a03de60f213",
+		"_id": "5fc8306209787401bb857d28",
 		"is_available": true
 	}],
 	"price": 500,
@@ -126,7 +126,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "groovecoaster",
-		"_id": "5fb5b68a68273a03de60f22c",
+		"_id": "5fc8306209787401bb857d14",
 		"is_available": true
 	}],
 	"price": 500,
@@ -138,7 +138,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "zettai",
-		"_id": "5fb5b68a68273a03de60f1ff",
+		"_id": "5fc8306209787401bb857cfc",
 		"is_available": true
 	}],
 	"price": 500,
@@ -150,7 +150,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "chunithm",
-		"_id": "5fb5b68a68273a03de60f221",
+		"_id": "5fc8306209787401bb857d09",
 		"is_available": true
 	}],
 	"price": 300,
@@ -160,7 +160,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "prelude",
-		"_id": "5fb5b68a68273a03de60f22d",
+		"_id": "5fc8306209787401bb857d15",
 		"is_available": true
 	}],
 	"price": 400,
@@ -170,7 +170,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "omatsuri",
-		"_id": "5fb5b68a68273a03de60f200",
+		"_id": "5fc8306209787401bb857cfd",
 		"is_available": true
 	}],
 	"price": 500,
@@ -180,7 +180,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "vs",
-		"_id": "5fb5b68a68273a03de60f224",
+		"_id": "5fc8306209787401bb857d0c",
 		"is_available": true
 	}],
 	"price": 500,
@@ -190,9 +190,19 @@
 	"items": [{
 		"type": "pack",
 		"id": "extend",
-		"_id": "5fb5b68a68273a03de60f230",
+		"_id": "5fc8306209787401bb857d18",
 		"is_available": true
 	}],
 	"price": 700,
 	"orig_price": 700
+}, {
+	"name": "alice",
+	"items": [{
+		"type": "pack",
+		"id": "alice",
+		"_id": "5fc8306209787401bb857d02",
+		"is_available": true
+	}],
+	"orig_price": 500,
+	"price": 500
 }]

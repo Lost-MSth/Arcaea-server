@@ -440,10 +440,16 @@ def cloud_post():
     token = token[7:]
     scores_data = request.form['scores_data']
     clearlamps_data = request.form['clearlamps_data']
+    clearedsongs_data = request.form['clearedsongs_data']
+    unlocklist_data = request.form['unlocklist_data']
+    installid_data = request.form['installid_data']
+    devicemodelname_data = request.form['devicemodelname_data']
+    story_data = request.form['story_data']
     try:
         user_id = server.auth.token_get_id(token)
         if user_id is not None:
-            server.arcscore.arc_all_post(user_id, scores_data, clearlamps_data)
+            server.arcscore.arc_all_post(user_id, scores_data, clearlamps_data, clearedsongs_data,
+                                         unlocklist_data, installid_data, devicemodelname_data, story_data)
             return jsonify({
                 "success": True,
                 "value": {

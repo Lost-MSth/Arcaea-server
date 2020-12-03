@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Update users' saves{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/web/updateusersave" method="post">
+    <div class="title">Update one user's saves to the database</div>
+    <label for="name">Arcaea Username</label>
+    <input name="name" id="name">
+    or<br />
+    <label for="user_code">Arcaea User Code</label>
+    <input name="user_code" id="user_code">
+    <br />
+
+    <input type="submit" value="Update">
+</form>
+<br />
+<hr />
+<form action="/web/updateusersave" method="post">
+    <div class="title">Update all users' saves to the database</div>
+    <br />
+    <input type="submit" value="Update all">
+
+    <div class="content">这里会将用户上传的存档覆盖到best_score表中，请注意是覆盖，不会进行分数比较。</div>
+    <div class="content">Here you can overlay the saves uploaded by users to best_score table. Please remember that it
+        is an overlay action, so scores will not be compared.</div>
+
+</form>
+{% endblock %}

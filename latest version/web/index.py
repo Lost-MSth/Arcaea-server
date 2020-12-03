@@ -402,7 +402,7 @@ def all_character():
 def change_character():
     # 修改角色数据
     skill_ids = ['No_skill', 'gauge_easy', 'note_mirror', 'gauge_hard', 'frag_plus_10_pack_stellights', 'gauge_easy|frag_plus_15_pst&prs', 'gauge_hard|fail_frag_minus_100', 'frag_plus_5_side_light', 'visual_hide_hp', 'frag_plus_5_side_conflict', 'challenge_fullcombo_0gauge', 'gauge_overflow', 'gauge_easy|note_mirror', 'note_mirror', 'visual_tomato_pack_tonesphere',
-                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume']
+                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far']
     return render_template('web/changechar.html', skill_ids=skill_ids)
 
 
@@ -564,7 +564,6 @@ def edit_user():
                 '''select user_id from user where name=:a''', {'a': name})
 
         user_id = c.fetchone()
-        posts = []
         if user_id:
             user_id = user_id[0]
 
@@ -642,7 +641,6 @@ def edit_user_purchase():
                 '''select user_id from user where name=:a''', {'a': name})
 
         user_id = c.fetchone()
-        posts = []
         if user_id:
             user_id = user_id[0]
 
@@ -717,11 +715,13 @@ def change_item():
             else:
                 orig_price = None
             if discount_from:
-                discount_from = int(time.mktime(time.strptime(discount_from, "%Y-%m-%dT%H:%M"))) * 1000
+                discount_from = int(time.mktime(time.strptime(
+                    discount_from, "%Y-%m-%dT%H:%M"))) * 1000
             else:
                 discount_from = None
             if discount_to:
-                discount_to = int(time.mktime(time.strptime(discount_to, "%Y-%m-%dT%H:%M"))) * 1000
+                discount_to = int(time.mktime(time.strptime(
+                    discount_to, "%Y-%m-%dT%H:%M"))) * 1000
             else:
                 discount_to = None
         except:
@@ -767,3 +767,60 @@ def change_item():
             flash(error)
 
     return render_template('web/changeitem.html')
+
+
+@bp.route('/updateusersave', methods=['POST', 'GET'])
+@login_required
+def update_user_save():
+    # 将用户存档覆盖到分数表中
+
+    if request.method == 'GET':
+        return render_template('web/updateusersave.html')
+
+    error = None
+    flag = True
+    name = None
+    user_code = None
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+
+    # 全修改
+    if 'name' not in request.form and 'user_code' not in request.form:
+        flag = False
+        web.system.update_all_save(c)
+        flash("全部用户存档同步成功 Successfully update all users' saves.")
+
+    else:
+        name = request.form['name']
+        user_code = request.form['user_code']
+
+    # 指定修改
+    if name or user_code:
+
+        if user_code:
+            c.execute('''select user_id from user where user_code=:a''', {
+                'a': user_code})
+        else:
+            c.execute(
+                '''select user_id from user where name=:a''', {'a': name})
+
+        user_id = c.fetchone()
+        if user_id:
+            user_id = user_id[0]
+            web.system.update_one_save(c, user_id)
+            flash("用户存档同步成功 Successfully update the user's saves.")
+
+        else:
+            error = '玩家不存在 The player does not exist.'
+
+    else:
+        if flag:
+            error = '输入为空 Null Input.'
+
+    conn.commit()
+    conn.close()
+    if error:
+        flash(error)
+
+    return render_template('web/updateusersave.html')

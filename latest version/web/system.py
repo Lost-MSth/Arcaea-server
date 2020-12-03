@@ -1,6 +1,8 @@
 import os
 import sqlite3
 import time
+import json
+import server.arcscore
 
 
 def int2b(x):
@@ -140,7 +142,7 @@ def update_user_char(c):
 
 def update_database():
     # 将old数据库不存在数据加入到新数据库上，并删除old数据库
-    # 对于arcaea_datebase.db，更新best_score，friend，recent30，user，user_world, user_item并用character数据更新user_char
+    # 对于arcaea_datebase.db，更新best_score，friend，recent30，user，user_world, user_item, user_save并用character数据更新user_char
     # 对于arcsong.db，更新songs
     if os.path.isfile("database/old_arcaea_database.db") and os.path.isfile("database/arcaea_database.db"):
         conn1 = sqlite3.connect('./database/old_arcaea_database.db')
@@ -154,6 +156,7 @@ def update_database():
         update_one_table(c1, c2, 'recent30')
         update_one_table(c1, c2, 'user_world')
         update_one_table(c1, c2, 'user_item')
+        update_one_table(c1, c2, 'user_save')
 
         update_user_char(c2)
 
@@ -243,3 +246,55 @@ def get_all_item():
     conn.commit()
     conn.close()
     return re
+
+
+def update_one_save(c, user_id):
+    # 同步指定用户存档
+    # 注意，best_score表不比较，直接覆盖
+
+    c.execute('''select scores_data, clearlamps_data from user_save where user_id=:a''', {
+              'a': user_id})
+    x = c.fetchone()
+    if x:
+        scores = json.loads(x[0])[""]
+        clearlamps = json.loads(x[1])[""]
+        clear_song_id_difficulty = []
+        clear_state = []
+        for i in clearlamps:
+            clear_song_id_difficulty.append(i['song_id']+str(i['difficulty']))
+            clear_state.append(i['clear_type'])
+
+        for i in scores:
+            rating = server.arcscore.get_one_ptt(
+                i['song_id'], i['difficulty'], i['score'])
+            try:
+                index = clear_song_id_difficulty.index(
+                    i['song_id'] + str(i['difficulty']))
+            except:
+                index = -1
+            if index != -1:
+                clear_type = clear_state[index]
+            else:
+                clear_type = 0
+            c.execute('''delete from best_score where user_id=:a and song_id=:b and difficulty=:c''', {
+                'a': user_id, 'b': i['song_id'], 'c': i['difficulty']})
+            c.execute('''insert into best_score values(:a, :b, :c, :d, :e, :f, :g, :h, :i, :j, :k, :l, :m, :n)''', {
+                'a': user_id, 'b': i['song_id'], 'c': i['difficulty'], 'd': i['score'], 'e': i['shiny_perfect_count'], 'f': i['perfect_count'], 'g': i['near_count'], 'h': i['miss_count'], 'i': i['health'], 'j': i['modifier'], 'k': i['time_played'], 'l': clear_type, 'm': clear_type, 'n': rating})
+
+        ptt = server.arcscore.get_user_ptt(c, user_id)  # 更新PTT
+        c.execute('''update user set rating_ptt=:a where user_id=:b''', {
+            'a': ptt, 'b': user_id})
+
+    return
+
+
+def update_all_save(c):
+    # 同步所有用户存档
+
+    c.execute('''select user_id from user_save''')
+    x = c.fetchall()
+    if x:
+        for i in x:
+            update_one_save(c, i[0])
+
+    return

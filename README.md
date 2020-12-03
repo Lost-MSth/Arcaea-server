@@ -30,7 +30,7 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 
 没有以下 We don't have：
 - 角色数值 Character characteristic value
-- 数据同步的时间和设备记录 The record of time and device for data synchronization 
+- 数据同步的时间记录 The record of time for data synchronization 
 - 服务器安全性保证 Server security assurance
 
 可能有问题 There may be problems：
@@ -54,15 +54,13 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss.
 
-### Version 1.7
-- 仍然适用于Arcaea 3.2.3版本 Still for Arcaea 3.2.3
+### Version 1.8
+- 适用于Arcaea 3.3.0版本 For Arcaea 3.3.0
 - 更新了歌曲数据库 Update the song database.
-- 新增了购买系统，包括单曲购买和曲包购买 Add purchase system, including single purchase and pack purchase.
-- 后台查询与修改项目增多 Increase background query and modification items.
-- 新增用户下载量限制和下载校验 Add user download limit and download verification.
-- 新增了**梦**的语音 Add the voice of **Yume**.
-- 新增了网站图标 Add a favicon.
-- 尝试解锁了所有的场景 Try to unlock all the scenes.
+- 新角色**Alice & Tenniel**已解锁 Unlock new character **Alice & Tenniel**.
+- 数据同步机制修改 Modify data synchronization mechanism.
+- Recent30增添简易的PTT保护机制 Add simple PTT protection mechanism to Recent30.
+- 尝试解锁了一些东西 Try to unlock something.
 - 修复了一些Bug Fix some bugs.
 
 ## 运行环境与依赖 Running environment and requirements
