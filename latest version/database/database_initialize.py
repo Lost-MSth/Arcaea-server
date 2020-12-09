@@ -36,7 +36,7 @@ current_map text,
 ticket int
 );''')
 c.execute('''create table if not exists login(access_token text,
-user_id int,
+user_id int primary key,
 last_login_time int,
 last_login_ip text,
 last_login_device text
