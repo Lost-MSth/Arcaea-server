@@ -142,7 +142,7 @@ def update_user_char(c):
 
 def update_database():
     # 将old数据库不存在数据加入到新数据库上，并删除old数据库
-    # 对于arcaea_datebase.db，更新best_score，friend，recent30，user，user_world, user_item, user_save并用character数据更新user_char
+    # 对于arcaea_datebase.db，更新best_score，friend，recent30，user，user_world, user_item, user_save, login, present, user_present并用character数据更新user_char
     # 对于arcsong.db，更新songs
     if os.path.isfile("database/old_arcaea_database.db") and os.path.isfile("database/arcaea_database.db"):
         conn1 = sqlite3.connect('./database/old_arcaea_database.db')
@@ -157,6 +157,9 @@ def update_database():
         update_one_table(c1, c2, 'user_world')
         update_one_table(c1, c2, 'user_item')
         update_one_table(c1, c2, 'user_save')
+        update_one_table(c1, c2, 'login')
+        update_one_table(c1, c2, 'present')
+        update_one_table(c1, c2, 'user_present')
 
         update_user_char(c2)
 

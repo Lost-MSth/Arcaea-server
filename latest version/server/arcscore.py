@@ -1071,15 +1071,6 @@ def arc_all_get(user_id):
                 "unlock_key": "lucifer|2|0",
                 "complete": 1
             }, {
-                "unlock_key": "saikyostronger|2|3|izana|2",
-                "complete": 1
-            }, {
-                "unlock_key": "halcyon|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "memoryforest|2|0",
-                "complete": 1
-            }, {
                 "unlock_key": "tiemedowngently|2|0",
                 "complete": 1
             }, {
@@ -1102,6 +1093,21 @@ def arc_all_get(user_id):
                 "complete": 1
             }, {
                 "unlock_key": "ignotus|2|0",
+                "complete": 1
+            }, {
+                "unlock_key": "snowwhite|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "partyvinyl|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "axiumcrisis|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "ifi|2|0",
+                "complete": 1
+            }, {
+                "unlock_key": "jump|2|0",
                 "complete": 1
             }, {
                 "unlock_key": "harutopia|2|0",
@@ -1132,6 +1138,9 @@ def arc_all_get(user_id):
                 "complete": 1
             }, {
                 "unlock_key": "guardina|0|0",
+                "complete": 1
+            }, {
+                "unlock_key": "jump|1|0",
                 "complete": 1
             }, {
                 "unlock_key": "blaster|2|0",
@@ -1197,6 +1206,48 @@ def arc_all_get(user_id):
                 "unlock_key": "fractureray|2|101",
                 "complete": 100
             }, {
+                "unlock_key": "monochromeprincess|2|0",
+                "complete": 1
+            }, {
+                "unlock_key": "babaroque|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "flyburg|2|0",
+                "complete": 1
+            }, {
+                "unlock_key": "nirvluce|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "monochromeprincess|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "clotho|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "lethaeus|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "halcyon|2|0",
+                "complete": 1
+            }, {
+                "unlock_key": "saikyostronger|2|3|izana|2",
+                "complete": 1
+            }, {
+                "unlock_key": "memoryforest|2|0",
+                "complete": 1
+            }, {
+                "unlock_key": "halcyon|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "toaliceliddell|2|0",
+                "complete": 1
+            }, {
+                "unlock_key": "blrink|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "felis|1|0",
+                "complete": 1
+            }, {
                 "unlock_key": "qualia|1|0",
                 "complete": 1
             }, {
@@ -1219,18 +1270,6 @@ def arc_all_get(user_id):
                 "complete": 1
             }, {
                 "unlock_key": "espebranch|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "snowwhite|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "partyvinyl|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "axiumcrisis|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "ifi|2|0",
                 "complete": 1
             }, {
                 "unlock_key": "tempestissimo|1|101",
@@ -1329,18 +1368,6 @@ def arc_all_get(user_id):
                 "unlock_key": "ignotus|1|0",
                 "complete": 1
             }, {
-                "unlock_key": "nirvluce|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "monochromeprincess|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "lethaeus|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "clotho|1|0",
-                "complete": 1
-            }, {
                 "unlock_key": "aterlbus|2|0",
                 "complete": 1
             }, {
@@ -1369,12 +1396,6 @@ def arc_all_get(user_id):
                 "complete": 1
             }, {
                 "unlock_key": "genesis|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "halcyon|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "blrink|1|0",
                 "complete": 1
             }, {
                 "unlock_key": "grievouslady|0|101",
@@ -1416,15 +1437,6 @@ def arc_all_get(user_id):
                 "unlock_key": "cyaegha|1|0",
                 "complete": 1
             }, {
-                "unlock_key": "monochromeprincess|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "babaroque|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "flyburg|2|0",
-                "complete": 1
-            }, {
                 "unlock_key": "goodtek|1|0",
                 "complete": 1
             }, {
@@ -1435,6 +1447,12 @@ def arc_all_get(user_id):
                 "complete": 100
             }, {
                 "unlock_key": "blaster|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "felis|2|0",
+                "complete": 1
+            }, {
+                "unlock_key": "toaliceliddell|1|0",
                 "complete": 1
             }, {
                 "unlock_key": "gothiveofra|2|0",

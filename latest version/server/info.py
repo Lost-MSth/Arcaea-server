@@ -330,7 +330,7 @@ def arc_aggregate_big(user_id):
              }
          }, {
              "id": 4,
-             "value": []
+             "value": server.arcpurchase.get_user_present(c, user_id)
          }, {
              "id": 5,
              "value": {

@@ -470,9 +470,23 @@ def redeem():
 # 礼物确认
 @app.route('/coffee/12/present/me/claim/<present_id>', methods=['POST'])
 def claim_present(present_id):
-    return jsonify({
-        "success": True
-    })
+    headers = request.headers
+    token = headers['Authorization']
+    token = token[7:]
+    try:
+        user_id = server.auth.token_get_id(token)
+        if user_id is not None:
+            flag = server.arcpurchase.claim_user_present(user_id, present_id)
+            if flag:
+                return jsonify({
+                    "success": True
+                })
+            else:
+                return error_return(108)
+        else:
+            return error_return(108)
+    except:
+        return error_return(108)
 
 
 # 购买，为了world模式boost一下

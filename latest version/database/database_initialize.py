@@ -208,6 +208,16 @@ installid_data text,
 devicemodelname_data text,
 story_data text
 );''')
+c.execute('''create table if not exists present(present_id text primary key,
+expire_ts int,
+items text,
+description text
+);''')
+c.execute('''create table if not exists user_present(user_id int,
+present_id text,
+primary key(user_id, present_id)
+);''')
+
 
 char = ['Hikari', 'Tairitsu', 'Kou', 'Sapphire', 'Lethe', '', 'Tairitsu(Axium)', 'Tairitsu(Grievous Lady)', 'Stella', 'Hikari & Fisica', 'Ilith', 'Eto', 'Luna', 'Shirabe', 'Hikari(Zero)', 'Hikari(Fracture)', 'Hikari(Summer)', 'Tairitsu(Summer)', 'Tairitsu & Trin',
         'Ayu', 'Eto & Luna', 'Yume', 'Seine & Hikari', 'Saya', 'Tairitsu & Chuni Penguin', 'Chuni Penguin', 'Haruna', 'Nono', 'MTA-XXX', 'MDA-21', 'Kanae', 'Hikari(Fantasia)', 'Tairitsu(Sonata)', 'Sia', 'DORO*C', 'Tairitsu(Tempest)', 'Brillante', 'Ilith(Summer)', 'Etude', 'Alice & Tenniel']

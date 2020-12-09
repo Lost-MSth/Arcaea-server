@@ -120,3 +120,38 @@ def buy_single(user_id, single_id):
     return {
         "success": True
     }
+
+
+def get_user_present(c, user_id):
+    # 获取用户奖励，返回字典列表
+    c.execute(
+        '''select * from present where present_id in (select present_id from user_present where user_id=:a)''', {'a': user_id})
+    x = c.fetchall()
+    re = []
+    if x:
+        for i in x:
+            re.append({'expire_ts': i[1],
+                       'description': i[3],
+                       'present_id': i[0],
+                       'items': i[2]
+                       })
+
+    return re
+
+
+def claim_user_present(user_id, present_id):
+    # 确认并删除用户奖励，返回成功与否的布尔值
+    flag = False
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+
+    c.execute('''select exists(select * from user_present where user_id=:a and present_id=:b)''',
+              {'a': user_id, 'b': present_id})
+    if c.fetchone() == (1,):
+        flag = True
+        c.execute('''delete from user_present where user_id=:a and present_id=:b''',
+                  {'a': user_id, 'b': present_id})
+
+    conn.commit()
+    conn.close()
+    return flag
