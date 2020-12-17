@@ -9,6 +9,7 @@ import web.system
 import time
 import server.arcscore
 import os
+import json
 
 UPLOAD_FOLDER = 'database'
 ALLOWED_EXTENSIONS = {'db'}
@@ -402,7 +403,7 @@ def all_character():
 def change_character():
     # 修改角色数据
     skill_ids = ['No_skill', 'gauge_easy', 'note_mirror', 'gauge_hard', 'frag_plus_10_pack_stellights', 'gauge_easy|frag_plus_15_pst&prs', 'gauge_hard|fail_frag_minus_100', 'frag_plus_5_side_light', 'visual_hide_hp', 'frag_plus_5_side_conflict', 'challenge_fullcombo_0gauge', 'gauge_overflow', 'gauge_easy|note_mirror', 'note_mirror', 'visual_tomato_pack_tonesphere',
-                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far']
+                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far', 'frags_ongeki']
     return render_template('web/changechar.html', skill_ids=skill_ids)
 
 
@@ -824,3 +825,164 @@ def update_user_save():
         flash(error)
 
     return render_template('web/updateusersave.html')
+
+
+@bp.route('/allpresent', methods=['GET'])
+@login_required
+def all_present():
+    # 所有奖励数据
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    c.execute('''select * from present''')
+    x = c.fetchall()
+    error = None
+    if x:
+        posts = []
+        for i in x:
+            items = json.loads(i[2])
+            items_string = ''
+            for j in items:
+                items_string = items_string + '\n' + \
+                    str(j['id']) + ': ' + str(j['amount'])
+
+            posts.append({'present_id': i[0],
+                          'expire_ts': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(i[1])//1000)),
+                          'items': items_string,
+                          'description': i[3]
+                          })
+    else:
+        error = '没有奖励数据 No present data.'
+
+    conn.commit()
+    conn.close()
+    if error:
+        flash(error)
+        return render_template('web/allpresent.html')
+    else:
+        return render_template('web/allpresent.html', posts=posts)
+
+
+@bp.route('/changepresent', methods=['GET'])
+@login_required
+def change_present():
+    # 修改奖励数据
+    return render_template('web/changepresent.html')
+
+
+@bp.route('/changepresent/addpresent', methods=['POST'])
+@login_required
+def add_present():
+    # 添加奖励数据
+    present_id = request.form['present_id']
+    expire_ts = request.form['expire_ts']
+    description = request.form['description']
+    fragment = request.form['fragment']
+    ticket = request.form['ticket']
+    try:
+        if ticket:
+            ticket = int(ticket)
+        if fragment:
+            fragment = int(fragment)
+        expire_ts = int(time.mktime(time.strptime(
+            expire_ts, "%Y-%m-%dT%H:%M"))) * 1000
+    except:
+        flash('数据错误 Wrong data.')
+        return redirect(url_for('index.change_present'))
+
+    if len(present_id) >= 256:
+        present_id = present_id[:200]
+    if len(description) >= 256:
+        description = description[:200]
+
+    items = []
+    if ticket:
+        items.append({'type': 'memory', 'id': 'memory', 'amount': ticket})
+    if fragment:
+        items.append(
+            {'type': 'fragment', 'id': 'fragment', 'amount': fragment})
+    if items == []:
+        flash('奖励为空 No items.')
+        return redirect(url_for('index.change_present'))
+
+    message = web.system.add_one_present(
+        present_id, expire_ts, description, json.dumps(items))
+
+    if message:
+        flash(message)
+
+    return redirect(url_for('index.change_present'))
+
+
+@bp.route('/changepresent/deletepresent', methods=['POST'])
+@login_required
+def delete_present():
+    # 删除奖励数据
+    present_id = request.form['present_id']
+    message = web.system.delete_one_present(present_id)
+
+    if message:
+        flash(message)
+
+    return redirect(url_for('index.change_present'))
+
+
+@bp.route('/deliverpresent', methods=['GET', 'POST'])
+@login_required
+def deliver_present():
+    # 分发奖励
+
+    if request.method == 'GET':
+        return render_template('web/deliverpresent.html')
+
+    error = None
+    flag = True
+    name = None
+    user_code = None
+    present_id = request.form['present_id']
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    if not web.system.is_present_available(c, present_id):
+        flash("奖励不存在 The present does not exist.")
+        conn.commit()
+        conn.close()
+        return render_template('web/deliverpresent.html')
+
+    # 全修改
+    if 'name' not in request.form and 'user_code' not in request.form:
+        flag = False
+        web.system.deliver_all_user_present(c, present_id)
+        flash("全部用户奖励分发成功 Successfully deliver the present to all users.")
+    else:
+        name = request.form['name']
+        user_code = request.form['user_code']
+
+    # 指定修改f
+    if name or user_code:
+        if user_code:
+            c.execute('''select user_id from user where user_code=:a''', {
+                'a': user_code})
+        else:
+            c.execute(
+                '''select user_id from user where name=:a''', {'a': name})
+
+        user_id = c.fetchone()
+        if user_id:
+            user_id = user_id[0]
+            web.system.deliver_one_user_present(c, present_id, user_id)
+            flash("用户奖励分发成功 Successfully deliver the present to the user.")
+
+        else:
+            error = '玩家不存在 The player does not exist.'
+
+    else:
+        if flag:
+            error = '输入为空 Null Input.'
+
+    conn.commit()
+    conn.close()
+    if error:
+        flash(error)
+
+    return render_template('web/deliverpresent.html')

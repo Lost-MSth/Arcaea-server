@@ -1,4 +1,6 @@
 import sqlite3
+import time
+import json
 
 
 def int2b(x):
@@ -128,13 +130,15 @@ def get_user_present(c, user_id):
         '''select * from present where present_id in (select present_id from user_present where user_id=:a)''', {'a': user_id})
     x = c.fetchall()
     re = []
+    now = int(time.time() * 1000)
     if x:
         for i in x:
-            re.append({'expire_ts': i[1],
-                       'description': i[3],
-                       'present_id': i[0],
-                       'items': i[2]
-                       })
+            if now <= int(i[1]):
+                re.append({'expire_ts': i[1],
+                           'description': i[3],
+                           'present_id': i[0],
+                           'items': json.loads(i[2])
+                           })
 
     return re
 
@@ -151,6 +155,25 @@ def claim_user_present(user_id, present_id):
         flag = True
         c.execute('''delete from user_present where user_id=:a and present_id=:b''',
                   {'a': user_id, 'b': present_id})
+        c.execute('''select * from present where present_id=:b''',
+                  {'b': present_id})
+        x = c.fetchone()
+        now = int(time.time() * 1000)
+        if now <= int(x[1]):
+            # 处理memory
+            items = json.loads(x[2])
+            for i in items:
+                if i['id'] == 'memory':
+                    c.execute('''select ticket from user where user_id=:a''', {
+                              'a': user_id})
+                    ticket = int(c.fetchone()[0])
+                    ticket += int(i['amount'])
+                    c.execute('''update user set ticket=:b where user_id=:a''', {
+                              'a': user_id, 'b': ticket})
+
+        else:
+            # 过期
+            flag = False
 
     conn.commit()
     conn.close()

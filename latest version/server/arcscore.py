@@ -37,10 +37,22 @@ def get_score(c, user_id, song_id, difficulty):
               {'a': user_id, 'b': song_id, 'c': difficulty})
     x = c.fetchone()
     if x is not None:
-        c.execute('''select name, character_id, is_skill_sealed, is_char_uncapped from user where user_id = :a''', {
+        c.execute('''select name, character_id, is_skill_sealed, is_char_uncapped, favorite_character from user where user_id = :a''', {
                   'a': user_id})
         y = c.fetchone()
         if y is not None:
+            character = y[1]
+            is_char_uncapped = int2b(y[3])
+            if y[4] != -1:
+                character = y[4]
+                c.execute('''select is_uncapped, is_uncapped_override from user_char where user_id=:a and character_id=:b''', {
+                    'a': user_id, 'b': character})
+                z = c.fetchone()
+                if z:
+                    if z[1] == 0:
+                        is_char_uncapped = int2b(z[0])
+                    else:
+                        is_char_uncapped = False
             return {
                 "user_id": x[0],
                 "song_id": x[1],
@@ -56,9 +68,9 @@ def get_score(c, user_id, song_id, difficulty):
                 "best_clear_type": x[11],
                 "clear_type": x[12],
                 "name": y[0],
-                "character": y[1],
+                "character": character,
                 "is_skill_sealed": int2b(y[2]),
-                "is_char_uncapped": int2b(y[3])
+                "is_char_uncapped": is_char_uncapped
             }
         else:
             return {}
@@ -920,556 +932,756 @@ def arc_all_get(user_id):
             "val": "0fcec8ed-7b62-48e2-9d61-55041a22b123"
         },
         "unlocklist": {
-            "": [{
-                "unlock_key": "worldvanquisher|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "worldvanquisher|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "worldexecuteme|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "viciousheroism|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "vector|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "valhallazero|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "tiferet|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "tiemedowngently|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "tempestissimo|0|101",
-                "complete": 100
-            }, {
-                "unlock_key": "syro|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "suomi|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "solitarydream|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "snowwhite|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "sheriruth|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "senkyou|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "senkyou|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "scarletlance|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "scarletlance|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "rugie|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "rugie|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "rise|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "revixy|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "reinvent|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "reinvent|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "redandblue|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "redandblue|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "rabbitintheblackroom|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "rabbitintheblackroom|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "worldexecuteme|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "ringedgenesis|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "quon|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "qualia|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "purgatorium|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "supernova|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "saikyostronger|2|3|einherjar|2",
-                "complete": 1
-            }, {
-                "unlock_key": "purgatorium|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "pragmatism|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "ouroboros|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "ouroboros|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "oracle|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "onelastdrive|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "onelastdrive|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "oblivia|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "pragmatism|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "nhelv|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "memoryforest|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "melodyoflove|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "saikyostronger|2|3|laqryma|2",
-                "complete": 1
-            }, {
-                "unlock_key": "melodyoflove|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "lucifer|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "tiemedowngently|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "lostdesire|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "viciousheroism|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "flyburg|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "lostcivilization|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "infinityheaven|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "lostdesire|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "ignotus|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "snowwhite|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "partyvinyl|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "axiumcrisis|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "ifi|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "jump|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "harutopia|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "revixy|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "aterlbus|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "linearaccelerator|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "guardina|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "corpssansorganes|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "linearaccelerator|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "guardina|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "saikyostronger|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "guardina|0|0",
-                "complete": 1
-            }, {
-                "unlock_key": "jump|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "blaster|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "grievouslady|2|101",
-                "complete": 100
-            }, {
-                "unlock_key": "partyvinyl|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "darakunosono|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "grievouslady|1|101",
-                "complete": 100
-            }, {
-                "unlock_key": "valhallazero|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "grimheart|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "ifi|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "gothiveofra|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "tempestissimo|3|101",
-                "complete": 100
-            }, {
-                "unlock_key": "chronostasis|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "gloryroad|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "supernova|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "singularity|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "gloryroad|0|0",
-                "complete": 1
-            }, {
-                "unlock_key": "shadesoflight|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "kanagawa|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "genesis|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "fractureray|1|101",
-                "complete": 100
-            }, {
-                "unlock_key": "freefall|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "fractureray|2|101",
-                "complete": 100
-            }, {
-                "unlock_key": "monochromeprincess|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "babaroque|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "flyburg|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "nirvluce|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "monochromeprincess|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "clotho|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "lethaeus|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "halcyon|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "saikyostronger|2|3|izana|2",
-                "complete": 1
-            }, {
-                "unlock_key": "memoryforest|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "halcyon|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "toaliceliddell|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "blrink|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "felis|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "qualia|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "etherstrike|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "etherstrike|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "syro|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "anokumene|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "essenceoftwilight|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "shadesoflight|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "espebranch|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "tempestissimo|1|101",
-                "complete": 100
-            }, {
-                "unlock_key": "nhelv|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "conflict|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "espebranch|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "lostcivilization|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "goodtek|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "dandelion|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "suomi|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "dandelion|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "oblivia|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "cyberneciacatharsis|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "quon|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "bookmaker|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "chronostasis|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "heavensdoor|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "tempestissimo|2|101",
-                "complete": 100
-            }, {
-                "unlock_key": "cyaegha|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "axiumcrisis|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "blrink|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "rise|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "cyanine|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "corpssansorganes|0|0",
-                "complete": 1
-            }, {
-                "unlock_key": "vector|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "infinityheaven|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "essenceoftwilight|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "conflict|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "singularity|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "harutopia|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "cyberneciacatharsis|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "oracle|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "clotho|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "ignotus|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "aterlbus|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "dreaminattraction|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "lucifer|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "solitarydream|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "ringedgenesis|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "corpssansorganes|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "buchigireberserker|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "bookmaker|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "heavensdoor|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "genesis|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "grievouslady|0|101",
-                "complete": 100
-            }, {
-                "unlock_key": "buchigireberserker|2|3|gothiveofra|2",
-                "complete": 1
-            }, {
-                "unlock_key": "kanagawa|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "darakunosono|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "freefall|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "nirvluce|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "cyanine|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "lethaeus|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "sheriruth|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "babaroque|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "tiferet|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "grimheart|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "cyaegha|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "goodtek|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "buchigireberserker|2|3|ouroboros|2",
-                "complete": 1
-            }, {
-                "unlock_key": "fractureray|0|101",
-                "complete": 100
-            }, {
-                "unlock_key": "blaster|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "felis|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "toaliceliddell|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "gothiveofra|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "aiueoon|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "gloryroad|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "anokumene|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "dreaminattraction|1|0",
-                "complete": 1
-            }]
+            "": [
+                {
+                    "unlock_key": "worldvanquisher|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "worldvanquisher|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "worldexecuteme|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "viyellastears|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "viyellastears|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "viciousheroism|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "vector|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "valhallazero|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "tiferet|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "tiemedowngently|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "tempestissimo|0|101",
+                    "complete": 100
+                },
+                {
+                    "unlock_key": "syro|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "suomi|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "solitarydream|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "snowwhite|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "sheriruth|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "senkyou|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "senkyou|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "scarletlance|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "scarletlance|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "rugie|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "rugie|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "rise|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "revixy|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "reinvent|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "reinvent|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "redandblue|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "redandblue|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "rabbitintheblackroom|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "rabbitintheblackroom|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "worldexecuteme|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "ringedgenesis|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "quon|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "qualia|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "purgatorium|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "supernova|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "saikyostronger|2|3|einherjar|2",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "purgatorium|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "pragmatism|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "ouroboros|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "ouroboros|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "oracle|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "onelastdrive|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "onelastdrive|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "omegafour|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "oblivia|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "pragmatism|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "nhelv|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "memoryforest|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "melodyoflove|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "saikyostronger|2|3|laqryma|2",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "omegafour|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "melodyoflove|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "lucifer|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "tiemedowngently|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "lostdesire|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "viciousheroism|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "flyburg|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "lostcivilization|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "infinityheaven|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "lostdesire|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "ignotus|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "snowwhite|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "partyvinyl|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "axiumcrisis|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "ifi|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "jump|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "harutopia|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "revixy|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "aterlbus|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "linearaccelerator|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "guardina|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "corpssansorganes|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "linearaccelerator|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "guardina|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "saikyostronger|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "guardina|0|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "jump|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "blaster|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "grievouslady|2|101",
+                    "complete": 100
+                },
+                {
+                    "unlock_key": "partyvinyl|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "darakunosono|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "grievouslady|1|101",
+                    "complete": 100
+                },
+                {
+                    "unlock_key": "valhallazero|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "grimheart|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "ifi|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "gothiveofra|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "tempestissimo|3|101",
+                    "complete": 100
+                },
+                {
+                    "unlock_key": "chronostasis|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "gloryroad|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "supernova|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "singularity|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "gloryroad|0|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "shadesoflight|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "kanagawa|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "genesis|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "fractureray|1|101",
+                    "complete": 100
+                },
+                {
+                    "unlock_key": "freefall|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "fractureray|2|101",
+                    "complete": 100
+                },
+                {
+                    "unlock_key": "monochromeprincess|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "babaroque|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "flyburg|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "nirvluce|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "monochromeprincess|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "clotho|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "lethaeus|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "halcyon|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "saikyostronger|2|3|izana|2",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "memoryforest|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "halcyon|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "toaliceliddell|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "blrink|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "felis|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "qualia|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "etherstrike|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "etherstrike|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "syro|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "anokumene|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "essenceoftwilight|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "shadesoflight|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "espebranch|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "tempestissimo|1|101",
+                    "complete": 100
+                },
+                {
+                    "unlock_key": "nhelv|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "conflict|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "espebranch|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "lostcivilization|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "goodtek|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "dandelion|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "suomi|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "dandelion|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "oblivia|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "cyberneciacatharsis|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "quon|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "bookmaker|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "chronostasis|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "heavensdoor|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "tempestissimo|2|101",
+                    "complete": 100
+                },
+                {
+                    "unlock_key": "cyaegha|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "axiumcrisis|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "blrink|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "rise|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "cyanine|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "corpssansorganes|0|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "vector|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "infinityheaven|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "essenceoftwilight|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "conflict|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "singularity|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "harutopia|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "cyberneciacatharsis|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "oracle|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "clotho|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "ignotus|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "aterlbus|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "dreaminattraction|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "lucifer|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "solitarydream|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "ringedgenesis|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "corpssansorganes|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "buchigireberserker|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "bookmaker|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "heavensdoor|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "genesis|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "grievouslady|0|101",
+                    "complete": 100
+                },
+                {
+                    "unlock_key": "buchigireberserker|2|3|gothiveofra|2",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "kanagawa|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "darakunosono|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "freefall|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "nirvluce|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "cyanine|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "lethaeus|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "sheriruth|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "babaroque|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "tiferet|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "grimheart|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "cyaegha|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "goodtek|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "buchigireberserker|2|3|ouroboros|2",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "fractureray|0|101",
+                    "complete": 100
+                },
+                {
+                    "unlock_key": "blaster|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "felis|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "toaliceliddell|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "gothiveofra|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "aiueoon|2|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "gloryroad|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "anokumene|1|0",
+                    "complete": 1
+                },
+                {
+                    "unlock_key": "dreaminattraction|1|0",
+                    "complete": 1
+                }
+            ]
         }, "clearedsongs": {
             "": clearedsongs_data
         },

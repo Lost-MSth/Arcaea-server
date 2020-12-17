@@ -301,3 +301,80 @@ def update_all_save(c):
             update_one_save(c, i[0])
 
     return
+
+
+def add_one_present(present_id, expire_ts, description, items):
+    # 添加一个奖励
+
+    message = None
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    c.execute(
+        '''select exists(select * from present where present_id=:a)''', {'a': present_id})
+    if c.fetchone() == (0,):
+        c.execute('''insert into present values(:a,:b,:c,:d)''', {
+                  'a': present_id, 'b': expire_ts, 'c': items, 'd': description})
+        message = '添加成功 Successfully add it.'
+    else:
+        message = '奖励已存在 The present exists.'
+
+    conn.commit()
+    conn.close()
+    return message
+
+
+def delete_one_present(present_id):
+    # 删除一个奖励
+
+    message = None
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    c.execute(
+        '''select exists(select * from present where present_id=:a)''', {'a': present_id})
+    if c.fetchone() == (1,):
+        c.execute('''delete from present where present_id = :a''',
+                  {'a': present_id})
+        c.execute('''delete from user_present where present_id =:a''', {
+                  'a': present_id})
+        message = '删除成功 Successfully delete it.'
+    else:
+        message = '奖励不存在 The present does not exist.'
+
+    conn.commit()
+    conn.close()
+    return message
+
+
+def is_present_available(c, present_id):
+    # 判断present_id是否有效
+    c.execute(
+        '''select exists(select * from present where present_id = :a)''', {'a': present_id})
+
+    if c.fetchone() == (1,):
+        return True
+    else:
+        return False
+
+
+def deliver_one_user_present(c, present_id, user_id):
+    # 为指定玩家添加奖励，重复添加不会提示
+    c.execute('''select exists(select * from user_present where user_id=:a and present_id=:b)''',
+              {'a': user_id, 'b': present_id})
+    if c.fetchone() == (0,):
+        c.execute('''insert into user_present values(:a,:b)''',
+                  {'a': user_id, 'b': present_id})
+    return
+
+
+def deliver_all_user_present(c, present_id):
+    # 为所有玩家添加奖励
+    c.execute('''select user_id from user''')
+    x = c.fetchall()
+    if x:
+        c.execute('''delete from user_present where present_id=:b''',
+                  {'b': present_id})
+        for i in x:
+            c.execute('''insert into user_present values(:a,:b)''',
+                      {'a': i[0], 'b': present_id})
+
+    return

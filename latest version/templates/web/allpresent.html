@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}All presents{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+{% if posts %}<br />
+{% for present in posts %}
+
+<div class="char-present">
+    <span>Id: </span>
+    <span class="name">{{present['present_id']}}</span>
+    <br />
+
+    <span>Expire time: </span>
+    <span class="char-num">{{present['expire_ts']}}</span>
+    <br />
+
+    <span>Description: </span>
+    <span class="char-num">{{present['description']}}</span>
+    <br />
+
+    <span>Items: </span>
+    <span class="char-num" style='white-space:pre'>{{present['items']}}</span>
+    <br />
+
+
+</div>
+{% if not loop.last %}
+<br />
+<hr />
+<br />
+{% endif %}
+{% endfor %}
+
+{% endif %}
+{% endblock %}

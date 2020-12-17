@@ -3,7 +3,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "core",
-		"_id": "5fd01460a6e343038b057d28",
+		"_id": "5fdab049a6e343038b0582d4",
 		"is_available": true
 	}],
 	"price": 500,
@@ -15,12 +15,12 @@
 	"items": [{
 		"type": "pack",
 		"id": "shiawase",
-		"_id": "5fd01461a6e343038b057d65",
+		"_id": "5fdab049a6e343038b058314",
 		"is_available": true
 	}, {
 		"type": "character",
 		"id": "kou",
-		"_id": "5fd01461a6e343038b057d64",
+		"_id": "5fdab049a6e343038b058313",
 		"is_available": true
 	}],
 	"price": 500,
@@ -32,12 +32,12 @@
 	"items": [{
 		"type": "pack",
 		"id": "dynamix",
-		"_id": "5fd01461a6e343038b057d6f",
+		"_id": "5fdab049a6e343038b05831c",
 		"is_available": true
 	}, {
 		"type": "character",
 		"id": "sapphire",
-		"_id": "5fd01461a6e343038b057d6e",
+		"_id": "5fdab049a6e343038b05831b",
 		"is_available": true
 	}],
 	"price": 500,
@@ -49,12 +49,12 @@
 	"items": [{
 		"type": "pack",
 		"id": "mirai",
-		"_id": "5fd01461a6e343038b057d69",
+		"_id": "5fdab049a6e343038b058318",
 		"is_available": true
 	}, {
 		"type": "character",
 		"id": "lethe",
-		"_id": "5fd01461a6e343038b057d68",
+		"_id": "5fdab049a6e343038b058317",
 		"is_available": true
 	}],
 	"price": 500,
@@ -66,7 +66,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "yugamu",
-		"_id": "5fd01460a6e343038b057d29",
+		"_id": "5fdab049a6e343038b0582d5",
 		"is_available": true
 	}],
 	"price": 500,
@@ -78,7 +78,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "lanota",
-		"_id": "5fd01460a6e343038b057d40",
+		"_id": "5fdab049a6e343038b058305",
 		"is_available": true
 	}],
 	"price": 500,
@@ -90,7 +90,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "nijuusei",
-		"_id": "5fd01460a6e343038b057d2a",
+		"_id": "5fdab049a6e343038b0582d6",
 		"is_available": true
 	}],
 	"price": 500,
@@ -102,7 +102,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "rei",
-		"_id": "5fd01460a6e343038b057d4d",
+		"_id": "5fdab049a6e343038b0582fb",
 		"is_available": true
 	}],
 	"price": 500,
@@ -114,7 +114,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "tonesphere",
-		"_id": "5fd01460a6e343038b057d42",
+		"_id": "5fdab049a6e343038b058307",
 		"is_available": true
 	}],
 	"price": 500,
@@ -126,7 +126,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "groovecoaster",
-		"_id": "5fd01460a6e343038b057d5b",
+		"_id": "5fdab049a6e343038b0582f1",
 		"is_available": true
 	}],
 	"price": 500,
@@ -138,7 +138,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "zettai",
-		"_id": "5fd01460a6e343038b057d4f",
+		"_id": "5fdab049a6e343038b0582fd",
 		"is_available": true
 	}],
 	"price": 500,
@@ -150,7 +150,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "chunithm",
-		"_id": "5fd01460a6e343038b057d39",
+		"_id": "5fdab049a6e343038b0582e5",
 		"is_available": true
 	}],
 	"price": 300,
@@ -160,7 +160,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "prelude",
-		"_id": "5fd01460a6e343038b057d5c",
+		"_id": "5fdab049a6e343038b0582f2",
 		"is_available": true
 	}],
 	"price": 400,
@@ -170,7 +170,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "omatsuri",
-		"_id": "5fd01460a6e343038b057d50",
+		"_id": "5fdab049a6e343038b0582fe",
 		"is_available": true
 	}],
 	"price": 500,
@@ -180,7 +180,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "vs",
-		"_id": "5fd01460a6e343038b057d3c",
+		"_id": "5fdab049a6e343038b0582e8",
 		"is_available": true
 	}],
 	"price": 500,
@@ -190,7 +190,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "extend",
-		"_id": "5fd01460a6e343038b057d5f",
+		"_id": "5fdab049a6e343038b0582f5",
 		"is_available": true
 	}],
 	"price": 700,
@@ -200,7 +200,7 @@
 	"items": [{
 		"type": "pack",
 		"id": "alice",
-		"_id": "5fd01460a6e343038b057d55",
+		"_id": "5fdab049a6e343038b058303",
 		"is_available": true
 	}],
 	"orig_price": 500,
@@ -210,9 +210,19 @@
 	"items": [{
 		"type": "pack",
 		"id": "alice_append_1",
-		"_id": "5fd01460a6e343038b057d33",
+		"_id": "5fdab049a6e343038b0582df",
 		"is_available": true
 	}],
 	"orig_price": 300,
 	"price": 300
+}, {
+	"name": "ongeki",
+	"items": [{
+		"type": "pack",
+		"id": "ongeki",
+		"_id": "5fdab049a6e343038b0582eb",
+		"is_available": true
+	}],
+	"orig_price": 400,
+	"price": 400
 }]

@@ -19,6 +19,7 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 - 自定义世界模式 Customizable World Mode
 - 自定义歌曲下载 Customizable songs download
 - 单曲和曲包购买（没啥用） Single songs and song packs purchase(useless)
+- 奖励系统 Present system
 - 全角色立绘 All character drawings
 - 角色技能 Character skills
 - 自定义角色属性 Customizable characters attributes
@@ -32,7 +33,6 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 - 角色数值 Character characteristic value
 - 数据同步的时间记录 The record of time for data synchronization 
 - 服务器安全性保证 Server security assurance
-- 登录奖励 Login present
 
 可能有问题 There may be problems：
 - Recent 30
@@ -55,18 +55,13 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss.
 
-### Version 1.8.1
-- 适用于Arcaea 3.3.1版本 For Arcaea 3.3.1
+### Version 1.9
+- 适用于Arcaea 3.4.0版本 For Arcaea 3.4.0
 - 更新了歌曲数据库 Update the song database.
+- 新搭档**Luna & Mia**已解锁 Unlock the new character **Luna & Mia**.
+- 新增了奖励系统 Add the present system.
 - 修复了一些Bug Fix some bugs.
 
-> 提醒：只是一次小更新，本次更新前后登录信息无法同步，需重新登录（我忘记给login表加主键了同步不了哈哈哈）  
-> 已发现的问题：设置Favorite角色可能并不有效  
-> 预告：登录奖励系统
->
-> Tips: It is only a small update. The login information before and after this update can't be synchronized, so you need to log in again. (I forgot to add a primary key to the login table, so it can't be synchronized. lol)  
-> Problem found: Setting the favorite character may be useless.  
-> Preview: Login present system
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows操作系统 Windows operating system

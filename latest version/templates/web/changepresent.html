@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Change the presents{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/web/changepresent/addpresent" method="post">
+    <div class="title">Add the present</div>
+    <label for="present_id">ID of the present</label>
+    <input name="present_id" id="present_id" required>
+    <label for="description">Description of the present</label>
+    <input name="description" id="description" required>
+
+    <label for="expire_ts">Expire time</label>
+    <input type="datetime-local" name="expire_ts" id="expire_ts" required>
+    <br />
+    <div>Items:</div>
+    <label for="fragment">Fragments</label>
+    <input name="fragment" id="fragment">
+    <label for="ticket">Memories</label>
+    <input name="ticket" id="ticket">
+
+    <div class="content">两种奖励只能有一个，另一个请留空。如果都填写，以记忆源点优先。</div>
+    <div class="content">There can only be one of the two kinds of present. Please leave the other one blank. If you
+        fill both, the memories will be given priority.</div>
+    <div class="content">时间填写是一个HTML5控件</div>
+    <div class="content">Time filling is an HTML5 control.</div>
+    <input type="submit" value="Add">
+</form>
+<br />
+<hr />
+<form action="/web/changepresent/deletepresent" method="post">
+    <div class="title">Delete the present</div>
+    <label for="present_id">ID of the present</label>
+    <input name="present_id" id="present_id" required>
+
+    <input type="submit" value="Delete">
+</form>
+{% endblock %}

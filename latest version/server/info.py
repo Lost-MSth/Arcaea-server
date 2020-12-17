@@ -104,14 +104,26 @@ def get_user_friend(c, user_id):
             c.execute('''select * from user where user_id = :x''', {'x': i[0]})
             y = c.fetchone()
             if y is not None:
+                character = y[6]
+                is_char_uncapped = int2b(y[8])
+                is_char_uncapped_override = int2b(y[9])
+                if y[23] != -1:
+                    character = y[23]
+                    c.execute('''select is_uncapped, is_uncapped_override from user_char where user_id=:a and character_id=:b''', {
+                              'a': i[0], 'b': character})
+                    z = c.fetchone()
+                    if z:
+                        is_char_uncapped = int2b(z[0])
+                        is_char_uncapped_override = int2b(z[1])
+
                 s.append({
                     "is_mutual": is_mutual,
-                    "is_char_uncapped_override": int2b(y[9]),
-                    "is_char_uncapped": int2b(y[8]),
+                    "is_char_uncapped_override": is_char_uncapped_override,
+                    "is_char_uncapped": is_char_uncapped,
                     "is_skill_sealed": int2b(y[7]),
                     "rating": y[5],
                     "join_date": int(y[3]),
-                    "character": y[6],
+                    "character": character,
                     "recent_score": get_recent_score(c, i[0]),
                     "name": y[1],
                     "user_id": i[0]
