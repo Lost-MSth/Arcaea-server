@@ -297,7 +297,8 @@ def update_recent30(c, user_id, song_id, rating, is_protected):
         b_pre = [x for x in b]
         s_pre = 0
         for x in a_pre:
-            s_pre += x
+            if x is not None:
+                s_pre += x
 
     for i in range(r30_id, 0, -1):
         a[i] = a[i-1]
@@ -308,7 +309,8 @@ def update_recent30(c, user_id, song_id, rating, is_protected):
     if is_protected:
         s = 0
         for x in a:
-            s += x
+            if x is not None:
+                s += x
         if s < s_pre:
             a = [x for x in a_pre]
             b = [x for x in b_pre]
