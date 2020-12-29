@@ -17,10 +17,12 @@
 <a href="{{ url_for('index.all_character') }}">角色信息查询 All characters</a></br></br>
 <a href="{{ url_for('index.all_item') }}">购买信息查询 All items</a></br></br>
 <a href="{{ url_for('index.all_present') }}">奖励信息查询 All presents</a></br></br>
+<a href="{{ url_for('index.all_redeem') }}">兑换码信息查询 All redeem codes</a></br></br>
 <a href="{{ url_for('index.single_chart_top') }}">单个铺面排行榜查询 Single song chart tops</a>
 <hr>
 <h1>系统方面 System</h1>
 <a href="{{ url_for('index.update_database') }}">数据库更新 Update databases</a></br></br>
+<a href="{{ url_for('index.edit_userpwd') }}">用户密码修改 Change user password</a></br></br>
 <a href="{{ url_for('index.update_user_save') }}">用户存档更新 Update user saves</a></br></br>
 <a href="{{ url_for('index.change_song') }}">歌曲修改 Change the songs</a></br></br>
 <a href="{{ url_for('index.change_character') }}">角色修改 Change the characters</a></br></br>
@@ -28,7 +30,9 @@
 <a href="{{ url_for('index.change_user') }}">用户信息修改 Change user information</a></br></br>
 <a href="{{ url_for('index.change_user_purchase') }}">用户购买信息修改 Change user purchase information</a></br></br>
 <a href="{{ url_for('index.change_present') }}">奖励修改 Change the presents</a></br></br>
-<a href="{{ url_for('index.deliver_present') }}">奖励分发 Deliver the presents</a>
+<a href="{{ url_for('index.deliver_present') }}">奖励分发 Deliver the presents</a></br></br>
+<a href="{{ url_for('index.change_redeem') }}">兑换码修改 Change the redeem codes</a>
+
 
 
 {% endblock %}

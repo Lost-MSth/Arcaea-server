@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}All redeem codes{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+{% if posts %}<br />
+{% for redeem in posts %}
+
+<div class="char-redeem">
+    <span>Code: </span>
+    <span class="name">{{redeem['code']}}</span>
+    <br />
+
+    <span>Type: </span>
+    <span class="char-num">
+        {% if redeem['type'] == 0 %}
+        仅可使用一次 It can only be used once.
+        {% elif redeem['type'] == 1 %}
+        每个用户仅可以使用一次 Each user can only use it once.
+        {% endif %}
+    </span>
+    <br />
+
+    <span>Items: </span>
+    <span class="char-num" style='white-space:pre'>{{redeem['items']}}</span>
+    <br />
+    <div><a href="/web/redeem/{{redeem['code']}}">使用者 Players who have used it.</a></div>
+
+</div>
+{% if not loop.last %}
+<br />
+<hr />
+<br />
+{% endif %}
+{% endfor %}
+
+{% endif %}
+{% endblock %}

@@ -217,6 +217,19 @@ c.execute('''create table if not exists user_present(user_id int,
 present_id text,
 primary key(user_id, present_id)
 );''')
+c.execute('''create table if not exists songfile(song_id text,
+file_type int,
+md5 text,
+primary key(song_id, file_type)
+);''')
+c.execute('''create table if not exists redeem(code text primary key,
+items text,
+type int
+);''')
+c.execute('''create table if not exists user_redeem(user_id int,
+code text,
+primary key(user_id, code)
+);''')
 
 
 char = ['Hikari', 'Tairitsu', 'Kou', 'Sapphire', 'Lethe', '', 'Tairitsu(Axium)', 'Tairitsu(Grievous Lady)', 'Stella', 'Hikari & Fisica', 'Ilith', 'Eto', 'Luna', 'Shirabe', 'Hikari(Zero)', 'Hikari(Fracture)', 'Hikari(Summer)', 'Tairitsu(Summer)', 'Tairitsu & Trin',

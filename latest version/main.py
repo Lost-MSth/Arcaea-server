@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, make_response, send_from_directory
+from logging.config import dictConfig
 import configparser
 import base64
 import server.auth
@@ -462,9 +463,34 @@ def cloud_post():
         return error_return(108)
 
 
-@app.route('/coffee/12/purchase/me/redeem', methods=['POST'])  # 兑换码，依然没有用
+@app.route('/coffee/12/purchase/me/redeem', methods=['POST'])  # 兑换码
 def redeem():
-    return error_return(504)
+    headers = request.headers
+    token = headers['Authorization']
+    token = token[7:]
+    code = request.form['code']
+    try:
+        user_id = server.auth.token_get_id(token)
+        if user_id is not None:
+            fragment, error_code = server.arcpurchase.claim_user_redeem(
+                user_id, code)
+            if not error_code:
+                if fragment > 0:
+                    return jsonify({
+                        "success": True,
+                        "value": {"coupon": "fragment"+str(fragment)}
+                    })
+                else:
+                    return jsonify({
+                        "success": True,
+                        "value": {"coupon": ""}
+                    })
+            else:
+                return error_return(error_code)
+        else:
+            return error_return(108)
+    except:
+        return error_return(108)
 
 
 # 礼物确认
@@ -666,6 +692,26 @@ def main():
     app.config.from_mapping(SECRET_KEY='1145141919810')
     app.register_blueprint(web.login.bp)
     app.register_blueprint(web.index.bp)
+
+    dictConfig({
+        'version': 1,
+        'formatters': {'default': {
+            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+        }},
+        'root': {
+            'level': 'INFO'
+        }
+    })
+
+    app.logger.info("Start to initialize data in 'songfile' table...")
+    try:
+        error = server.arcdownload.initialize_songfile()
+    except:
+        error = 'Something wrong.'
+    if error:
+        app.logger.warning(error)
+    else:
+        app.logger.info('Complete!')
 
     app.run(HOST, PORT)
 

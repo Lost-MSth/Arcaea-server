@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Change the redeem codes{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/web/changeredeem/addredeem" method="post">
+    <div class="title">Add the redeem</div>
+    <div>指定生成 Specify generation</div>
+    <label for="code">The redeem code</label>
+    <input name="code" id="code">
+    <div>Or</div>
+    <div>随机批量生成 Batch generation at random</div>
+    <label for="amount">Amount</label>
+    <input name="amount" id="amount">
+    <br />
+    <div>Type:
+        <br />
+        <br />
+        <label><input type="radio" name="type" value="0" checked>仅可使用一次 It can only be used once.</label>
+        <br />
+        <label><input type="radio" name="type" value="1">每个用户仅可以使用一次 Each user can only use it once.</label>
+    </div>
+
+
+    <br />
+    <div>Items:</div>
+    <label for="fragment">Fragments</label>
+    <input name="fragment" id="fragment">
+    <label for="ticket">Memories</label>
+    <input name="ticket" id="ticket">
+
+    <div class="content">两种奖励可以都有，不需要请留空。</div>
+    <div class="content">You can have both kinds of items. Please leave it blank if you don't need it.</div>
+    <div class="content">兑换码长度为10~20。</div>
+    <div class="content">The length of redeem code is 10 ~ 20.</div>
+    <div class="content">随机生成数量不得超过1000。</div>
+    <div class="content">The amount of batch generation should not be more than 1000.</div>
+    <input type="submit" value="Add">
+</form>
+<br />
+<hr />
+<form action="/web/changeredeem/deleteredeem" method="post">
+    <div class="title">Delete the redeem</div>
+    <label for="code">The redeem code</label>
+    <input name="code" id="code" required>
+
+    <input type="submit" value="Delete">
+</form>
+{% endblock %}

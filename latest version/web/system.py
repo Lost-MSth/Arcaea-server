@@ -3,6 +3,8 @@ import sqlite3
 import time
 import json
 import server.arcscore
+import hashlib
+from random import Random
 
 
 def int2b(x):
@@ -11,6 +13,17 @@ def int2b(x):
         return False
     else:
         return True
+
+
+def random_str(randomlength=10):
+    # 随机生成字符串
+    s = ''
+    chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789'
+    length = len(chars) - 1
+    random = Random()
+    for i in range(randomlength):
+        s += chars[random.randint(0, length)]
+    return s
 
 
 def get_table_info(c, table_name):
@@ -85,8 +98,25 @@ def get_sql_insert_table(table_name, field, value):
     return sql, sql_dict
 
 
+def get_sql_delete_table(table_name, where_field=[], where_value=[]):
+    # sql语句拼接，delete from ... where ...
+    sql = 'delete from ' + table_name
+    sql_dict = {}
+
+    if where_field and where_value:
+        sql += ' where '
+        sql += where_field[0] + '=:' + where_field[0]
+        sql_dict[where_field[0]] = where_value[0]
+        if len(where_field) >= 1:
+            for i in range(1, len(where_field)):
+                sql_dict[where_field[i]] = where_value[i]
+                sql += ' and ' + where_field[i] + '=:' + where_field[i]
+
+    return sql, sql_dict
+
+
 def update_one_table(c1, c2, table_name):
-    # 从c1向c2更新数据表，c2中存在的信息不变
+    # 从c1向c2更新数据表，c1中存在的信息不变
     c1.execute(
         '''select * from sqlite_master where type = 'table' and name = :a''', {'a': table_name})
     c2.execute(
@@ -117,10 +147,14 @@ def update_one_table(c1, c2, table_name):
             sql = 'select exists(' + sql + ')'
             c2.execute(sql, sql_dict)
 
-            if c2.fetchone() == (0,):
-                sql, sql_dict = get_sql_insert_table(
-                    table_name, field, list(y[i]))
+            if c2.fetchone() == (1,):  # 如果c2里存在，先删除
+                sql, sql_dict = get_sql_delete_table(
+                    table_name, db1_pk, list(x[i]))
                 c2.execute(sql, sql_dict)
+
+            sql, sql_dict = get_sql_insert_table(
+                table_name, field, list(y[i]))
+            c2.execute(sql, sql_dict)
 
     return None
 
@@ -142,7 +176,7 @@ def update_user_char(c):
 
 def update_database():
     # 将old数据库不存在数据加入到新数据库上，并删除old数据库
-    # 对于arcaea_datebase.db，更新best_score，friend，recent30，user，user_world, user_item, user_save, login, present, user_present并用character数据更新user_char
+    # 对于arcaea_datebase.db，更新一些表，并用character数据更新user_char
     # 对于arcsong.db，更新songs
     if os.path.isfile("database/old_arcaea_database.db") and os.path.isfile("database/arcaea_database.db"):
         conn1 = sqlite3.connect('./database/old_arcaea_database.db')
@@ -155,11 +189,14 @@ def update_database():
         update_one_table(c1, c2, 'best_score')
         update_one_table(c1, c2, 'recent30')
         update_one_table(c1, c2, 'user_world')
+        update_one_table(c1, c2, 'item')
         update_one_table(c1, c2, 'user_item')
         update_one_table(c1, c2, 'user_save')
         update_one_table(c1, c2, 'login')
         update_one_table(c1, c2, 'present')
         update_one_table(c1, c2, 'user_present')
+        update_one_table(c1, c2, 'redeem')
+        update_one_table(c1, c2, 'user_redeem')
 
         update_user_char(c2)
 
@@ -377,4 +414,74 @@ def deliver_all_user_present(c, present_id):
             c.execute('''insert into user_present values(:a,:b)''',
                       {'a': i[0], 'b': present_id})
 
+    return
+
+
+def add_one_redeem(code, redeem_type, items):
+    # 添加一个兑换码
+
+    message = None
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    c.execute(
+        '''select exists(select * from redeem where code=:a)''', {'a': code})
+    if c.fetchone() == (0,):
+        c.execute('''insert into redeem values(:a,:b,:c)''', {
+                  'a': code, 'b': items, 'c': redeem_type})
+        message = '添加成功 Successfully add it.'
+    else:
+        message = '兑换码已存在 The redeem code exists.'
+
+    conn.commit()
+    conn.close()
+    return message
+
+
+def add_some_random_redeem(amount, redeem_type, items):
+    # 随机生成一堆10位的兑换码
+
+    message = None
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    i = 0
+    while i <= amount:
+        code = random_str()
+        c.execute(
+            '''select exists(select * from redeem where code=:a)''', {'a': code})
+        if c.fetchone() == (0,):
+            c.execute('''insert into redeem values(:a,:b,:c)''',
+                      {'a': code, 'b': items, 'c': redeem_type})
+            i += 1
+
+    message = '添加成功 Successfully add it.'
+    conn.commit()
+    conn.close()
+    return message
+
+
+def delete_one_redeem(code):
+    # 删除一个兑换码
+
+    message = None
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    c.execute(
+        '''select exists(select * from redeem where code=:a)''', {'a': code})
+    if c.fetchone() == (1,):
+        c.execute('''delete from redeem where code = :a''', {'a': code})
+        c.execute('''delete from user_redeem where code =:a''', {'a': code})
+        message = '删除成功 Successfully delete it.'
+    else:
+        message = '兑换码不存在 The redeem code does not exist.'
+
+    conn.commit()
+    conn.close()
+    return message
+
+
+def change_userpwd(c, user_id, password):
+    # 修改用户密码
+    hash_pwd = hashlib.sha256(password.encode("utf8")).hexdigest()
+    c.execute('''update user set password =:a where user_id=:b''',
+              {'a': hash_pwd, 'b': user_id})
     return

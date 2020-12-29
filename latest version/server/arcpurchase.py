@@ -178,3 +178,50 @@ def claim_user_present(user_id, present_id):
     conn.commit()
     conn.close()
     return flag
+
+
+def claim_user_redeem(user_id, code):
+    # 处理兑换码，返回碎片数量和错误码
+    fragment = 0
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    c.execute('''select * from redeem where code=:a''', {'a': code})
+    x = c.fetchone()
+    if not x:
+        conn.commit()
+        conn.close()
+        return 0, 504
+
+    if x[2] == 0:  # 一次性
+        c.execute(
+            '''select exists(select * from user_redeem where code=:a)''', {'a': code})
+        if c.fetchone() == (1,):
+            conn.commit()
+            conn.close()
+            return 0, 505
+    elif x[2] == 1:  # 每个玩家一次
+        c.execute('''select exists(select * from user_redeem where code=:a and user_id=:b)''',
+                  {'a': code, 'b': user_id})
+        if c.fetchone() == (1,):
+            conn.commit()
+            conn.close()
+            return 0, 506
+
+    c.execute('''insert into user_redeem values(:b,:a)''',
+              {'a': code, 'b': user_id})
+
+    items = json.loads(x[1])
+    for i in items:
+        if i['type'] == 'fragment':
+            fragment = i['amount']
+        if i['type'] == 'memory':
+            c.execute('''select ticket from user where user_id=:a''', {
+                'a': user_id})
+            ticket = int(c.fetchone()[0])
+            ticket += int(i['amount'])
+            c.execute('''update user set ticket=:b where user_id=:a''', {
+                'a': user_id, 'b': ticket})
+
+    conn.commit()
+    conn.close()
+    return fragment, None

@@ -986,3 +986,199 @@ def deliver_present():
         flash(error)
 
     return render_template('web/deliverpresent.html')
+
+
+@bp.route('/allredeem', methods=['GET'])
+@login_required
+def all_redeem():
+    # 所有兑换码数据
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    c.execute('''select * from redeem''')
+    x = c.fetchall()
+    error = None
+    if x:
+        posts = []
+        for i in x:
+            items = json.loads(i[1])
+            items_string = ''
+            for j in items:
+                items_string = items_string + '\n' + \
+                    str(j['id']) + ': ' + str(j['amount'])
+
+            posts.append({'code': i[0],
+                          'items': items_string,
+                          'type': i[2]
+                          })
+    else:
+        error = '没有兑换码数据 No redeem code data.'
+
+    conn.commit()
+    conn.close()
+    if error:
+        flash(error)
+        return render_template('web/allredeem.html')
+    else:
+        return render_template('web/allredeem.html', posts=posts)
+
+
+@bp.route('/changeredeem', methods=['GET'])
+@login_required
+def change_redeem():
+    # 修改兑换码数据
+    return render_template('web/changeredeem.html')
+
+
+@bp.route('/changeredeem/addredeem', methods=['POST'])
+@login_required
+def add_redeem():
+    # 添加兑换码数据
+    print(request.form)
+    code = request.form['code']
+    amount = request.form['amount']
+    redeem_type = request.form['type']
+    fragment = request.form['fragment']
+    ticket = request.form['ticket']
+    try:
+        if amount:
+            amount = int(amount)
+        if ticket:
+            ticket = int(ticket)
+        if fragment:
+            fragment = int(fragment)
+    except:
+        flash('数据错误 Wrong data.')
+        return redirect(url_for('index.change_redeem'))
+
+    items = []
+    if ticket:
+        items.append({'type': 'memory', 'id': 'memory', 'amount': ticket})
+    if fragment:
+        items.append(
+            {'type': 'fragment', 'id': 'fragment', 'amount': fragment})
+    if items == []:
+        flash('奖励为空 No items.')
+        return redirect(url_for('index.change_redeem'))
+
+    if code and not amount:
+        if len(code) > 20 or len(code) < 10:
+            flash('兑换码长度不合适 Inappropriate length of redeem code.')
+            return redirect(url_for('index.change_redeem'))
+
+        message = web.system.add_one_redeem(
+            code, redeem_type, json.dumps(items))
+    elif amount and not code:
+        if amount <= 0 or amount > 1000:
+            flash('数量错误 Wrong amount.')
+            return redirect(url_for('index.change_redeem'))
+
+        message = web.system.add_some_random_redeem(
+            amount, redeem_type, json.dumps(items))
+    elif amount and code:
+        flash('只能使用一种添加方式 Only one add method can be used.')
+        return redirect(url_for('index.change_redeem'))
+    else:
+        flash('空输入 Null input.')
+        return redirect(url_for('index.change_redeem'))
+
+    if message:
+        flash(message)
+
+    return redirect(url_for('index.change_redeem'))
+
+
+@bp.route('/changeredeem/deleteredeem', methods=['POST'])
+@login_required
+def delete_redeem():
+    # 删除兑换码数据
+    code = request.form['code']
+    message = web.system.delete_one_redeem(code)
+
+    if message:
+        flash(message)
+
+    return redirect(url_for('index.change_redeem'))
+
+
+@bp.route('/redeem/<code>', methods=['GET'])
+@login_required
+def one_redeem(code):
+    # 某个兑换码的用户使用情况数据
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+    c.execute(
+        '''select user_id, name, user_code from user where user_id in (select user_id from user_redeem where code=:a)''', {'a': code})
+    x = c.fetchall()
+    error = None
+    if x:
+        posts = []
+        for i in x:
+            posts.append({'user_id': i[0],
+                          'name': i[1],
+                          'user_code': i[2]
+                          })
+    else:
+        error = '没有数据 No data.'
+
+    conn.commit()
+    conn.close()
+    if error:
+        flash(error)
+        return render_template('web/redeem.html', code=code)
+    else:
+        return render_template('web/redeem.html', posts=posts, code=code)
+
+
+@bp.route('/changeuserpwd', methods=['GET', 'POST'])
+@login_required
+def edit_userpwd():
+    # 修改用户密码
+    if request.method == 'GET':
+        return render_template('web/changeuserpwd.html')
+
+    error = None
+    
+    name = request.form['name']
+    user_code = request.form['user_code']
+    pwd = request.form['pwd']
+    pwd2 = request.form['pwd2']
+    if pwd != pwd2:
+        flash('两次输入的密码不一致 Entered passwords differ!')
+        return render_template('web/changeuserpwd.html')
+    else:
+        if len(pwd) < 8 or len(pwd) > 20:
+            flash('密码太长或太短 Password is too long or too short!')
+            return render_template('web/changeuserpwd.html')
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+
+    if name or user_code:
+
+        if user_code:
+            c.execute('''select user_id from user where user_code=:a''', {
+                'a': user_code})
+        else:
+            c.execute(
+                '''select user_id from user where name=:a''', {'a': name})
+
+        user_id = c.fetchone()
+        if user_id:
+            user_id = user_id[0]
+            web.system.change_userpwd(c, user_id, pwd)
+            flash('用户密码修改成功 Successfully edit the user information.')
+
+        else:
+            error = '玩家不存在 The player does not exist.'
+
+    else:
+        error = '输入为空 Null Input.'
+
+    conn.commit()
+    conn.close()
+    if error:
+        flash(error)
+
+    return redirect(url_for('index.edit_userpwd'))

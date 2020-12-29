@@ -38,12 +38,27 @@ def get_one_song(c, user_id, song_id, file_dir='./database/songs'):
             token = token[:8]
 
             if i == 'base.ogg':
-                re['audio'] = {"checksum": get_file_md5(os.path.join(file_dir, song_id, 'base.ogg')),
+                c.execute(
+                    '''select md5 from songfile where song_id=:a and file_type=-1''', {'a': song_id})
+                x = c.fetchone()
+                if x:
+                    checksum = x[0]
+                else:
+                    checksum = get_file_md5(os.path.join(
+                        file_dir, song_id, 'base.ogg'))
+                re['audio'] = {"checksum": checksum,
                                "url": url_for('download', file_path=song_id+'/base.ogg', t=token, _external=True)}
             else:
                 if 'chart' not in re:
                     re['chart'] = {}
-                re['chart'][i[0]] = {"checksum": get_file_md5(os.path.join(file_dir, song_id, i)),
+                c.execute(
+                    '''select md5 from songfile where song_id=:a and file_type=:b''', {'a': song_id, 'b': int(i[0])})
+                x = c.fetchone()
+                if x:
+                    checksum = x[0]
+                else:
+                    checksum = get_file_md5(os.path.join(file_dir, song_id, i))
+                re['chart'][i[0]] = {"checksum": checksum,
                                      "url": url_for('download', file_path=song_id+'/'+i, t=token, _external=True)}
 
             c.execute('''insert into download_token values(:a,:b,:c,:d,:e)''', {
@@ -60,7 +75,7 @@ def get_all_songs(user_id, file_dir='./database/songs'):
     c = conn.cursor()
     for i in dir_list:
         if os.path.isdir(os.path.join(file_dir, i)):
-            re.update(get_one_song(c, user_id, i))
+            re.update(get_one_song(c, user_id, i, file_dir))
 
     conn.commit()
     conn.close()
@@ -125,3 +140,45 @@ def is_able_download(user_id):
     conn.commit()
     conn.close()
     return f
+
+
+def initialize_one_songfile(c, song_id, file_dir='./database/songs'):
+    # 计算并添加歌曲md5到表中，无返回
+    dir_list = os.listdir(os.path.join(file_dir, song_id))
+    for i in dir_list:
+        if os.path.isfile(os.path.join(file_dir, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg']:
+            if i == 'base.ogg':
+                c.execute('''insert into songfile values(:a,-1,:c)''', {
+                          'a': song_id, 'c': get_file_md5(os.path.join(file_dir, song_id, 'base.ogg'))})
+            else:
+                c.execute('''insert into songfile values(:a,:b,:c)''', {
+                          'a': song_id, 'b': int(i[0]), 'c': get_file_md5(os.path.join(file_dir, song_id, i))})
+
+    return
+
+
+def initialize_songfile(file_dir='./database/songs'):
+    # 初始化歌曲数据的md5表，返回错误信息
+    error = None
+    try:
+        dir_list = os.listdir(file_dir)
+    except:
+        error = 'OS error!'
+        return error
+    try:
+        conn = sqlite3.connect('./database/arcaea_database.db')
+        c = conn.cursor()
+    except:
+        error = 'Database error!'
+        return error
+    try:
+        c.execute('''delete from songfile''')
+        for i in dir_list:
+            if os.path.isdir(os.path.join(file_dir, i)):
+                initialize_one_songfile(c, i, file_dir)
+    except:
+        error = 'Initialization error!'
+    finally:
+        conn.commit()
+        conn.close()
+        return error

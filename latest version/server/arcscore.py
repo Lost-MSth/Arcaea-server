@@ -255,8 +255,56 @@ def get_song_state(x):
         return 0
 
 
+def get_user_ptt(c, user_id) -> int:
+    # 总ptt计算
+    sumr = 0
+    c.execute('''select rating from best_score where user_id = :a order by rating DESC limit 30''', {
+              'a': user_id})
+    x = c.fetchall()
+    if x != []:
+        n = len(x)
+        for i in x:
+            sumr += float(i[0])
+    c.execute('''select * from recent30 where user_id = :a''', {'a': user_id})
+    x = c.fetchone()
+    if x is not None:
+        r30 = []
+        s30 = []
+        for i in range(1, 61, 2):
+            if x[i] is not None:
+                r30.append(float(x[i]))
+                s30.append(x[i+1])
+            else:
+                r30.append(0)
+                s30.append('')
+        r30, s30 = (list(t) for t in zip(*sorted(zip(r30, s30), reverse=True)))
+        songs = []
+        i = 0
+        while len(songs) < 10 and i <= 29 and s30[i] != '' and s30[i] is not None:
+            if s30[i] not in songs:
+                sumr += r30[i]
+                songs.append(s30[i])
+            i += 1
+
+    return int(sumr/40*100)
+
+
 def update_recent30(c, user_id, song_id, rating, is_protected):
     # 刷新r30，这里的判断方法存疑
+    def insert_r30table(c, user_id, a, b):
+        # 更新r30表
+        c.execute('''delete from recent30 where user_id = :a''',
+                  {'a': user_id})
+        sql = 'insert into recent30 values(' + str(user_id)
+        for i in range(0, 30):
+            if a[i] is not None and b[i] is not None:
+                sql = sql + ',' + str(a[i]) + ',"' + b[i] + '"'
+            else:
+                sql = sql + ',0,""'
+
+        sql = sql + ')'
+        c.execute(sql)
+
     c.execute('''select * from recent30 where user_id = :a''', {'a': user_id})
     x = c.fetchone()
     songs = []
@@ -293,12 +341,9 @@ def update_recent30(c, user_id, song_id, rating, is_protected):
         b.append(x[i+1])
 
     if is_protected:
+        ptt_pre = get_user_ptt(c, user_id)
         a_pre = [x for x in a]
         b_pre = [x for x in b]
-        s_pre = 0
-        for x in a_pre:
-            if x is not None:
-                s_pre += x
 
     for i in range(r30_id, 0, -1):
         a[i] = a[i-1]
@@ -306,60 +351,21 @@ def update_recent30(c, user_id, song_id, rating, is_protected):
     a[0] = rating
     b[0] = song_id
 
+    insert_r30table(c, user_id, a, b)
+
     if is_protected:
-        s = 0
-        for x in a:
-            if x is not None:
-                s += x
-        if s < s_pre:
-            a = [x for x in a_pre]
-            b = [x for x in b_pre]
+        ptt = get_user_ptt(c, user_id)
+        if ptt < ptt_pre:
+            # 触发保护
+            if song_id in b_pre:
+                for i in range(29, -1, -1):
+                    if song_id == b_pre[i] and rating > a_pre[i]:
+                        # 发现重复歌曲，更新到最高rating
+                        a_pre[i] = rating
+                        break
 
-    c.execute('''delete from recent30 where user_id = :a''', {'a': user_id})
-    sql = 'insert into recent30 values(' + str(user_id)
-    for i in range(0, 30):
-        if a[i] is not None and b[i] is not None:
-            sql = sql + ',' + str(a[i]) + ',"' + b[i] + '"'
-        else:
-            sql = sql + ',0,""'
-
-    sql = sql + ')'
-    c.execute(sql)
+            insert_r30table(c, user_id, a_pre, b_pre)
     return None
-
-
-def get_user_ptt(c, user_id) -> int:
-    # 总ptt计算
-    sumr = 0
-    c.execute('''select rating from best_score where user_id = :a order by rating DESC limit 30''', {
-              'a': user_id})
-    x = c.fetchall()
-    if x != []:
-        n = len(x)
-        for i in x:
-            sumr += float(i[0])
-    c.execute('''select * from recent30 where user_id = :a''', {'a': user_id})
-    x = c.fetchone()
-    if x is not None:
-        r30 = []
-        s30 = []
-        for i in range(1, 61, 2):
-            if x[i] is not None:
-                r30.append(float(x[i]))
-                s30.append(x[i+1])
-            else:
-                r30.append(0)
-                s30.append('')
-        r30, s30 = (list(t) for t in zip(*sorted(zip(r30, s30), reverse=True)))
-        songs = []
-        i = 0
-        while len(songs) < 10 and i <= 29 and s30[i] != '' and s30[i] is not None:
-            if s30[i] not in songs:
-                sumr += r30[i]
-                songs.append(s30[i])
-            i += 1
-
-    return int(sumr/40*100)
 
 
 def arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count, perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type):
@@ -372,11 +378,6 @@ def arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count, per
     # recent 更新
     c.execute('''update user set song_id = :b, difficulty = :c, score = :d, shiny_perfect_count = :e, perfect_count = :f, near_count = :g, miss_count = :h, health = :i, modifier = :j, clear_type = :k, rating = :l, time_played = :m  where user_id = :a''', {
               'a': user_id, 'b': song_id, 'c': difficulty, 'd': score, 'e': shiny_perfect_count, 'f': perfect_count, 'g': near_count, 'h': miss_count, 'i': health, 'j': modifier, 'k': clear_type, 'l': rating, 'm': now})
-    # recent30 更新
-    if health == -1 or int(score) >= 9800000:
-        update_recent30(c, user_id, song_id+str(difficulty), rating, True)
-    else:
-        update_recent30(c, user_id, song_id+str(difficulty), rating, False)
     # 成绩录入
     c.execute('''select score, best_clear_type from best_score where user_id = :a and song_id = :b and difficulty = :c''', {
               'a': user_id, 'b': song_id, 'c': difficulty})
@@ -392,6 +393,11 @@ def arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count, per
         if score >= int(x[0]):  # 成绩更新
             c.execute('''update best_score set score = :d, shiny_perfect_count = :e, perfect_count = :f, near_count = :g, miss_count = :h, health = :i, modifier = :j, clear_type = :k, rating = :l, time_played = :m  where user_id = :a and song_id = :b and difficulty = :c ''', {
                 'a': user_id, 'b': song_id, 'c': difficulty, 'd': score, 'e': shiny_perfect_count, 'f': perfect_count, 'g': near_count, 'h': miss_count, 'i': health, 'j': modifier, 'k': clear_type, 'l': rating, 'm': now})
+    # recent30 更新
+    if health == -1 or int(score) >= 9800000:
+        update_recent30(c, user_id, song_id+str(difficulty), rating, True)
+    else:
+        update_recent30(c, user_id, song_id+str(difficulty), rating, False)
     # 总PTT更新
     ptt = get_user_ptt(c, user_id)
     c.execute('''update user set rating_ptt = :a where user_id = :b''', {

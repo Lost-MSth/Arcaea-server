@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Redeem - {{code}}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+{% if posts %}
+{% for user in posts %}
+
+<div id="user-info">
+    <div class="name">{{user['name']}}
+        <span class="rank">UID: {{user['user_id']}}</span>
+        <span class="rank">User code: {{user['user_code']}}</span>
+    </div>
+</div>
+{% if not loop.last %}
+<br />
+{% endif %}
+{% endfor %}
+
+{% endif %}
+<br />
+<a href="{{ url_for('index.all_redeem') }}">Back</a>
+{% endblock %}
