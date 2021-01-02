@@ -206,7 +206,8 @@ clearedsongs_data text,
 unlocklist_data text,
 installid_data text,
 devicemodelname_data text,
-story_data text
+story_data text,
+createdAt int
 );''')
 c.execute('''create table if not exists present(present_id text primary key,
 expire_ts int,

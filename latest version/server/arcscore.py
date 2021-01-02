@@ -559,9 +559,10 @@ def arc_all_post(user_id, scores_data, clearlamps_data, clearedsongs_data, unloc
 
     conn = sqlite3.connect('./database/arcaea_database.db')
     c = conn.cursor()
+    now = int(time.time() * 1000)
     c.execute('''delete from user_save where user_id=:a''', {'a': user_id})
-    c.execute('''insert into user_save values(:a,:b,:c,:d,:e,:f,:g,:h)''', {
-              'a': user_id, 'b': scores_data, 'c': clearlamps_data, 'd': clearedsongs_data, 'e': unlocklist_data, 'f': installid_data, 'g': devicemodelname_data, 'h': story_data})
+    c.execute('''insert into user_save values(:a,:b,:c,:d,:e,:f,:g,:h,:i)''', {
+              'a': user_id, 'b': scores_data, 'c': clearlamps_data, 'd': clearedsongs_data, 'e': unlocklist_data, 'f': installid_data, 'g': devicemodelname_data, 'h': story_data, 'i': now})
     conn.commit()
     conn.close()
     return None
@@ -590,6 +591,10 @@ def arc_all_get(user_id):
         installid_data = json.loads(x[5])["val"]
         devicemodelname_data = json.loads(x[6])["val"]
     #    story_data = json.loads(x[7])[""]
+        if x[8]:
+            createdAt = int(x[8])
+        else:
+            createdAt = 0
 
     # c.execute('''select * from best_score where user_id = :a''',
     #           {'a': user_id})
@@ -1701,5 +1706,6 @@ def arc_all_get(user_id):
         },
         "version": {
             "val": 1
-        }
+        },
+        "createdAt": createdAt
     }
