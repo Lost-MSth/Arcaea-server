@@ -71,7 +71,7 @@ It is just so interesting. What it can do is under exploration.
 
 > 提醒：本次更新针对了API接口更新，将无法兼容Arcaea 3.4.1以下版本
 >
-> Tips: 
+> Tips: This update includes API interface update, and will not be compatible with the version below Arcaea 3.4.1.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows操作系统 Windows operating system
