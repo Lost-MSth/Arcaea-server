@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Ban the user{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/web/banuser" method="post">
+    <div class="title">Ban the user</div>
+    <label for="name">Arcaea Username</label>
+    <input name="name" id="name">
+    or<br />
+    <label for="user_code">Arcaea User Code</label>
+    <input name="user_code" id="user_code">
+
+    <br />
+    <div class="content">提示：重设用户密码即可解封账号</div>
+    <div class="content">Tip: Reset the user password to unseal the account.</div>
+    <br />
+    <input type="submit" value="Execute">
+</form>
+<br />
+<hr />
+<form action="/web/banuser/deleteuserscore" method="post">
+    <div class="title">Delete all of the user's scores</div>
+    <label for="name">Arcaea Username</label>
+    <input name="name" id="name">
+    or<br />
+    <label for="user_code">Arcaea User Code</label>
+    <input name="user_code" id="user_code">
+
+    <br />
+    <div class="content">警告！这个操作具有破坏性，且不可恢复。</div>
+    <div class="content">Warning! This operation is destructive and unrecoverable.</div>
+    <br />
+    <input type="submit" value="Execute">
+</form>
+{% endblock %}

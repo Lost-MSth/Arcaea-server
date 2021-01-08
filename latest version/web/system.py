@@ -307,6 +307,8 @@ def update_one_save(c, user_id):
         for i in scores:
             rating = server.arcscore.get_one_ptt(
                 i['song_id'], i['difficulty'], i['score'])
+            if rating < 0:
+                rating = 0
             try:
                 index = clear_song_id_difficulty.index(
                     i['song_id'] + str(i['difficulty']))
@@ -484,4 +486,21 @@ def change_userpwd(c, user_id, password):
     hash_pwd = hashlib.sha256(password.encode("utf8")).hexdigest()
     c.execute('''update user set password =:a where user_id=:b''',
               {'a': hash_pwd, 'b': user_id})
+    return
+
+
+def ban_one_user(c, user_id):
+    # 封禁用户
+    c.execute('''update user set password = '' where user_id=:a''',
+              {'a': user_id})
+    c.execute('''delete from login where user_id=:a''', {'a': user_id})
+    return
+
+
+def clear_user_score(c, user_id):
+    # 清除用户所有成绩，包括best_score和recent30，以及recent数据，但不包括云端存档
+    c.execute('''update user set rating_ptt=0, song_id='', difficulty=0, score=0, shiny_perfect_count=0, perfect_count=0, near_count=0, miss_count=0, health=0, time_played=0, rating=0 where user_id=:a''',
+              {'a': user_id})
+    c.execute('''delete from best_score where user_id=:a''', {'a': user_id})
+    c.execute('''delete from recent30 where user_id=:a''', {'a': user_id})
     return

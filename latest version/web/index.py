@@ -1139,7 +1139,7 @@ def edit_userpwd():
         return render_template('web/changeuserpwd.html')
 
     error = None
-    
+
     name = request.form['name']
     user_code = request.form['user_code']
     pwd = request.form['pwd']
@@ -1182,3 +1182,86 @@ def edit_userpwd():
         flash(error)
 
     return redirect(url_for('index.edit_userpwd'))
+
+
+@bp.route('/banuser', methods=['POST', 'GET'])
+@login_required
+def ban_user():
+    # 封禁用户
+    if request.method == 'GET':
+        return render_template('web/banuser.html')
+
+    error = None
+
+    name = request.form['name']
+    user_code = request.form['user_code']
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+
+    if name or user_code:
+        if user_code:
+            c.execute('''select user_id from user where user_code=:a''', {
+                'a': user_code})
+        else:
+            c.execute(
+                '''select user_id from user where name=:a''', {'a': name})
+
+        user_id = c.fetchone()
+        if user_id:
+            user_id = user_id[0]
+            web.system.ban_one_user(c, user_id)
+            flash('用户封禁成功 Successfully ban the user.')
+
+        else:
+            error = '玩家不存在 The player does not exist.'
+
+    else:
+        error = '输入为空 Null Input.'
+
+    conn.commit()
+    conn.close()
+    if error:
+        flash(error)
+
+    return redirect(url_for('index.ban_user'))
+
+
+@bp.route('/banuser/deleteuserscore', methods=['POST'])
+@login_required
+def delete_user_score():
+    # 删除用户所有成绩
+    error = None
+
+    name = request.form['name']
+    user_code = request.form['user_code']
+
+    conn = sqlite3.connect('./database/arcaea_database.db')
+    c = conn.cursor()
+
+    if name or user_code:
+        if user_code:
+            c.execute('''select user_id from user where user_code=:a''', {
+                'a': user_code})
+        else:
+            c.execute(
+                '''select user_id from user where name=:a''', {'a': name})
+
+        user_id = c.fetchone()
+        if user_id:
+            user_id = user_id[0]
+            web.system.clear_user_score(c, user_id)
+            flash("用户成绩删除成功 Successfully delete the user's scores.")
+
+        else:
+            error = '玩家不存在 The player does not exist.'
+
+    else:
+        error = '输入为空 Null Input.'
+
+    conn.commit()
+    conn.close()
+    if error:
+        flash(error)
+
+    return redirect(url_for('index.ban_user'))

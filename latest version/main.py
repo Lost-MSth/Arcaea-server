@@ -81,7 +81,7 @@ def favicon():
     return app.send_static_file('favicon.ico')
 
 
-@app.route('/coffee/12/auth/login', methods=['POST'])  # 登录接口
+@app.route('/latte/13/auth/login', methods=['POST'])  # 登录接口
 def login():
     headers = request.headers
     id_pwd = headers['Authorization']
@@ -89,18 +89,18 @@ def login():
     name, password = id_pwd.split(':', 1)
 
     try:
-        token = server.auth.arc_login(name, password)
-        if token is not None:
+        token, error_code = server.auth.arc_login(name, password)
+        if not error_code:
             r = {"success": True, "token_type": "Bearer"}
             r['access_token'] = token
             return jsonify(r)
         else:
-            return error_return(104)  # 用户名或密码错误
+            return error_return(error_code) 
     except:
         return error_return(108)
 
 
-@app.route('/coffee/12/user/', methods=['POST'])  # 注册接口
+@app.route('/latte/13/user/', methods=['POST'])  # 注册接口
 def register():
     name = request.form['name']
     password = request.form['password']
@@ -117,7 +117,7 @@ def register():
 
 
 # 集成式请求，没想到什么好办法处理，就先这样写着
-@app.route('/coffee/12/compose/aggregate', methods=['GET'])
+@app.route('/latte/13/compose/aggregate', methods=['GET'])
 def aggregate():
     calls = request.args.get('calls')
     headers = request.headers
@@ -137,7 +137,7 @@ def aggregate():
         return error_return(108)
 
 
-@app.route('/coffee/12/user/me/character', methods=['POST'])  # 角色切换
+@app.route('/latte/13/user/me/character', methods=['POST'])  # 角色切换
 def character_change():
     headers = request.headers
     token = headers['Authorization']
@@ -165,7 +165,7 @@ def character_change():
         return error_return(108)
 
 
-@app.route('/coffee/<path:path>/toggle_uncap', methods=['POST'])  # 角色觉醒切换
+@app.route('/latte/<path:path>/toggle_uncap', methods=['POST'])  # 角色觉醒切换
 def character_uncap(path):
     character_id = int(path[22:])
     headers = request.headers
@@ -191,7 +191,7 @@ def character_uncap(path):
         return error_return(108)
 
 
-@app.route('/coffee/12/friend/me/add', methods=['POST'])  # 加好友
+@app.route('/latte/13/friend/me/add', methods=['POST'])  # 加好友
 def add_friend():
     headers = request.headers
     token = headers['Authorization']
@@ -226,7 +226,7 @@ def add_friend():
         return error_return(108)
 
 
-@app.route('/coffee/12/friend/me/delete', methods=['POST'])  # 删好友
+@app.route('/latte/13/friend/me/delete', methods=['POST'])  # 删好友
 def delete_friend():
     headers = request.headers
     token = headers['Authorization']
@@ -257,7 +257,7 @@ def delete_friend():
         return error_return(108)
 
 
-@app.route('/coffee/12/score/song/friend', methods=['GET'])  # 好友排名，默认最多50
+@app.route('/latte/13/score/song/friend', methods=['GET'])  # 好友排名，默认最多50
 def song_score_friend():
     song_id = request.args.get('song_id')
     difficulty = request.args.get('difficulty')
@@ -281,7 +281,7 @@ def song_score_friend():
         return error_return(108)
 
 
-@app.route('/coffee/12/score/song/me', methods=['GET'])  # 我的排名，默认最多20
+@app.route('/latte/13/score/song/me', methods=['GET'])  # 我的排名，默认最多20
 def song_score_me():
     song_id = request.args.get('song_id')
     difficulty = request.args.get('difficulty')
@@ -305,7 +305,7 @@ def song_score_me():
         return error_return(108)
 
 
-@app.route('/coffee/12/score/song', methods=['GET'])  # TOP20
+@app.route('/latte/13/score/song', methods=['GET'])  # TOP20
 def song_score_top():
     song_id = request.args.get('song_id')
     difficulty = request.args.get('difficulty')
@@ -329,7 +329,7 @@ def song_score_top():
         return error_return(108)
 
 
-@app.route('/coffee/12/score/song', methods=['POST'])  # 成绩上传
+@app.route('/latte/13/score/song', methods=['POST'])  # 成绩上传
 def song_score_post():
     headers = request.headers
     token = headers['Authorization']
@@ -377,7 +377,7 @@ def song_score_post():
         return error_return(108)
 
 
-@app.route('/coffee/12/score/token', methods=['GET'])  # 成绩上传所需的token，显然我不想验证
+@app.route('/latte/13/score/token', methods=['GET'])  # 成绩上传所需的token，显然我不想验证
 def score_token():
     return jsonify({
         "success": True,
@@ -388,7 +388,7 @@ def score_token():
 
 
 # 世界模式成绩上传所需的token，无验证
-@app.route('/coffee/12/score/token/world', methods=['GET'])
+@app.route('/latte/13/score/token/world', methods=['GET'])
 def score_token_world():
     headers = request.headers
     token = headers['Authorization']
@@ -412,7 +412,7 @@ def score_token_world():
         return error_return(108)
 
 
-@app.route('/coffee/12/user/me/save', methods=['GET'])  # 从云端同步
+@app.route('/latte/13/user/me/save', methods=['GET'])  # 从云端同步
 def cloud_get():
     headers = request.headers
     token = headers['Authorization']
@@ -434,7 +434,7 @@ def cloud_get():
         return error_return(108)
 
 
-@app.route('/coffee/12/user/me/save', methods=['POST'])  # 向云端同步
+@app.route('/latte/13/user/me/save', methods=['POST'])  # 向云端同步
 def cloud_post():
     headers = request.headers
     token = headers['Authorization']
@@ -463,7 +463,7 @@ def cloud_post():
         return error_return(108)
 
 
-@app.route('/coffee/12/purchase/me/redeem', methods=['POST'])  # 兑换码
+@app.route('/latte/13/purchase/me/redeem', methods=['POST'])  # 兑换码
 def redeem():
     headers = request.headers
     token = headers['Authorization']
@@ -494,7 +494,7 @@ def redeem():
 
 
 # 礼物确认
-@app.route('/coffee/12/present/me/claim/<present_id>', methods=['POST'])
+@app.route('/latte/13/present/me/claim/<present_id>', methods=['POST'])
 def claim_present(present_id):
     headers = request.headers
     token = headers['Authorization']
@@ -516,14 +516,14 @@ def claim_present(present_id):
 
 
 # 购买，为了world模式boost一下
-@app.route('/coffee/12/purchase/me/item', methods=['POST'])
+@app.route('/latte/13/purchase/me/item', methods=['POST'])
 def item():
     return jsonify({
         "success": True
     })
 
 
-@app.route('/coffee/12/purchase/me/pack', methods=['POST'])  # 曲包和单曲购买
+@app.route('/latte/13/purchase/me/pack', methods=['POST'])  # 曲包和单曲购买
 def pack():
     headers = request.headers
     token = headers['Authorization']
@@ -544,7 +544,7 @@ def pack():
     })
 
 
-@app.route('/coffee/12/purchase/bundle/single', methods=['GET'])  # 单曲购买信息获取
+@app.route('/latte/13/purchase/bundle/single', methods=['GET'])  # 单曲购买信息获取
 def single():
     return jsonify({
         "success": True,
@@ -552,7 +552,7 @@ def single():
     })
 
 
-@app.route('/coffee/12/world/map/me', methods=['GET'])  # 获得世界模式信息，所有地图
+@app.route('/latte/13/world/map/me', methods=['GET'])  # 获得世界模式信息，所有地图
 def world_all():
     headers = request.headers
     token = headers['Authorization']
@@ -575,7 +575,7 @@ def world_all():
         return error_return(108)
 
 
-@app.route('/coffee/12/world/map/me/', methods=['POST'])  # 进入地图
+@app.route('/latte/13/world/map/me/', methods=['POST'])  # 进入地图
 def world_in():
     headers = request.headers
     token = headers['Authorization']
@@ -594,7 +594,7 @@ def world_in():
         return error_return(108)
 
 
-@app.route('/coffee/12/world/map/me/<map_id>', methods=['GET'])  # 获得单个地图完整信息
+@app.route('/latte/13/world/map/me/<map_id>', methods=['GET'])  # 获得单个地图完整信息
 def world_one(map_id):
     headers = request.headers
     token = headers['Authorization']
@@ -617,7 +617,7 @@ def world_one(map_id):
         return error_return(108)
 
 
-@app.route('/coffee/12/serve/download/me/song', methods=['GET'])  # 歌曲下载
+@app.route('/latte/13/serve/download/me/song', methods=['GET'])  # 歌曲下载
 def download_song():
     headers = request.headers
     token = headers['Authorization']
@@ -662,7 +662,7 @@ def download(file_path):
         return error_return(108)
 
 
-@app.route('/coffee/<path:path>', methods=['POST'])  # 三个设置，写在最后降低优先级
+@app.route('/latte/<path:path>', methods=['POST'])  # 三个设置，写在最后降低优先级
 def sys_set(path):
     set_arg = path[10:]
     headers = request.headers

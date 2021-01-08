@@ -5,36 +5,46 @@ import server.arcworld
 
 
 def arc_login(name: str, password: str) -> str:  # 登录判断
-    # 查询数据库中的user表，验证账号密码，返回并记录token
+    # 查询数据库中的user表，验证账号密码，返回并记录token，多返回个error code
     # token采用user_id和时间戳连接后hash生成（真的是瞎想的，没用bear）
     # 密码和token的加密方式为 SHA-256
 
     conn = sqlite3.connect('./database/arcaea_database.db')
     c = conn.cursor()
+    error_code = None
+    token = None
     hash_pwd = hashlib.sha256(password.encode("utf8")).hexdigest()
-    c.execute('''select user_id from user where name = :name and password = :password''', {
-              'name': name, 'password': hash_pwd})
+    c.execute('''select user_id, password from user where name = :name''', {
+              'name': name})
     x = c.fetchone()
     if x is not None:
-        user_id = str(x[0])
-        now = int(time.time() * 1000)
-        token = hashlib.sha256((user_id + str(now)).encode("utf8")).hexdigest()
-        c.execute(
-            '''select exists(select * from login where user_id = :user_id)''', {"user_id": user_id})
+        if x[1] == '':
+            # 账号封禁
+            error_code = 106
+        elif x[1] == hash_pwd:
+            user_id = str(x[0])
+            now = int(time.time() * 1000)
+            token = hashlib.sha256(
+                (user_id + str(now)).encode("utf8")).hexdigest()
+            c.execute(
+                '''select exists(select * from login where user_id = :user_id)''', {"user_id": user_id})
 
-        if c.fetchone() == (1,):  # 删掉多余token
-            c.execute('''delete from login where user_id = :user_id''',
-                      {'user_id': user_id})
+            if c.fetchone() == (1,):  # 删掉多余token
+                c.execute('''delete from login where user_id = :user_id''',
+                          {'user_id': user_id})
 
-        c.execute('''insert into login(access_token, user_id) values(:access_token, :user_id)''', {
-                  'user_id': user_id, 'access_token': token})
-        conn.commit()
-        conn.close()
-        return token
+            c.execute('''insert into login(access_token, user_id) values(:access_token, :user_id)''', {
+                'user_id': user_id, 'access_token': token})
+        else:
+            # 密码错误
+            error_code = 104
+    else:
+        # 用户名错误
+        error_code = 104
 
     conn.commit()
     conn.close()
-    return None
+    return token, error_code
 
 
 def arc_register(name: str, password: str):  # 注册
