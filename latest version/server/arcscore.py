@@ -595,6 +595,7 @@ def arc_all_get(user_id):
     installid_data = ''
     devicemodelname_data = ''
     # story_data = []
+    createdAt = 0
 
     if x:
         scores_data = json.loads(x[1])[""]
@@ -606,8 +607,6 @@ def arc_all_get(user_id):
     #    story_data = json.loads(x[7])[""]
         if x[8]:
             createdAt = int(x[8])
-        else:
-            createdAt = 0
 
     # c.execute('''select * from best_score where user_id = :a''',
     #           {'a': user_id})

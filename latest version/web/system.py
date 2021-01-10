@@ -445,7 +445,7 @@ def add_some_random_redeem(amount, redeem_type, items):
     message = None
     conn = sqlite3.connect('./database/arcaea_database.db')
     c = conn.cursor()
-    i = 0
+    i = 1
     while i <= amount:
         code = random_str()
         c.execute(
