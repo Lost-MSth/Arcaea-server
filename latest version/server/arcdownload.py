@@ -2,6 +2,7 @@ import os
 import hashlib
 from flask import url_for
 import sqlite3
+from server.sql import Connect
 import time
 
 time_limit = 3000  # 每个玩家24小时下载次数限制
@@ -13,13 +14,13 @@ def get_file_md5(file_path):
     if not os.path.isfile(file_path):
         return None
     myhash = hashlib.md5()
-    f = open(file_path, 'rb')
-    while True:
-        b = f.read(8096)
-        if not b:
-            break
-        myhash.update(b)
-    f.close()
+    with open(file_path, 'rb') as f:
+        while True:
+            b = f.read(8096)
+            if not b:
+                break
+            myhash.update(b)
+
     return myhash.hexdigest()
 
 
@@ -71,74 +72,63 @@ def get_all_songs(user_id, file_dir='./database/songs'):
     # 获取所有歌的下载链接，返回字典
     dir_list = os.listdir(file_dir)
     re = {}
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    for i in dir_list:
-        if os.path.isdir(os.path.join(file_dir, i)):
-            re.update(get_one_song(c, user_id, i, file_dir))
+    with Connect() as c:
+        for i in dir_list:
+            if os.path.isdir(os.path.join(file_dir, i)):
+                re.update(get_one_song(c, user_id, i, file_dir))
 
-    conn.commit()
-    conn.close()
     return re
 
 
 def get_some_songs(user_id, song_ids):
     # 获取一些歌的下载链接，返回字典
     re = {}
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    for song_id in song_ids:
-        re.update(get_one_song(c, user_id, song_id))
+    with Connect() as c:
+        for song_id in song_ids:
+            re.update(get_one_song(c, user_id, song_id))
 
-    conn.commit()
-    conn.close()
     return re
 
 
 def is_token_able_download(t):
     # token是否可以下载，返回错误码，0即可以
-    errorcode = 0
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''select * from download_token where token = :t limit 1''',
-              {'t': t})
-    x = c.fetchone()
-    now = int(time.time())
-    if x and now - x[4] <= time_gap_limit:
-        c.execute(
-            '''select count(*) from user_download where user_id = :a''', {'a': x[0]})
-        y = c.fetchone()
-        if y and y[0] <= time_limit:
-            c.execute('''insert into user_download values(:a,:b,:c)''', {
-                      'a': x[0], 'b': x[3], 'c': now})
+    errorcode = 108
+    with Connect() as c:
+        c.execute('''select * from download_token where token = :t limit 1''',
+                  {'t': t})
+        x = c.fetchone()
+        now = int(time.time())
+        if x and now - x[4] <= time_gap_limit:
+            c.execute(
+                '''select count(*) from user_download where user_id = :a''', {'a': x[0]})
+            y = c.fetchone()
+            if y and y[0] <= time_limit:
+                c.execute('''insert into user_download values(:a,:b,:c)''', {
+                    'a': x[0], 'b': x[3], 'c': now})
+                errorcode = 0
+            else:
+                errorcode = 903
         else:
-            errorcode = 903
-    else:
-        errorcode = 108
+            errorcode = 108
 
-    conn.commit()
-    conn.close()
     return errorcode
 
 
 def is_able_download(user_id):
     # 是否可以下载，返回布尔值
-    f = True
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    now = int(time.time())
-    c.execute(
-        '''delete from user_download where user_id = :a and time <= :b''', {'a': user_id, 'b': now - 24*3600})
-    c.execute(
-        '''select count(*) from user_download where user_id = :a''', {'a': user_id})
-    y = c.fetchone()
-    if y and y[0] <= time_limit:
-        pass
-    else:
-        f = False
+    f = False
+    with Connect() as c:
+        now = int(time.time())
+        c.execute(
+            '''delete from user_download where user_id = :a and time <= :b''', {'a': user_id, 'b': now - 24*3600})
+        c.execute(
+            '''select count(*) from user_download where user_id = :a''', {'a': user_id})
+        y = c.fetchone()
+        if y and y[0] <= time_limit:
+            f = True
+        else:
+            f = False
 
-    conn.commit()
-    conn.close()
     return f
 
 

@@ -1,4 +1,4 @@
-import sqlite3
+from server.sql import Connect
 import time
 import json
 import server.arcworld
@@ -80,144 +80,133 @@ def get_score(c, user_id, song_id, difficulty):
 
 def arc_score_friend(user_id, song_id, difficulty, limit=50):
     # 得到用户好友分数表，默认最大50个
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''select user_id from best_score where user_id in (select :user_id union select user_id_other from friend where user_id_me = :user_id) and song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit''', {
-              'user_id': user_id, 'song_id': song_id, 'difficulty': difficulty, 'limit': limit})
-    x = c.fetchall()
     r = []
-    if x != []:
-        rank = 0
-        for i in x:
-            rank += 1
-            y = get_score(c, i[0], song_id, difficulty)
-            y['rank'] = rank
-            r.append(y)
+    with Connect() as c:
+        c.execute('''select user_id from best_score where user_id in (select :user_id union select user_id_other from friend where user_id_me = :user_id) and song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit''', {
+            'user_id': user_id, 'song_id': song_id, 'difficulty': difficulty, 'limit': limit})
+        x = c.fetchall()
+        if x != []:
+            rank = 0
+            for i in x:
+                rank += 1
+                y = get_score(c, i[0], song_id, difficulty)
+                y['rank'] = rank
+                r.append(y)
 
-    conn.commit()
-    conn.close()
     return r
 
 
 def arc_score_top(song_id, difficulty, limit=20):
     # 得到top分数表，默认最多20个，如果是负数则全部查询
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    if limit >= 0:
-        c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit''', {
-            'song_id': song_id, 'difficulty': difficulty, 'limit': limit})
-    else:
-        c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC''', {
-            'song_id': song_id, 'difficulty': difficulty})
-    x = c.fetchall()
     r = []
-    if x != []:
-        rank = 0
-        for i in x:
-            rank += 1
-            y = get_score(c, i[0], song_id, difficulty)
-            y['rank'] = rank
-            r.append(y)
+    with Connect() as c:
+        if limit >= 0:
+            c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit''', {
+                'song_id': song_id, 'difficulty': difficulty, 'limit': limit})
+        else:
+            c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC''', {
+                'song_id': song_id, 'difficulty': difficulty})
+        x = c.fetchall()
+        if x != []:
+            rank = 0
+            for i in x:
+                rank += 1
+                y = get_score(c, i[0], song_id, difficulty)
+                y['rank'] = rank
+                r.append(y)
 
-    conn.commit()
-    conn.close()
     return r
 
 
 def arc_score_me(user_id, song_id, difficulty, limit=20):
     # 得到用户的排名，默认最大20个
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
     r = []
-    c.execute('''select exists(select * from best_score where user_id = :user_id and song_id = :song_id and difficulty = :difficulty)''', {
-              'user_id': user_id, 'song_id': song_id, 'difficulty': difficulty})
-    if c.fetchone() == (1,):
-        c.execute('''select count(*) from best_score where song_id = :song_id and difficulty = :difficulty and (score>(select score from best_score where user_id = :user_id and song_id = :song_id and difficulty = :difficulty) or (score>(select score from best_score where user_id = :user_id and song_id = :song_id and difficulty = :difficulty) and time_played > (select time_played from best_score where user_id = :user_id and song_id = :song_id and difficulty = :difficulty)) )''', {
+    with Connect() as c:
+        c.execute('''select exists(select * from best_score where user_id = :user_id and song_id = :song_id and difficulty = :difficulty)''', {
             'user_id': user_id, 'song_id': song_id, 'difficulty': difficulty})
-        x = c.fetchone()
-        myrank = int(x[0]) + 1
-        if myrank <= 4:  # 排名在前4
-            conn.commit()
-            conn.close()
-            return arc_score_top(song_id, difficulty, limit)
-        elif myrank >= 5 and myrank <= 9999 - limit + 4:  # 万名内，前面有4个人
-            c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
-                'song_id': song_id, 'difficulty': difficulty, 'limit': limit, 'offset': myrank - 5})
-            x = c.fetchall()
-            if x != []:
-                rank = myrank - 5
-                for i in x:
-                    rank += 1
-                    y = get_score(c, i[0], song_id, difficulty)
-                    y['rank'] = rank
-                    r.append(y)
+        if c.fetchone() == (1,):
+            c.execute('''select count(*) from best_score where song_id = :song_id and difficulty = :difficulty and (score>(select score from best_score where user_id = :user_id and song_id = :song_id and difficulty = :difficulty) or (score>(select score from best_score where user_id = :user_id and song_id = :song_id and difficulty = :difficulty) and time_played > (select time_played from best_score where user_id = :user_id and song_id = :song_id and difficulty = :difficulty)) )''', {
+                'user_id': user_id, 'song_id': song_id, 'difficulty': difficulty})
+            x = c.fetchone()
+            myrank = int(x[0]) + 1
+            if myrank <= 4:  # 排名在前4
+                conn.commit()
+                conn.close()
+                return arc_score_top(song_id, difficulty, limit)
+            elif myrank >= 5 and myrank <= 9999 - limit + 4:  # 万名内，前面有4个人
+                c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
+                    'song_id': song_id, 'difficulty': difficulty, 'limit': limit, 'offset': myrank - 5})
+                x = c.fetchall()
+                if x != []:
+                    rank = myrank - 5
+                    for i in x:
+                        rank += 1
+                        y = get_score(c, i[0], song_id, difficulty)
+                        y['rank'] = rank
+                        r.append(y)
 
-        elif myrank >= 10000:  # 万名外
-            c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
-                'song_id': song_id, 'difficulty': difficulty, 'limit': limit - 1, 'offset': 9999-limit})
-            x = c.fetchall()
-            if x != []:
-                rank = 9999 - limit
-                for i in x:
-                    rank += 1
-                    y = get_score(c, i[0], song_id, difficulty)
-                    y['rank'] = rank
+            elif myrank >= 10000:  # 万名外
+                c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
+                    'song_id': song_id, 'difficulty': difficulty, 'limit': limit - 1, 'offset': 9999-limit})
+                x = c.fetchall()
+                if x != []:
+                    rank = 9999 - limit
+                    for i in x:
+                        rank += 1
+                        y = get_score(c, i[0], song_id, difficulty)
+                        y['rank'] = rank
+                        r.append(y)
+                    y = get_score(c, user_id, song_id, difficulty)
+                    y['rank'] = -1
                     r.append(y)
-                y = get_score(c, user_id, song_id, difficulty)
-                y['rank'] = -1
-                r.append(y)
-        else:
-            c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
-                'song_id': song_id, 'difficulty': difficulty, 'limit': limit, 'offset': 9998-limit})
-            x = c.fetchall()
-            if x != []:
-                rank = 9998 - limit
-                for i in x:
-                    rank += 1
-                    y = get_score(c, i[0], song_id, difficulty)
-                    y['rank'] = rank
-                    r.append(y)
+            else:
+                c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
+                    'song_id': song_id, 'difficulty': difficulty, 'limit': limit, 'offset': 9998-limit})
+                x = c.fetchall()
+                if x != []:
+                    rank = 9998 - limit
+                    for i in x:
+                        rank += 1
+                        y = get_score(c, i[0], song_id, difficulty)
+                        y['rank'] = rank
+                        r.append(y)
 
-    conn.commit()
-    conn.close()
     return r
 
 
 def get_one_ptt(song_id, difficulty, score: int) -> float:
     # 单曲ptt计算，ptt为负说明没铺面定数数据
-    conn = sqlite3.connect('./database/arcsong.db')
-    c = conn.cursor()
-    if difficulty == 0:
-        c.execute('''select rating_pst from songs where sid = :sid;''', {
-                  'sid': song_id})
-    elif difficulty == 1:
-        c.execute('''select rating_prs from songs where sid = :sid;''', {
-                  'sid': song_id})
-    elif difficulty == 2:
-        c.execute('''select rating_ftr from songs where sid = :sid;''', {
-                  'sid': song_id})
-    elif difficulty == 3:
-        c.execute('''select rating_byn from songs where sid = :sid;''', {
-                  'sid': song_id})
+    ptt = -10
+    with Connect('./database/arcsong.db') as c:
+        if difficulty == 0:
+            c.execute('''select rating_pst from songs where sid = :sid;''', {
+                'sid': song_id})
+        elif difficulty == 1:
+            c.execute('''select rating_prs from songs where sid = :sid;''', {
+                'sid': song_id})
+        elif difficulty == 2:
+            c.execute('''select rating_ftr from songs where sid = :sid;''', {
+                'sid': song_id})
+        elif difficulty == 3:
+            c.execute('''select rating_byn from songs where sid = :sid;''', {
+                'sid': song_id})
 
-    x = c.fetchone()
-    defnum = -10  # 没在库里的全部当做定数-10
-    if x is not None and x != '':
-        defnum = float(x[0]) / 10
-        if defnum <= 0:
-            defnum = -10  # 缺少难度的当做定数-10
+        x = c.fetchone()
+        defnum = -10  # 没在库里的全部当做定数-10
+        if x is not None and x != '':
+            defnum = float(x[0]) / 10
+            if defnum <= 0:
+                defnum = -10  # 缺少难度的当做定数-10
 
-    if score >= 10000000:
-        ptt = defnum + 2
-    elif score < 9800000:
-        ptt = defnum + (score-9500000) / 300000
-        if ptt < 0 and defnum != -10:
-            ptt = 0
-    else:
-        ptt = defnum + 1 + (score-9800000) / 200000
+        if score >= 10000000:
+            ptt = defnum + 2
+        elif score < 9800000:
+            ptt = defnum + (score-9500000) / 300000
+            if ptt < 0 and defnum != -10:
+                ptt = 0
+        else:
+            ptt = defnum + 1 + (score-9800000) / 200000
 
-    conn.commit()
-    conn.close()
     return ptt
 
 
@@ -375,172 +364,175 @@ def update_recent30(c, user_id, song_id, rating, is_protected):
 
 def arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count, perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type):
     # 分数上传，返回变化后的ptt，和世界模式变化
-
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    rating = get_one_ptt(song_id, difficulty, score)
-    if rating < 0:  # 没数据不会向recent30里记入
-        unrank_flag = True
-        rating = 0
-    else:
-        unrank_flag = False
-    now = int(time.time() * 1000)
-    # recent 更新
-    c.execute('''update user set song_id = :b, difficulty = :c, score = :d, shiny_perfect_count = :e, perfect_count = :f, near_count = :g, miss_count = :h, health = :i, modifier = :j, clear_type = :k, rating = :l, time_played = :m  where user_id = :a''', {
-        'a': user_id, 'b': song_id, 'c': difficulty, 'd': score, 'e': shiny_perfect_count, 'f': perfect_count, 'g': near_count, 'h': miss_count, 'i': health, 'j': modifier, 'k': clear_type, 'l': rating, 'm': now})
-    # 成绩录入
-    c.execute('''select score, best_clear_type from best_score where user_id = :a and song_id = :b and difficulty = :c''', {
-              'a': user_id, 'b': song_id, 'c': difficulty})
-    now = int(now // 1000)
-    x = c.fetchone()
-    if x is None:
-        first_protect_flag = True  # 初见保护
-        c.execute('''insert into best_score values(:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n)''', {
-                  'a': user_id, 'b': song_id, 'c': difficulty, 'd': score, 'e': shiny_perfect_count, 'f': perfect_count, 'g': near_count, 'h': miss_count, 'i': health, 'j': modifier, 'k': now, 'l': clear_type, 'm': clear_type, 'n': rating})
-    else:
-        first_protect_flag = False
-        if get_song_state(clear_type) > get_song_state(int(x[1])):  # 状态更新
-            c.execute('''update best_score set best_clear_type = :a where user_id = :b and song_id = :c and difficulty = :d''', {
-                      'a': clear_type, 'b': user_id, 'c': song_id, 'd': difficulty})
-        if score >= int(x[0]):  # 成绩更新
-            c.execute('''update best_score set score = :d, shiny_perfect_count = :e, perfect_count = :f, near_count = :g, miss_count = :h, health = :i, modifier = :j, clear_type = :k, rating = :l, time_played = :m  where user_id = :a and song_id = :b and difficulty = :c ''', {
-                'a': user_id, 'b': song_id, 'c': difficulty, 'd': score, 'e': shiny_perfect_count, 'f': perfect_count, 'g': near_count, 'h': miss_count, 'i': health, 'j': modifier, 'k': clear_type, 'l': rating, 'm': now})
-    if not unrank_flag:
-        # recent30 更新
-        if health == -1 or int(score) >= 9800000 or first_protect_flag:
-            update_recent30(c, user_id, song_id+str(difficulty), rating, True)
-        else:
-            update_recent30(c, user_id, song_id+str(difficulty), rating, False)
-    # 总PTT更新
-    ptt = get_user_ptt(c, user_id)
-    c.execute('''update user set rating_ptt = :a where user_id = :b''', {
-              'a': ptt, 'b': user_id})
-    # 世界模式判断
-    c.execute('''select stamina_multiply,fragment_multiply,prog_boost_multiply from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
-              'a': user_id, 'b': song_id, 'c': difficulty})
-    x = c.fetchone()
+    ptt = 0
     re = None
-    if x:
-        stamina_multiply = x[0]
-        fragment_multiply = x[1]
-        prog_boost_multiply = x[2]
-        step_times = stamina_multiply * fragment_multiply / \
-            100 * (prog_boost_multiply+100)/100
-        exp_times = stamina_multiply * (prog_boost_multiply+100)/100
-        c.execute('''delete from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
+    with Connect() as c:
+        rating = get_one_ptt(song_id, difficulty, score)
+        if rating < 0:  # 没数据不会向recent30里记入
+            unrank_flag = True
+            rating = 0
+        else:
+            unrank_flag = False
+        now = int(time.time() * 1000)
+        # recent 更新
+        c.execute('''update user set song_id = :b, difficulty = :c, score = :d, shiny_perfect_count = :e, perfect_count = :f, near_count = :g, miss_count = :h, health = :i, modifier = :j, clear_type = :k, rating = :l, time_played = :m  where user_id = :a''', {
+            'a': user_id, 'b': song_id, 'c': difficulty, 'd': score, 'e': shiny_perfect_count, 'f': perfect_count, 'g': near_count, 'h': miss_count, 'i': health, 'j': modifier, 'k': clear_type, 'l': rating, 'm': now})
+        # 成绩录入
+        c.execute('''select score, best_clear_type from best_score where user_id = :a and song_id = :b and difficulty = :c''', {
             'a': user_id, 'b': song_id, 'c': difficulty})
-        c.execute('''select character_id,frag,prog,overdrive from user_char where user_id = :a and character_id = (select character_id from user where user_id=:a)''', {
-                  'a': user_id})
-        y = c.fetchone()
-        if y:
-            character_id = y[0]
-            flag = float(y[1])
-            prog = float(y[2])
-            overdrive = float(y[3])
+        now = int(now // 1000)
+        x = c.fetchone()
+        if x is None:
+            first_protect_flag = True  # 初见保护
+            c.execute('''insert into best_score values(:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n)''', {
+                'a': user_id, 'b': song_id, 'c': difficulty, 'd': score, 'e': shiny_perfect_count, 'f': perfect_count, 'g': near_count, 'h': miss_count, 'i': health, 'j': modifier, 'k': now, 'l': clear_type, 'm': clear_type, 'n': rating})
         else:
-            character_id = 0
-            flag = 0
-            prog = 0
-            overdrive = 0
-
-        c.execute('''select current_map from user where user_id = :a''', {
-                  'a': user_id})
-        map_id = c.fetchone()[0]
-
-        if beyond_gauge == 0:  # 是否是beyond挑战
-            base_step = 2.5 + 2.45*rating**0.5
-            step = base_step * (prog/50) * step_times
-        else:
-            info = server.arcworld.get_world_info(map_id)
-            if clear_type == 0:
-                base_step = 8/9 + (rating/1.3)**0.5
+            first_protect_flag = False
+            if get_song_state(clear_type) > get_song_state(int(x[1])):  # 状态更新
+                c.execute('''update best_score set best_clear_type = :a where user_id = :b and song_id = :c and difficulty = :d''', {
+                    'a': clear_type, 'b': user_id, 'c': song_id, 'd': difficulty})
+            if score >= int(x[0]):  # 成绩更新
+                c.execute('''update best_score set score = :d, shiny_perfect_count = :e, perfect_count = :f, near_count = :g, miss_count = :h, health = :i, modifier = :j, clear_type = :k, rating = :l, time_played = :m  where user_id = :a and song_id = :b and difficulty = :c ''', {
+                    'a': user_id, 'b': song_id, 'c': difficulty, 'd': score, 'e': shiny_perfect_count, 'f': perfect_count, 'g': near_count, 'h': miss_count, 'i': health, 'j': modifier, 'k': clear_type, 'l': rating, 'm': now})
+        if not unrank_flag:
+            # recent30 更新
+            if health == -1 or int(score) >= 9800000 or first_protect_flag:
+                update_recent30(c, user_id, song_id +
+                                str(difficulty), rating, True)
             else:
-                base_step = 8/3 + (rating/1.3)**0.5
-
-            if character_id in info['character_affinity']:
-                affinity_multiplier = info['affinity_multiplier'][info['character_affinity'].index(
-                    character_id)]
+                update_recent30(c, user_id, song_id +
+                                str(difficulty), rating, False)
+        # 总PTT更新
+        ptt = get_user_ptt(c, user_id)
+        c.execute('''update user set rating_ptt = :a where user_id = :b''', {
+            'a': ptt, 'b': user_id})
+        # 世界模式判断
+        c.execute('''select stamina_multiply,fragment_multiply,prog_boost_multiply from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
+            'a': user_id, 'b': song_id, 'c': difficulty})
+        x = c.fetchone()
+        re = None
+        if x:
+            stamina_multiply = x[0]
+            fragment_multiply = x[1]
+            prog_boost_multiply = x[2]
+            step_times = stamina_multiply * fragment_multiply / \
+                100 * (prog_boost_multiply+100)/100
+            exp_times = stamina_multiply * (prog_boost_multiply+100)/100
+            if prog_boost_multiply != 0:
+                c.execute('''update user set prog_boost = 0 where user_id = :a''', {
+                    'a': user_id})
+            c.execute('''delete from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
+                'a': user_id, 'b': song_id, 'c': difficulty})
+            c.execute('''select character_id,frag,prog,overdrive from user_char where user_id = :a and character_id = (select character_id from user where user_id=:a)''', {
+                'a': user_id})
+            y = c.fetchone()
+            if y:
+                character_id = y[0]
+                flag = float(y[1])
+                prog = float(y[2])
+                overdrive = float(y[3])
             else:
-                affinity_multiplier = 1
+                character_id = 0
+                flag = 0
+                prog = 0
+                overdrive = 0
 
-            step = base_step * (prog/50) * step_times * affinity_multiplier
+            c.execute('''select current_map from user where user_id = :a''', {
+                'a': user_id})
+            map_id = c.fetchone()[0]
 
-        c.execute('''select * from user_world where user_id = :a and map_id =:b''',
-                  {'a': user_id, 'b': map_id})
-        y = c.fetchone()
-        rewards, steps, curr_position, curr_capture, info = server.arcworld.climb_step(
-            user_id, map_id, step, y[3], y[2])
+            if beyond_gauge == 0:  # 是否是beyond挑战
+                base_step = 2.5 + 2.45*rating**0.5
+                step = base_step * (prog/50) * step_times
+            else:
+                info = server.arcworld.get_world_info(map_id)
+                if clear_type == 0:
+                    base_step = 8/9 + (rating/1.3)**0.5
+                else:
+                    base_step = 8/3 + (rating/1.3)**0.5
 
-        if beyond_gauge == 0:
-            re = {
-                "rewards": rewards,
-                "exp": 25000,
-                "level": 30,
-                "base_progress": base_step,
-                "progress": step,
-                "user_map": {
-                    "user_id": user_id,
-                    "curr_position": curr_position,
-                    "curr_capture": curr_capture,
-                    "is_locked": int2b(y[4]),
-                    "map_id": map_id,
-                    "prev_capture": y[3],
-                    "prev_position": y[2],
-                    "beyond_health": info['beyond_health'],
-                    "steps": steps
-                },
-                "char_stats": {
-                    "character_id": character_id,
-                    "frag": flag,
-                    "prog": prog,
-                    "overdrive": overdrive
-                },
-                "current_stamina": 12,
-                "max_stamina_ts": 1586274871917,
-                "user_rating": ptt
-            }
-        else:
-            re = {
-                "rewards": rewards,
-                "exp": 25000,
-                "level": 30,
-                "base_progress": base_step,
-                "progress": step,
-                "user_map": {
-                    "user_id": user_id,
-                    "curr_position": curr_position,
-                    "curr_capture": curr_capture,
-                    "is_locked": int2b(y[4]),
-                    "map_id": map_id,
-                    "prev_capture": y[3],
-                    "prev_position": y[2],
-                    "beyond_health": info['beyond_health'],
-                    "step_count": len(steps)
-                },
-                "char_stats": {
-                    "character_id": character_id,
-                    "frag": flag,
-                    "prog": prog,
-                    "overdrive": overdrive
-                },
-                "current_stamina": 12,
-                "max_stamina_ts": 1586274871917,
-                "user_rating": ptt
-            }
+                if character_id in info['character_affinity']:
+                    affinity_multiplier = info['affinity_multiplier'][info['character_affinity'].index(
+                        character_id)]
+                else:
+                    affinity_multiplier = 1
 
-        if stamina_multiply != 1:
-            re['stamina_multiply'] = stamina_multiply
-        if fragment_multiply != 100:
-            re['fragment_multiply'] = fragment_multiply
-        if prog_boost_multiply != 0:
-            re['prog_boost_multiply'] = prog_boost_multiply
+                step = base_step * (prog/50) * step_times * affinity_multiplier
 
-        if curr_position == info['step_count']-1 and info['is_repeatable']:  # 循环图判断
-            curr_position = 0
-        c.execute('''update user_world set curr_position=:a, curr_capture=:b where user_id=:c and map_id=:d''', {
-                  'a': curr_position, 'b': curr_capture, 'c': user_id, 'd': map_id})
-    conn.commit()
-    conn.close()
+            c.execute('''select * from user_world where user_id = :a and map_id =:b''',
+                      {'a': user_id, 'b': map_id})
+            y = c.fetchone()
+            rewards, steps, curr_position, curr_capture, info = server.arcworld.climb_step(
+                user_id, map_id, step, y[3], y[2])
+
+            if beyond_gauge == 0:
+                re = {
+                    "rewards": rewards,
+                    "exp": 25000,
+                    "level": 30,
+                    "base_progress": base_step,
+                    "progress": step,
+                    "user_map": {
+                        "user_id": user_id,
+                        "curr_position": curr_position,
+                        "curr_capture": curr_capture,
+                        "is_locked": int2b(y[4]),
+                        "map_id": map_id,
+                        "prev_capture": y[3],
+                        "prev_position": y[2],
+                        "beyond_health": info['beyond_health'],
+                        "steps": steps
+                    },
+                    "char_stats": {
+                        "character_id": character_id,
+                        "frag": flag,
+                        "prog": prog,
+                        "overdrive": overdrive
+                    },
+                    "current_stamina": 12,
+                    "max_stamina_ts": 1586274871917,
+                    "user_rating": ptt
+                }
+            else:
+                re = {
+                    "rewards": rewards,
+                    "exp": 25000,
+                    "level": 30,
+                    "base_progress": base_step,
+                    "progress": step,
+                    "user_map": {
+                        "user_id": user_id,
+                        "curr_position": curr_position,
+                        "curr_capture": curr_capture,
+                        "is_locked": int2b(y[4]),
+                        "map_id": map_id,
+                        "prev_capture": y[3],
+                        "prev_position": y[2],
+                        "beyond_health": info['beyond_health'],
+                        "step_count": len(steps)
+                    },
+                    "char_stats": {
+                        "character_id": character_id,
+                        "frag": flag,
+                        "prog": prog,
+                        "overdrive": overdrive
+                    },
+                    "current_stamina": 12,
+                    "max_stamina_ts": 1586274871917,
+                    "user_rating": ptt
+                }
+
+            if stamina_multiply != 1:
+                re['stamina_multiply'] = stamina_multiply
+            if fragment_multiply != 100:
+                re['fragment_multiply'] = fragment_multiply
+            if prog_boost_multiply != 0:
+                re['prog_boost_multiply'] = prog_boost_multiply
+
+            if curr_position == info['step_count']-1 and info['is_repeatable']:  # 循环图判断
+                curr_position = 0
+            c.execute('''update user_world set curr_position=:a, curr_capture=:b where user_id=:c and map_id=:d''', {
+                'a': curr_position, 'b': curr_capture, 'c': user_id, 'd': map_id})
     return ptt, re
 
 
@@ -569,24 +561,16 @@ def arc_score_check(user_id, song_id, difficulty, score, shiny_perfect_count, pe
 
 def arc_all_post(user_id, scores_data, clearlamps_data, clearedsongs_data, unlocklist_data, installid_data, devicemodelname_data, story_data):
     # 向云端同步，无返回
-
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    now = int(time.time() * 1000)
-    c.execute('''delete from user_save where user_id=:a''', {'a': user_id})
-    c.execute('''insert into user_save values(:a,:b,:c,:d,:e,:f,:g,:h,:i)''', {
-              'a': user_id, 'b': scores_data, 'c': clearlamps_data, 'd': clearedsongs_data, 'e': unlocklist_data, 'f': installid_data, 'g': devicemodelname_data, 'h': story_data, 'i': now})
-    conn.commit()
-    conn.close()
+    with Connect() as c:
+        now = int(time.time() * 1000)
+        c.execute('''delete from user_save where user_id=:a''', {'a': user_id})
+        c.execute('''insert into user_save values(:a,:b,:c,:d,:e,:f,:g,:h,:i)''', {
+            'a': user_id, 'b': scores_data, 'c': clearlamps_data, 'd': clearedsongs_data, 'e': unlocklist_data, 'f': installid_data, 'g': devicemodelname_data, 'h': story_data, 'i': now})
     return None
 
 
 def arc_all_get(user_id):
     # 从云端同步，返回字典
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''select * from user_save where user_id=:a''', {'a': user_id})
-    x = c.fetchone()
 
     scores_data = []
     clearlamps_data = []
@@ -597,54 +581,22 @@ def arc_all_get(user_id):
     # story_data = []
     createdAt = 0
 
-    if x:
-        scores_data = json.loads(x[1])[""]
-        clearlamps_data = json.loads(x[2])[""]
-        clearedsongs_data = json.loads(x[3])[""]
-    #    unlocklist_data = json.loads(x[4])[""]
-        installid_data = json.loads(x[5])["val"]
-        devicemodelname_data = json.loads(x[6])["val"]
-    #    story_data = json.loads(x[7])[""]
-        if x[8]:
-            createdAt = int(x[8])
+    with Connect() as c:
+        c.execute('''select * from user_save where user_id=:a''',
+                  {'a': user_id})
+        x = c.fetchone()
 
-    # c.execute('''select * from best_score where user_id = :a''',
-    #           {'a': user_id})
-    # x = c.fetchall()
-    # song_1 = []
-    # song_2 = []
-    # song_3 = []
-    # if x != []:
-    #     for i in x:
-    #         if i[11] != 0:
-    #             song_1.append({
-    #                 "grade": get_song_grade(i[3]),
-    #                 "difficulty": i[2],
-    #                 "song_id": i[1]
-    #             })
-    #             song_2.append({
-    #                 "ct": 0,
-    #                 "clear_type": i[11],
-    #                 "difficulty": i[2],
-    #                 "song_id": i[1]
-    #             })
-    #         song_3.append({
-    #             "ct": 0,
-    #             "time_played": i[10],
-    #             "modifier": i[9],
-    #             "health": i[8],
-    #             "miss_count": i[7],
-    #             "near_count": i[6],
-    #             "perfect_count": i[5],
-    #             "shiny_perfect_count": i[4],
-    #             "score": i[3],
-    #             "difficulty": i[2],
-    #             "version": 1,
-    #             "song_id": i[1]
-    #         })
+        if x:
+            scores_data = json.loads(x[1])[""]
+            clearlamps_data = json.loads(x[2])[""]
+            clearedsongs_data = json.loads(x[3])[""]
+        #    unlocklist_data = json.loads(x[4])[""]
+            installid_data = json.loads(x[5])["val"]
+            devicemodelname_data = json.loads(x[6])["val"]
+        #    story_data = json.loads(x[7])[""]
+            if x[8]:
+                createdAt = int(x[8])
 
-    conn.commit()
-    conn.close()
     return {
         "user_id": user_id,
         "story": {
@@ -1021,9 +973,6 @@ def arc_all_get(user_id):
                 "unlock_key": "rugie|2|0",
                 "complete": 1
             }, {
-                "unlock_key": "rugie|1|0",
-                "complete": 1
-            }, {
                 "unlock_key": "rise|2|0",
                 "complete": 1
             }, {
@@ -1123,6 +1072,9 @@ def arc_all_get(user_id):
                 "unlock_key": "lucifer|1|0",
                 "complete": 1
             }, {
+                "unlock_key": "lostdesire|2|0",
+                "complete": 1
+            }, {
                 "unlock_key": "tiemedowngently|2|0",
                 "complete": 1
             }, {
@@ -1139,9 +1091,6 @@ def arc_all_get(user_id):
                 "complete": 1
             }, {
                 "unlock_key": "infinityheaven|1|0",
-                "complete": 1
-            }, {
-                "unlock_key": "lostdesire|2|0",
                 "complete": 1
             }, {
                 "unlock_key": "ignotus|2|0",
@@ -1270,6 +1219,15 @@ def arc_all_get(user_id):
                 "unlock_key": "flyburg|2|0",
                 "complete": 1
             }, {
+                "unlock_key": "oracle|2|0",
+                "complete": 1
+            }, {
+                "unlock_key": "clotho|2|0",
+                "complete": 1
+            }, {
+                "unlock_key": "gou|2|0",
+                "complete": 1
+            }, {
                 "unlock_key": "felis|2|0",
                 "complete": 1
             }, {
@@ -1382,12 +1340,6 @@ def arc_all_get(user_id):
                 "complete": 1
             }, {
                 "unlock_key": "cyberneciacatharsis|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "oracle|2|0",
-                "complete": 1
-            }, {
-                "unlock_key": "clotho|2|0",
                 "complete": 1
             }, {
                 "unlock_key": "ignotus|1|0",
@@ -1508,6 +1460,12 @@ def arc_all_get(user_id):
                 "complete": 1
             }, {
                 "unlock_key": "lethaeus|2|0",
+                "complete": 1
+            }, {
+                "unlock_key": "rugie|1|0",
+                "complete": 1
+            }, {
+                "unlock_key": "gou|1|0",
                 "complete": 1
             }, {
                 "unlock_key": "sheriruth|1|0",

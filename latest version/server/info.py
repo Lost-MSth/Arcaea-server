@@ -1,4 +1,4 @@
-import sqlite3
+from server.sql import Connect
 import server.arcworld
 import server.arcpurchase
 import time
@@ -170,6 +170,9 @@ def get_value_0(c, user_id):
         characters = []
         for i in user_character:
             characters.append(i['character_id'])
+        prog_boost = 0
+        if x[27] and x[27] != 0:
+            prog_boost = 300
 
         r = {"is_aprilfools": False,
              "curr_available_maps": [],
@@ -189,12 +192,12 @@ def get_value_0(c, user_id):
              "is_locked_name_duplicate": False,
              "is_skill_sealed": int2b(x[7]),
              "current_map": x[25],
-             "prog_boost": 0,
+             "prog_boost": prog_boost,
              "next_fragstam_ts": -1,
              "max_stamina_ts": 1586274871917,
              "stamina": 12,
              "world_unlocks": ["scenery_chap1", "scenery_chap2", "scenery_chap3", "scenery_chap4", "scenery_chap5"],
-             "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3"],
+             "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow"],
              "singles": get_user_singles(c, user_id),  # ["dataerror", "yourvoiceso", "crosssoul", "impurebird", "auxesia", "modelista", "yozakurafubuki", "surrender", "metallicpunisher", "carminescythe", "bethere", "callmyname", "fallensquare", "dropdead", "alexandrite", "astraltale", "phantasia", "empireofwinter", "libertas", "dottodot", "dreadnought", "mirzam", "heavenlycaress", "filament", "avantraze", "battlenoone", "saikyostronger", "izana", "einherjar", "laqryma", "amygdata", "altale", "feelssoright", "scarletcage", "teriqma", "mahoroba", "badtek", "maliciousmischance", "buchigireberserker", "galaxyfriends", "xeraphinite", "xanatos"]
              "packs": get_user_packs(c, user_id),
              # ["vs", "extend", "dynamix", "prelude", "core", "yugamu", "omatsuri", "zettai", "mirai", "shiawase", "chunithm", "nijuusei", "groovecoaster", "rei", "tonesphere", "lanota"]
@@ -211,148 +214,143 @@ def get_value_0(c, user_id):
 
 def arc_aggregate_small(user_id):
     # 返回用户数据
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    r = {"success": True,
-         "value": [{
-             "id": 0,
-             "value": get_value_0(c, user_id)
-         }]}
+    r = {"success": False}
+    with Connect() as c:
+        r = {"success": True,
+             "value": [{
+                 "id": 0,
+                 "value": get_value_0(c, user_id)
+             }]}
 
-    conn.commit()
-    conn.close()
     return r
 
 
 def arc_aggregate_big(user_id):
     # 返回用户数据和地图歌曲信息
-
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    r = {"success": True,
-         "value": [{
-             "id": 0,
-             "value": get_value_0(c, user_id)
-         }, {
-             "id": 1,
-             "value": server.arcpurchase.get_item(c, 'pack')
-         }, {
-             "id": 2,
-             "value": {}
-         }, {
-             "id": 3,
-             "value": {
-                 "max_stamina": 12,
-                 "stamina_recover_tick": 1800000,
-                 "core_exp": 250,
-                 "curr_ts": int(time.time())*1000,
-                 "level_steps": [{
-                     "level": 1,
-                     "level_exp": 0
-                 }, {
-                     "level": 2,
-                     "level_exp": 50
-                 }, {
-                     "level": 3,
-                     "level_exp": 100
-                 }, {
-                     "level": 4,
-                     "level_exp": 150
-                 }, {
-                     "level": 5,
-                     "level_exp": 200
-                 }, {
-                     "level": 6,
-                     "level_exp": 300
-                 }, {
-                     "level": 7,
-                     "level_exp": 450
-                 }, {
-                     "level": 8,
-                     "level_exp": 650
-                 }, {
-                     "level": 9,
-                     "level_exp": 900
-                 }, {
-                     "level": 10,
-                     "level_exp": 1200
-                 }, {
-                     "level": 11,
-                     "level_exp": 1600
-                 }, {
-                     "level": 12,
-                     "level_exp": 2100
-                 }, {
-                     "level": 13,
-                     "level_exp": 2700
-                 }, {
-                     "level": 14,
-                     "level_exp": 3400
-                 }, {
-                     "level": 15,
-                     "level_exp": 4200
-                 }, {
-                     "level": 16,
-                     "level_exp": 5100
-                 }, {
-                     "level": 17,
-                     "level_exp": 6100
-                 }, {
-                     "level": 18,
-                     "level_exp": 7200
-                 }, {
-                     "level": 19,
-                     "level_exp": 8500
-                 }, {
-                     "level": 20,
-                     "level_exp": 10000
-                 }, {
-                     "level": 21,
-                     "level_exp": 11500
-                 }, {
-                     "level": 22,
-                     "level_exp": 13000
-                 }, {
-                     "level": 23,
-                     "level_exp": 14500
-                 }, {
-                     "level": 24,
-                     "level_exp": 16000
-                 }, {
-                     "level": 25,
-                     "level_exp": 17500
-                 }, {
-                     "level": 26,
-                     "level_exp": 19000
-                 }, {
-                     "level": 27,
-                     "level_exp": 20500
-                 }, {
-                     "level": 28,
-                     "level_exp": 22000
-                 }, {
-                     "level": 29,
-                     "level_exp": 23500
-                 }, {
-                     "level": 30,
-                     "level_exp": 25000
-                 }],
-                 "world_ranking_enabled": False,
-                 "is_byd_chapter_unlocked": True
+    r = {"success": False}
+    with Connect() as c:
+        r = {"success": True,
+             "value": [{
+                 "id": 0,
+                 "value": get_value_0(c, user_id)
+             }, {
+                 "id": 1,
+                 "value": server.arcpurchase.get_item(c, 'pack')
+             }, {
+                 "id": 2,
+                 "value": {}
+             }, {
+                 "id": 3,
+                 "value": {
+                     "max_stamina": 12,
+                     "stamina_recover_tick": 1800000,
+                     "core_exp": 250,
+                     "curr_ts": int(time.time())*1000,
+                     "level_steps": [{
+                         "level": 1,
+                         "level_exp": 0
+                     }, {
+                         "level": 2,
+                         "level_exp": 50
+                     }, {
+                         "level": 3,
+                         "level_exp": 100
+                     }, {
+                         "level": 4,
+                         "level_exp": 150
+                     }, {
+                         "level": 5,
+                         "level_exp": 200
+                     }, {
+                         "level": 6,
+                         "level_exp": 300
+                     }, {
+                         "level": 7,
+                         "level_exp": 450
+                     }, {
+                         "level": 8,
+                         "level_exp": 650
+                     }, {
+                         "level": 9,
+                         "level_exp": 900
+                     }, {
+                         "level": 10,
+                         "level_exp": 1200
+                     }, {
+                         "level": 11,
+                         "level_exp": 1600
+                     }, {
+                         "level": 12,
+                         "level_exp": 2100
+                     }, {
+                         "level": 13,
+                         "level_exp": 2700
+                     }, {
+                         "level": 14,
+                         "level_exp": 3400
+                     }, {
+                         "level": 15,
+                         "level_exp": 4200
+                     }, {
+                         "level": 16,
+                         "level_exp": 5100
+                     }, {
+                         "level": 17,
+                         "level_exp": 6100
+                     }, {
+                         "level": 18,
+                         "level_exp": 7200
+                     }, {
+                         "level": 19,
+                         "level_exp": 8500
+                     }, {
+                         "level": 20,
+                         "level_exp": 10000
+                     }, {
+                         "level": 21,
+                         "level_exp": 11500
+                     }, {
+                         "level": 22,
+                         "level_exp": 13000
+                     }, {
+                         "level": 23,
+                         "level_exp": 14500
+                     }, {
+                         "level": 24,
+                         "level_exp": 16000
+                     }, {
+                         "level": 25,
+                         "level_exp": 17500
+                     }, {
+                         "level": 26,
+                         "level_exp": 19000
+                     }, {
+                         "level": 27,
+                         "level_exp": 20500
+                     }, {
+                         "level": 28,
+                         "level_exp": 22000
+                     }, {
+                         "level": 29,
+                         "level_exp": 23500
+                     }, {
+                         "level": 30,
+                         "level_exp": 25000
+                     }],
+                     "world_ranking_enabled": False,
+                     "is_byd_chapter_unlocked": True
+                 }
+             }, {
+                 "id": 4,
+                 "value": server.arcpurchase.get_user_present(c, user_id)
+             }, {
+                 "id": 5,
+                 "value": {
+                     "current_map": server.arcworld.get_current_map(user_id),
+                     "user_id": user_id,
+                     "maps": server.arcworld.get_world_all(user_id)
+                 }
              }
-         }, {
-             "id": 4,
-             "value": server.arcpurchase.get_user_present(c, user_id)
-         }, {
-             "id": 5,
-             "value": {
-                 "current_map": server.arcworld.get_current_map(user_id),
-                 "user_id": user_id,
-                 "maps": server.arcworld.get_world_all(user_id)
-             }
-         }
-         ]}
+             ]}
 
-    conn.commit()
-    conn.close()
     return r

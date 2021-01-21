@@ -55,23 +55,14 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss.
 
-### Version 2.0
-- 适用于Arcaea 3.4.1版本 For Arcaea 3.4.1
-- 更新API接口至13 Update API interface to 13.
+### Version 2.1
+- 适用于Arcaea 3.5.0版本 For Arcaea 3.5.0
 - 更新了歌曲数据库 Update the song database.
-- 新增了兑换码系统 Add the redeem code system.
-- 优化了下载时文件MD5的读取速度 Optimize the reading speed of MD5 when downloading.
-- 新增初见保护 Add initial protection.
-- EX保护机制修改，现在重复歌曲若分数较高，会刷新r30中最早的记录，并保证ptt不下降，仍不清楚能否正常起效 EX protection mechanism has been modified. If the score of one repetitive song is higher, it will refresh the earliest record in r30 and ensure that PTT won't not drop. It is still unclear whether it can work normally.
-- 数据迁移机制修改，现在重复数据以旧数据库数据为准 The database migration mechanism has been modified. Now the duplicate data is subject to the old database data.
-- 机制修改，数据库缺少歌曲定数会当做Unrank处理 The mechanism has been modified. The lack of chart constant of songs in the database will be treated as unrank.
-- 后台新增用户密码修改、用户封禁和成绩清除 Add user password modification, user ban and score clearance in the background.
-- 游戏内数据同步将记录同步时间 Data synchronization in game will record synchronization time.
+- 新搭档**阿莱乌斯**、**希尔**、**伊莎贝尔**已解锁 Unlock the new characters **Areus**, **Seele** and **Isabelle**.
+- 源韵强化机制修改，现在源点会正常扣去 The mechanism of Memory Boost has been modified. Now the memories will be decreased normally.
+- 优化了代码结构 Optimize the code structure.
 - 修复了一些Bug Fix some bugs.
 
-> 提醒：本次更新针对了API接口更新，将无法兼容Arcaea 3.4.1以下版本
->
-> Tips: This update includes API interface update, and will not be compatible with the version below Arcaea 3.4.1.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows操作系统 Windows operating system

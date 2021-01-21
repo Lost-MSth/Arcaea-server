@@ -12,7 +12,7 @@
 	"items": [{
 		"id": "dataerror",
 		"type": "single",
-		"_id": "5ff79fc6a6e343038b058beb",
+		"_id": "6008c2ff36651a07ebc52cb5",
 		"is_available": true
 	}],
 	"price": 100,
@@ -24,7 +24,7 @@
 	"items": [{
 		"id": "yourvoiceso",
 		"type": "single",
-		"_id": "5ff79fc6a6e343038b058bf8",
+		"_id": "6008c2ff36651a07ebc52cc2",
 		"is_available": true
 	}],
 	"price": 100,
@@ -36,7 +36,7 @@
 	"items": [{
 		"id": "crosssoul",
 		"type": "single",
-		"_id": "5ff79fc6a6e343038b058c03",
+		"_id": "6008c2ff36651a07ebc52ccf",
 		"is_available": true
 	}],
 	"price": 100,
@@ -48,7 +48,7 @@
 	"items": [{
 		"type": "single",
 		"id": "impurebird",
-		"_id": "5ff79fc6a6e343038b058bdf",
+		"_id": "6008c2ff36651a07ebc52cb6",
 		"is_available": true
 	}],
 	"price": 100,
@@ -60,7 +60,7 @@
 	"items": [{
 		"type": "single",
 		"id": "auxesia",
-		"_id": "5ff79fc6a6e343038b058bec",
+		"_id": "6008c2ff36651a07ebc52c9d",
 		"is_available": true
 	}],
 	"price": 100,
@@ -72,7 +72,7 @@
 	"items": [{
 		"type": "single",
 		"id": "modelista",
-		"_id": "5ff79fc6a6e343038b058c04",
+		"_id": "6008c2ff36651a07ebc52cc3",
 		"is_available": true
 	}],
 	"price": 100,
@@ -84,7 +84,7 @@
 	"items": [{
 		"type": "single",
 		"id": "yozakurafubuki",
-		"_id": "5ff79fc6a6e343038b058be0",
+		"_id": "6008c2ff36651a07ebc52cb7",
 		"is_available": true
 	}],
 	"price": 100,
@@ -96,7 +96,7 @@
 	"items": [{
 		"type": "single",
 		"id": "surrender",
-		"_id": "5ff79fc6a6e343038b058bed",
+		"_id": "6008c2ff36651a07ebc52c9e",
 		"is_available": true
 	}],
 	"price": 100,
@@ -108,7 +108,7 @@
 	"items": [{
 		"type": "single",
 		"id": "metallicpunisher",
-		"_id": "5ff79fc6a6e343038b058c05",
+		"_id": "6008c2ff36651a07ebc52cc4",
 		"is_available": true
 	}],
 	"price": 100,
@@ -118,7 +118,7 @@
 	"items": [{
 		"type": "single",
 		"id": "carminescythe",
-		"_id": "5ff79fc6a6e343038b058be1",
+		"_id": "6008c2ff36651a07ebc52cb8",
 		"is_available": true
 	}],
 	"price": 100,
@@ -128,7 +128,7 @@
 	"items": [{
 		"type": "single",
 		"id": "bethere",
-		"_id": "5ff79fc6a6e343038b058bee",
+		"_id": "6008c2ff36651a07ebc52c9f",
 		"is_available": true
 	}],
 	"price": 100,
@@ -140,7 +140,7 @@
 	"items": [{
 		"type": "single",
 		"id": "callmyname",
-		"_id": "5ff79fc6a6e343038b058bfa",
+		"_id": "6008c2ff36651a07ebc52cd1",
 		"is_available": true
 	}],
 	"price": 100,
@@ -152,7 +152,7 @@
 	"items": [{
 		"type": "single",
 		"id": "fallensquare",
-		"_id": "5ff79fc6a6e343038b058bd6",
+		"_id": "6008c2ff36651a07ebc52cac",
 		"is_available": true
 	}],
 	"price": 100,
@@ -164,7 +164,7 @@
 	"items": [{
 		"type": "single",
 		"id": "dropdead",
-		"_id": "5ff79fc6a6e343038b058be2",
+		"_id": "6008c2ff36651a07ebc52cb9",
 		"is_available": true
 	}],
 	"price": 100,
@@ -176,7 +176,7 @@
 	"items": [{
 		"type": "single",
 		"id": "alexandrite",
-		"_id": "5ff79fc6a6e343038b058bef",
+		"_id": "6008c2ff36651a07ebc52ca0",
 		"is_available": true
 	}],
 	"price": 100,
@@ -188,7 +188,7 @@
 	"items": [{
 		"type": "single",
 		"id": "astraltale",
-		"_id": "5ff79fc6a6e343038b058c07",
+		"_id": "6008c2ff36651a07ebc52cc6",
 		"is_available": true
 	}],
 	"price": 100,
@@ -200,7 +200,7 @@
 	"items": [{
 		"type": "single",
 		"id": "phantasia",
-		"_id": "5ff79fc6a6e343038b058bd7",
+		"_id": "6008c2ff36651a07ebc52cad",
 		"is_available": true
 	}],
 	"price": 100,
@@ -210,7 +210,7 @@
 	"items": [{
 		"type": "single",
 		"id": "empireofwinter",
-		"_id": "5ff79fc6a6e343038b058be3",
+		"_id": "6008c2ff36651a07ebc52cba",
 		"is_available": true
 	}],
 	"price": 100,
@@ -220,7 +220,7 @@
 	"items": [{
 		"type": "single",
 		"id": "libertas",
-		"_id": "5ff79fc6a6e343038b058bfc",
+		"_id": "6008c2ff36651a07ebc52cd3",
 		"is_available": true
 	}],
 	"price": 100,
@@ -232,7 +232,7 @@
 	"items": [{
 		"type": "single",
 		"id": "dottodot",
-		"_id": "5ff79fc6a6e343038b058bd8",
+		"_id": "6008c2ff36651a07ebc52cae",
 		"is_available": true
 	}],
 	"price": 100,
@@ -244,7 +244,7 @@
 	"items": [{
 		"type": "single",
 		"id": "dreadnought",
-		"_id": "5ff79fc6a6e343038b058bfd",
+		"_id": "6008c2ff36651a07ebc52cd4",
 		"is_available": true
 	}],
 	"price": 100,
@@ -256,7 +256,7 @@
 	"items": [{
 		"type": "single",
 		"id": "mirzam",
-		"_id": "5ff79fc6a6e343038b058bd9",
+		"_id": "6008c2ff36651a07ebc52caf",
 		"is_available": true
 	}],
 	"price": 100,
@@ -268,7 +268,7 @@
 	"items": [{
 		"type": "single",
 		"id": "heavenlycaress",
-		"_id": "5ff79fc6a6e343038b058be5",
+		"_id": "6008c2ff36651a07ebc52cbc",
 		"is_available": true
 	}],
 	"price": 100,
@@ -278,7 +278,7 @@
 	"items": [{
 		"type": "single",
 		"id": "filament",
-		"_id": "5ff79fc6a6e343038b058bf2",
+		"_id": "6008c2ff36651a07ebc52ca3",
 		"is_available": true
 	}],
 	"price": 100,
@@ -288,7 +288,7 @@
 	"items": [{
 		"type": "single",
 		"id": "avantraze",
-		"_id": "5ff79fc6a6e343038b058bfe",
+		"_id": "6008c2ff36651a07ebc52cd5",
 		"is_available": true
 	}],
 	"price": 100,
@@ -298,7 +298,7 @@
 	"items": [{
 		"type": "single",
 		"id": "battlenoone",
-		"_id": "5ff79fc6a6e343038b058c0a",
+		"_id": "6008c2ff36651a07ebc52cc9",
 		"is_available": true
 	}],
 	"price": 100,
@@ -308,7 +308,7 @@
 	"items": [{
 		"type": "single",
 		"id": "saikyostronger",
-		"_id": "5ff79fc6a6e343038b058bda",
+		"_id": "6008c2ff36651a07ebc52cb0",
 		"is_available": true
 	}],
 	"price": 100,
@@ -318,7 +318,7 @@
 	"items": [{
 		"type": "single",
 		"id": "izana",
-		"_id": "5ff79fc6a6e343038b058be6",
+		"_id": "6008c2ff36651a07ebc52cbd",
 		"is_available": true
 	}],
 	"price": 100,
@@ -328,7 +328,7 @@
 	"items": [{
 		"type": "single",
 		"id": "einherjar",
-		"_id": "5ff79fc6a6e343038b058bf3",
+		"_id": "6008c2ff36651a07ebc52ca4",
 		"is_available": true
 	}],
 	"price": 100,
@@ -338,7 +338,7 @@
 	"items": [{
 		"type": "single",
 		"id": "laqryma",
-		"_id": "5ff79fc6a6e343038b058bff",
+		"_id": "6008c2ff36651a07ebc52cd6",
 		"is_available": true
 	}],
 	"price": 100,
@@ -348,7 +348,7 @@
 	"items": [{
 		"type": "single",
 		"id": "amygdata",
-		"_id": "5ff79fc6a6e343038b058c0b",
+		"_id": "6008c2ff36651a07ebc52cca",
 		"is_available": true
 	}],
 	"price": 100,
@@ -358,7 +358,7 @@
 	"items": [{
 		"type": "single",
 		"id": "altale",
-		"_id": "5ff79fc6a6e343038b058bdb",
+		"_id": "6008c2ff36651a07ebc52cb1",
 		"is_available": true
 	}],
 	"price": 100,
@@ -368,7 +368,7 @@
 	"items": [{
 		"type": "single",
 		"id": "feelssoright",
-		"_id": "5ff79fc6a6e343038b058c00",
+		"_id": "6008c2ff36651a07ebc52cd7",
 		"is_available": true
 	}],
 	"price": 100,
@@ -378,7 +378,7 @@
 	"items": [{
 		"type": "single",
 		"id": "scarletcage",
-		"_id": "5ff79fc6a6e343038b058c0c",
+		"_id": "6008c2ff36651a07ebc52ccb",
 		"is_available": true
 	}],
 	"price": 100,
@@ -388,7 +388,7 @@
 	"items": [{
 		"type": "single",
 		"id": "teriqma",
-		"_id": "5ff79fc6a6e343038b058bdc",
+		"_id": "6008c2ff36651a07ebc52cb2",
 		"is_available": true
 	}],
 	"price": 100,
@@ -398,7 +398,7 @@
 	"items": [{
 		"type": "single",
 		"id": "mahoroba",
-		"_id": "5ff79fc6a6e343038b058be8",
+		"_id": "6008c2ff36651a07ebc52cbf",
 		"is_available": true
 	}],
 	"price": 100,
@@ -408,7 +408,7 @@
 	"items": [{
 		"type": "single",
 		"id": "badtek",
-		"_id": "5ff79fc6a6e343038b058c01",
+		"_id": "6008c2ff36651a07ebc52cd8",
 		"is_available": true
 	}],
 	"price": 100,
@@ -418,7 +418,7 @@
 	"items": [{
 		"type": "single",
 		"id": "maliciousmischance",
-		"_id": "5ff79fc6a6e343038b058c0d",
+		"_id": "6008c2ff36651a07ebc52ccc",
 		"is_available": true
 	}],
 	"price": 100,
@@ -428,7 +428,7 @@
 	"items": [{
 		"type": "single",
 		"id": "buchigireberserker",
-		"_id": "5ff79fc6a6e343038b058bdd",
+		"_id": "6008c2ff36651a07ebc52cb3",
 		"is_available": true
 	}],
 	"price": 100,
@@ -438,7 +438,7 @@
 	"items": [{
 		"type": "single",
 		"id": "galaxyfriends",
-		"_id": "5ff79fc6a6e343038b058be9",
+		"_id": "6008c2ff36651a07ebc52cc0",
 		"is_available": true
 	}],
 	"price": 100,
@@ -448,7 +448,7 @@
 	"items": [{
 		"type": "single",
 		"id": "xeraphinite",
-		"_id": "5ff79fc6a6e343038b058bf6",
+		"_id": "6008c2ff36651a07ebc52ca7",
 		"is_available": true
 	}],
 	"orig_price": 100,
@@ -458,9 +458,19 @@
 	"items": [{
 		"type": "single",
 		"id": "xanatos",
-		"_id": "5ff79fc6a6e343038b058c02",
+		"_id": "6008c2ff36651a07ebc52cd9",
 		"is_available": true
 	}],
 	"price": 100,
 	"orig_price": 100
+}, {
+	"name": "attraqtia",
+	"items": [{
+		"type": "single",
+		"id": "attraqtia",
+		"_id": "6008c2ff36651a07ebc52cce",
+		"is_available": true
+	}],
+	"orig_price": 100,
+	"price": 100
 }]

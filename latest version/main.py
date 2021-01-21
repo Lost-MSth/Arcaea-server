@@ -87,7 +87,6 @@ def login():
     id_pwd = headers['Authorization']
     id_pwd = base64.b64decode(id_pwd[6:]).decode()
     name, password = id_pwd.split(':', 1)
-
     try:
         token, error_code = server.auth.arc_login(name, password)
         if not error_code:
@@ -95,7 +94,7 @@ def login():
             r['access_token'] = token
             return jsonify(r)
         else:
-            return error_return(error_code) 
+            return error_return(error_code)
     except:
         return error_return(108)
 
@@ -118,222 +117,148 @@ def register():
 
 # 集成式请求，没想到什么好办法处理，就先这样写着
 @app.route('/latte/13/compose/aggregate', methods=['GET'])
-def aggregate():
+@server.auth.auth_required(request)
+def aggregate(user_id):
     calls = request.args.get('calls')
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            if calls == '[{ "endpoint": "/user/me", "id": 0 }]':  # 极其沙雕的判断，我猜get的参数就两种
-                r = server.info.arc_aggregate_small(user_id)
-            else:
-                r = server.info.arc_aggregate_big(user_id)
-            return jsonify(r)
-        else:
-            return error_return(108)
-    except:
-        return error_return(108)
+    if calls == '[{ "endpoint": "/user/me", "id": 0 }]':  # 极其沙雕的判断，我猜get的参数就两种
+        r = server.info.arc_aggregate_small(user_id)
+    else:
+        r = server.info.arc_aggregate_big(user_id)
+    return jsonify(r)
 
 
 @app.route('/latte/13/user/me/character', methods=['POST'])  # 角色切换
-def character_change():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
+@server.auth.auth_required(request)
+def character_change(user_id):
     character_id = request.form['character']
     skill_sealed = request.form['skill_sealed']
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            flag = server.setme.change_char(
-                user_id, character_id, skill_sealed)
-            if flag:
-                return jsonify({
-                    "success": True,
-                    "value": {
-                        "user_id": user_id,
-                        "character": character_id
-                    }
-                })
-            else:
-                return error_return(108)
-        else:
-            return error_return(108)
-    except:
+
+    flag = server.setme.change_char(user_id, character_id, skill_sealed)
+    if flag:
+        return jsonify({
+            "success": True,
+            "value": {
+                "user_id": user_id,
+                "character": character_id
+            }
+        })
+    else:
         return error_return(108)
 
 
 @app.route('/latte/<path:path>/toggle_uncap', methods=['POST'])  # 角色觉醒切换
-def character_uncap(path):
+@server.auth.auth_required(request)
+def character_uncap(user_id, path):
     character_id = int(path[22:])
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            r = server.setme.change_char_uncap(user_id, character_id)
-            if r is not None:
-                return jsonify({
-                    "success": True,
-                    "value": {
-                        "user_id": user_id,
-                        "character": [r]
-                    }
-                })
-            else:
-                return error_return(108)
-        else:
-            return error_return(108)
-    except:
+    r = server.setme.change_char_uncap(user_id, character_id)
+    if r is not None:
+        return jsonify({
+            "success": True,
+            "value": {
+                "user_id": user_id,
+                "character": [r]
+            }
+        })
+    else:
         return error_return(108)
 
 
 @app.route('/latte/13/friend/me/add', methods=['POST'])  # 加好友
-def add_friend():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
+@server.auth.auth_required(request)
+def add_friend(user_id):
     friend_code = request.form['friend_code']
-    try:
-        user_id = server.auth.token_get_id(token)
-        friend_id = server.auth.code_get_id(friend_code)
-        if user_id is not None and friend_id is not None:
-            r = server.setme.arc_add_friend(user_id, friend_id)
-            if r is not None and r != 602 and r != 604:
-                return jsonify({
-                    "success": True,
-                    "value": {
-                        "user_id": user_id,
-                        "updatedAt": "2020-09-07T07:32:12.740Z",
-                        "createdAt": "2020-09-06T10:05:18.471Z",
-                        "friends": r
-                    }
-                })
-            else:
-                if r is not None:
-                    return error_return(r)
-                else:
-                    return error_return(108)
+    friend_id = server.auth.code_get_id(friend_code)
+    if friend_id is not None:
+        r = server.setme.arc_add_friend(user_id, friend_id)
+        if r is not None and r != 602 and r != 604:
+            return jsonify({
+                "success": True,
+                "value": {
+                    "user_id": user_id,
+                    "updatedAt": "2020-09-07T07:32:12.740Z",
+                    "createdAt": "2020-09-06T10:05:18.471Z",
+                    "friends": r
+                }
+            })
         else:
-            if friend_id is None:
-                return error_return(401)
+            if r is not None:
+                return error_return(r)
             else:
                 return error_return(108)
-    except:
-        return error_return(108)
+    else:
+        return error_return(401)
 
 
 @app.route('/latte/13/friend/me/delete', methods=['POST'])  # 删好友
-def delete_friend():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
+@server.auth.auth_required(request)
+def delete_friend(user_id):
     friend_id = int(request.form['friend_id'])
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None and friend_id is not None:
-            r = server.setme.arc_delete_friend(user_id, friend_id)
-            if r is not None:
-                return jsonify({
-                    "success": True,
-                    "value": {
-                        "user_id": user_id,
-                        "updatedAt": "2020-09-07T07:32:12.740Z",
-                        "createdAt": "2020-09-06T10:05:18.471Z",
-                        "friends": r
-                    }
-                })
-            else:
-                return error_return(108)
+    if friend_id is not None:
+        r = server.setme.arc_delete_friend(user_id, friend_id)
+        if r is not None:
+            return jsonify({
+                "success": True,
+                "value": {
+                    "user_id": user_id,
+                    "updatedAt": "2020-09-07T07:32:12.740Z",
+                    "createdAt": "2020-09-06T10:05:18.471Z",
+                    "friends": r
+                }
+            })
         else:
-            if friend_id is None:
-                return error_return(401)
-            else:
-                return error_return(108)
-    except:
-        return error_return(108)
+            return error_return(108)
+    else:
+        return error_return(401)
 
 
 @app.route('/latte/13/score/song/friend', methods=['GET'])  # 好友排名，默认最多50
-def song_score_friend():
+@server.auth.auth_required(request)
+def song_score_friend(user_id):
     song_id = request.args.get('song_id')
     difficulty = request.args.get('difficulty')
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            r = server.arcscore.arc_score_friend(user_id, song_id, difficulty)
-            if r is not None:
-                return jsonify({
-                    "success": True,
-                    "value": r
-                })
-            else:
-                return error_return(108)
-        else:
-            return error_return(108)
-    except:
+    r = server.arcscore.arc_score_friend(user_id, song_id, difficulty)
+    if r is not None:
+        return jsonify({
+            "success": True,
+            "value": r
+        })
+    else:
         return error_return(108)
 
 
 @app.route('/latte/13/score/song/me', methods=['GET'])  # 我的排名，默认最多20
-def song_score_me():
+@server.auth.auth_required(request)
+def song_score_me(user_id):
     song_id = request.args.get('song_id')
     difficulty = request.args.get('difficulty')
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            r = server.arcscore.arc_score_me(user_id, song_id, difficulty)
-            if r is not None:
-                return jsonify({
-                    "success": True,
-                    "value": r
-                })
-            else:
-                return error_return(108)
-        else:
-            return error_return(108)
-    except:
+    r = server.arcscore.arc_score_me(user_id, song_id, difficulty)
+    if r is not None:
+        return jsonify({
+            "success": True,
+            "value": r
+        })
+    else:
         return error_return(108)
 
 
 @app.route('/latte/13/score/song', methods=['GET'])  # TOP20
-def song_score_top():
+@server.auth.auth_required(request)
+def song_score_top(user_id):
     song_id = request.args.get('song_id')
     difficulty = request.args.get('difficulty')
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            r = server.arcscore.arc_score_top(song_id, difficulty)
-            if r is not None:
-                return jsonify({
-                    "success": True,
-                    "value": r
-                })
-            else:
-                return error_return(108)
-        else:
-            return error_return(108)
-    except:
+    r = server.arcscore.arc_score_top(song_id, difficulty)
+    if r is not None:
+        return jsonify({
+            "success": True,
+            "value": r
+        })
+    else:
         return error_return(108)
 
 
 @app.route('/latte/13/score/song', methods=['POST'])  # 成绩上传
-def song_score_post():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
+@server.auth.auth_required(request)
+def song_score_post(user_id):
     song_token = request.form['song_token']
     song_hash = request.form['song_hash']
     song_id = request.form['song_id']
@@ -349,31 +274,24 @@ def song_score_post():
     clear_type = int(request.form['clear_type'])
     submission_hash = request.form['submission_hash']
 
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            # 增加成绩校验
-            if not server.arcscore.arc_score_check(user_id, song_id, difficulty, score, shiny_perfect_count, perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type, song_token, song_hash, submission_hash):
-                return error_return(107)
+    # 增加成绩校验
+    if not server.arcscore.arc_score_check(user_id, song_id, difficulty, score, shiny_perfect_count, perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type, song_token, song_hash, submission_hash):
+        return error_return(107)
 
-            r, re = server.arcscore.arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count,
-                                                   perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type)
-            if r:
-                if re:
-                    return jsonify({
-                        "success": True,
-                        "value": re
-                    })
-                else:
-                    return jsonify({
-                        "success": True,
-                        "value": {"user_rating": r}
-                    })
-            else:
-                return error_return(108)
+    r, re = server.arcscore.arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count,
+                                           perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type)
+    if r:
+        if re:
+            return jsonify({
+                "success": True,
+                "value": re
+            })
         else:
-            return error_return(108)
-    except:
+            return jsonify({
+                "success": True,
+                "value": {"user_rating": r}
+            })
+    else:
         return error_return(108)
 
 
@@ -389,56 +307,36 @@ def score_token():
 
 # 世界模式成绩上传所需的token，无验证
 @app.route('/latte/13/score/token/world', methods=['GET'])
-def score_token_world():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
+@server.auth.auth_required(request)
+def score_token_world(user_id):
     args = request.args
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id:
-            server.arcworld.play_world_song(user_id, args)
-            return jsonify({
-                "success": True,
-                "value": {
-                    "stamina": 12,
-                    "max_stamina_ts": 1599547603825,
-                    "token": "13145201919810"
-                }
-            })
-        else:
-            return error_return(108)
-    except:
-        return error_return(108)
+    server.arcworld.play_world_song(user_id, args)
+    return jsonify({
+        "success": True,
+        "value": {
+            "stamina": 12,
+            "max_stamina_ts": 1599547603825,
+            "token": "13145201919810"
+        }
+    })
 
 
 @app.route('/latte/13/user/me/save', methods=['GET'])  # 从云端同步
-def cloud_get():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            r = server.arcscore.arc_all_get(user_id)
-            if r is not None:
-                return jsonify({
-                    "success": True,
-                    "value": r
-                })
-            else:
-                return error_return(108)
-        else:
-            return error_return(108)
-    except:
+@server.auth.auth_required(request)
+def cloud_get(user_id):
+    r = server.arcscore.arc_all_get(user_id)
+    if r is not None:
+        return jsonify({
+            "success": True,
+            "value": r
+        })
+    else:
         return error_return(108)
 
 
 @app.route('/latte/13/user/me/save', methods=['POST'])  # 向云端同步
-def cloud_post():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
+@server.auth.auth_required(request)
+def cloud_post(user_id):
     scores_data = request.form['scores_data']
     clearlamps_data = request.form['clearlamps_data']
     clearedsongs_data = request.form['clearedsongs_data']
@@ -446,99 +344,76 @@ def cloud_post():
     installid_data = request.form['installid_data']
     devicemodelname_data = request.form['devicemodelname_data']
     story_data = request.form['story_data']
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            server.arcscore.arc_all_post(user_id, scores_data, clearlamps_data, clearedsongs_data,
-                                         unlocklist_data, installid_data, devicemodelname_data, story_data)
-            return jsonify({
-                "success": True,
-                "value": {
-                    "user_id": user_id
-                }
-            })
-        else:
-            return error_return(108)
-    except:
-        return error_return(108)
+
+    server.arcscore.arc_all_post(user_id, scores_data, clearlamps_data, clearedsongs_data,
+                                 unlocklist_data, installid_data, devicemodelname_data, story_data)
+    return jsonify({
+        "success": True,
+        "value": {
+            "user_id": user_id
+        }
+    })
 
 
 @app.route('/latte/13/purchase/me/redeem', methods=['POST'])  # 兑换码
-def redeem():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
+@server.auth.auth_required(request)
+def redeem(user_id):
     code = request.form['code']
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            fragment, error_code = server.arcpurchase.claim_user_redeem(
-                user_id, code)
-            if not error_code:
-                if fragment > 0:
-                    return jsonify({
-                        "success": True,
-                        "value": {"coupon": "fragment"+str(fragment)}
-                    })
-                else:
-                    return jsonify({
-                        "success": True,
-                        "value": {"coupon": ""}
-                    })
-            else:
-                return error_return(error_code)
+    fragment, error_code = server.arcpurchase.claim_user_redeem(
+        user_id, code)
+    if not error_code:
+        if fragment > 0:
+            return jsonify({
+                "success": True,
+                "value": {"coupon": "fragment"+str(fragment)}
+            })
         else:
-            return error_return(108)
-    except:
-        return error_return(108)
+            return jsonify({
+                "success": True,
+                "value": {"coupon": ""}
+            })
+    else:
+        return error_return(error_code)
 
 
 # 礼物确认
 @app.route('/latte/13/present/me/claim/<present_id>', methods=['POST'])
-def claim_present(present_id):
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            flag = server.arcpurchase.claim_user_present(user_id, present_id)
-            if flag:
-                return jsonify({
-                    "success": True
-                })
-            else:
-                return error_return(108)
-        else:
-            return error_return(108)
-    except:
+@server.auth.auth_required(request)
+def claim_present(user_id, present_id):
+    flag = server.arcpurchase.claim_user_present(user_id, present_id)
+    if flag:
+        return jsonify({
+            "success": True
+        })
+    else:
         return error_return(108)
 
 
-# 购买，为了world模式boost一下
-@app.route('/latte/13/purchase/me/item', methods=['POST'])
-def item():
-    return jsonify({
-        "success": True
-    })
+@app.route('/latte/13/purchase/me/item', methods=['POST'])  # 购买，world模式boost
+@server.auth.auth_required(request)
+def prog_boost(user_id):
+    re = {"success": False}
+    if 'item_id' in request.form:
+        if request.form['item_id'] == 'prog_boost_300':
+            ticket, error_code = server.arcpurchase.get_prog_boost(user_id)
+            if error_code:
+                return error_return(error_code)
+
+            re = {
+                "success": True,
+                "value": {'ticket': ticket}
+            }
+    return jsonify(re)
 
 
 @app.route('/latte/13/purchase/me/pack', methods=['POST'])  # 曲包和单曲购买
-def pack():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id:
-            if 'pack_id' in request.form:
-                return jsonify(server.arcpurchase.buy_pack(user_id, request.form['pack_id']))
-            if 'single_id' in request.form:
-                return jsonify(server.arcpurchase.buy_single(user_id, request.form['single_id']))
-        else:
-            return error_return(108)
-    except:
-        return error_return(108)
+@server.auth.auth_required(request)
+def pack(user_id):
+    if 'pack_id' in request.form:
+        return jsonify(server.arcpurchase.buy_pack(user_id, request.form['pack_id']))
+    if 'single_id' in request.form:
+        return jsonify(server.arcpurchase.buy_single(user_id, request.form['single_id']))
+
     return jsonify({
         "success": True
     })
@@ -553,102 +428,65 @@ def single():
 
 
 @app.route('/latte/13/world/map/me', methods=['GET'])  # 获得世界模式信息，所有地图
-def world_all():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
-    try:
-
-        user_id = server.auth.token_get_id(token)
-        if user_id:
-            return jsonify({
-                "success": True,
-                "value": {
-                    "current_map": server.arcworld.get_current_map(user_id),
-                    "user_id": user_id,
-                    "maps": server.arcworld.get_world_all(user_id)
-                }
-            })
-        else:
-            return error_return(108)
-    except:
-        return error_return(108)
+@server.auth.auth_required(request)
+def world_all(user_id):
+    return jsonify({
+        "success": True,
+        "value": {
+            "current_map": server.arcworld.get_current_map(user_id),
+            "user_id": user_id,
+            "maps": server.arcworld.get_world_all(user_id)
+        }
+    })
 
 
 @app.route('/latte/13/world/map/me/', methods=['POST'])  # 进入地图
-def world_in():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
+@server.auth.auth_required(request)
+def world_in(user_id):
     map_id = request.form['map_id']
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id:
-            return jsonify({
-                "success": True,
-                "value": server.arcworld.get_user_world(user_id, map_id)
-            })
-        else:
-            return error_return(108)
-    except:
-        return error_return(108)
+    return jsonify({
+        "success": True,
+        "value": server.arcworld.get_user_world(user_id, map_id)
+    })
 
 
 @app.route('/latte/13/world/map/me/<map_id>', methods=['GET'])  # 获得单个地图完整信息
-def world_one(map_id):
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id:
-            server.arcworld.change_user_current_map(user_id, map_id)
-            return jsonify({
-                "success": True,
-                "value": {
-                    "user_id": user_id,
-                    "current_map": map_id,
-                    "maps": [server.arcworld.get_user_world_info(user_id, map_id)]
-                }
-            })
-        else:
-            return error_return(108)
-    except:
-        return error_return(108)
+@server.auth.auth_required(request)
+def world_one(user_id, map_id):
+    server.arcworld.change_user_current_map(user_id, map_id)
+    return jsonify({
+        "success": True,
+        "value": {
+            "user_id": user_id,
+            "current_map": map_id,
+            "maps": [server.arcworld.get_user_world_info(user_id, map_id)]
+        }
+    })
 
 
 @app.route('/latte/13/serve/download/me/song', methods=['GET'])  # 歌曲下载
-def download_song():
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
+@server.auth.auth_required(request)
+def download_song(user_id):
     song_ids = request.args.getlist('sid')
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id:
-            if server.arcdownload.is_able_download(user_id):
-                re = {}
-                if not song_ids:
-                    re = server.arcdownload.get_all_songs(user_id)
-                else:
-                    re = server.arcdownload.get_some_songs(user_id, song_ids)
-
-                return jsonify({
-                    "success": True,
-                    "value": re
-                })
-            else:
-                return error_return(903)
+    if server.arcdownload.is_able_download(user_id):
+        re = {}
+        if not song_ids:
+            re = server.arcdownload.get_all_songs(user_id)
         else:
-            return error_return(108)
-    except:
-        return error_return(108)
+            re = server.arcdownload.get_some_songs(user_id, song_ids)
+
+        return jsonify({
+            "success": True,
+            "value": re
+        })
+    else:
+        return error_return(903)
 
 
 @app.route('/download/<path:file_path>', methods=['GET'])  # 下载
 def download(file_path):
-    t = request.args.get('t')
     try:
+        t = request.args.get('t')
         message = server.arcdownload.is_token_able_download(t)
         if message == 0:
             path = os.path.join('./database/songs', file_path)
@@ -663,24 +501,14 @@ def download(file_path):
 
 
 @app.route('/latte/<path:path>', methods=['POST'])  # 三个设置，写在最后降低优先级
-def sys_set(path):
+@server.auth.auth_required(request)
+def sys_set(user_id, path):
     set_arg = path[10:]
-    headers = request.headers
-    token = headers['Authorization']
-    token = token[7:]
     value = request.form['value']
-
-    try:
-        user_id = server.auth.token_get_id(token)
-        if user_id is not None:
-            server.setme.arc_sys_set(user_id, value, set_arg)
-            r = server.info.arc_aggregate_small(user_id)
-            r['value'] = r['value'][0]['value']
-            return jsonify(r)
-        else:
-            return error_return(108)
-    except:
-        return error_return(108)
+    server.setme.arc_sys_set(user_id, value, set_arg)
+    r = server.info.arc_aggregate_small(user_id)
+    r['value'] = r['value'][0]['value']
+    return jsonify(r)
 
 
 def main():

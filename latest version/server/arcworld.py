@@ -1,5 +1,5 @@
 import json
-import sqlite3
+from server.sql import Connect
 import os
 
 
@@ -23,64 +23,17 @@ def get_world_name(file_dir='./database/map'):
 
 def get_world_info(map_id):
     # 读取json文件内容，返回字典
-    f = open('./database/map/'+map_id+'.json', 'r')
-    world_info = json.load(f)
-    f.close()
+    world_info = {}
+    with open('./database/map/'+map_id+'.json', 'r') as f:
+        world_info = json.load(f)
+
     return world_info
 
 
 def get_user_world_info(user_id, map_id):
     # 读取json文件内容，加上用户信息，返回字典
     info = get_world_info(map_id)
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''select * from user_world where map_id = :a and user_id = :b''',
-              {'a': map_id, 'b': user_id})
-    x = c.fetchone()
-    if x:
-        info['curr_position'] = x[2]
-        info['curr_capture'] = x[3]
-        info['is_locked'] = int2b(x[4])
-    else:
-        c.execute('''insert into user_world values(:a,:b,0,0,0)''', {
-            'a': user_id, 'b': map_id})
-    conn.commit()
-    conn.close()
-    return info
-
-
-def get_current_map(user_id):
-    # 得到user的当前图，返回字符串
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''select current_map from user where user_id = :a''',
-              {'a': user_id})
-    x = c.fetchone()
-    re = ''
-    if x:
-        re = x[0]
-
-    conn.commit()
-    conn.close()
-    return re
-
-
-def get_world_all(user_id):
-    # 读取所有地图信息并处理，返回字典列表
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    worlds = get_world_name()
-    re = []
-    for map_id in worlds:
-        info = get_world_info(map_id)
-        steps = info['steps']
-        del info['steps']
-        rewards = []
-        for step in steps:
-            if 'items' in step:
-                rewards.append(
-                    {'items': step['items'], 'position': step['position']})
-        info['rewards'] = rewards
+    with Connect() as c:
         c.execute('''select * from user_world where map_id = :a and user_id = :b''',
                   {'a': map_id, 'b': user_id})
         x = c.fetchone()
@@ -90,75 +43,110 @@ def get_world_all(user_id):
             info['is_locked'] = int2b(x[4])
         else:
             c.execute('''insert into user_world values(:a,:b,0,0,0)''', {
-                      'a': user_id, 'b': map_id})
+                'a': user_id, 'b': map_id})
 
-        re.append(info)
+    return info
 
-    conn.commit()
-    conn.close()
+
+def get_current_map(user_id):
+    # 得到user的当前图，返回字符串
+    re = ''
+    with Connect() as c:
+        c.execute('''select current_map from user where user_id = :a''',
+                  {'a': user_id})
+        x = c.fetchone()
+        if x:
+            re = x[0]
+
+    return re
+
+
+def get_world_all(user_id):
+    # 读取所有地图信息并处理，返回字典列表
+    re = []
+    with Connect() as c:
+        worlds = get_world_name()
+        for map_id in worlds:
+            info = get_world_info(map_id)
+            steps = info['steps']
+            del info['steps']
+            rewards = []
+            for step in steps:
+                if 'items' in step:
+                    rewards.append(
+                        {'items': step['items'], 'position': step['position']})
+            info['rewards'] = rewards
+            c.execute('''select * from user_world where map_id = :a and user_id = :b''',
+                      {'a': map_id, 'b': user_id})
+            x = c.fetchone()
+            if x:
+                info['curr_position'] = x[2]
+                info['curr_capture'] = x[3]
+                info['is_locked'] = int2b(x[4])
+            else:
+                c.execute('''insert into user_world values(:a,:b,0,0,0)''', {
+                    'a': user_id, 'b': map_id})
+
+            re.append(info)
+
     return re
 
 
 def get_user_world(user_id, map_id):
     # 获取用户图信息，返回字典
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''select * from user_world where map_id = :a and user_id = :b''',
-              {'a': map_id, 'b': user_id})
-    x = c.fetchone()
-    re = {
-        "user_id": user_id,
-        "curr_position": 0,
-        "curr_capture": 0,
-        "is_locked": False,
-        "map_id": map_id
-    }
-    if x:
-        re['curr_position'] = x[2]
-        re['curr_capture'] = x[3]
-        re['is_locked'] = int2b(x[4])
-    else:
-        c.execute('''insert into user_world values(:a,:b,0,0,0)''', {
-            'a': user_id, 'b': map_id})
+    re = {}
+    with Connect() as c:
+        c.execute('''select * from user_world where map_id = :a and user_id = :b''',
+                  {'a': map_id, 'b': user_id})
+        x = c.fetchone()
+        re = {
+            "user_id": user_id,
+            "curr_position": 0,
+            "curr_capture": 0,
+            "is_locked": False,
+            "map_id": map_id
+        }
+        if x:
+            re['curr_position'] = x[2]
+            re['curr_capture'] = x[3]
+            re['is_locked'] = int2b(x[4])
+        else:
+            c.execute('''insert into user_world values(:a,:b,0,0,0)''', {
+                'a': user_id, 'b': map_id})
 
-    conn.commit()
-    conn.close()
     return re
 
 
 def change_user_current_map(user_id, map_id):
     # 改变用户当前图
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''update user set current_map = :a where user_id=:b''', {
-              'a': map_id, 'b': user_id})
-    conn.commit()
-    conn.close()
+    with Connect() as c:
+        c.execute('''update user set current_map = :a where user_id=:b''', {
+            'a': map_id, 'b': user_id})
     return None
 
 
 def play_world_song(user_id, args):
     # 声明是世界模式的打歌，并且记录加成信息
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
+    with Connect() as c:
+        stamina_multiply = 1
+        fragment_multiply = 100
+        prog_boost_multiply = 0
+        if 'stamina_multiply' in args:
+            stamina_multiply = int(args['stamina_multiply'])
+        if 'fragment_multiply' in args:
+            fragment_multiply = int(args['fragment_multiply'])
+        if 'prog_boost_multiply' in args:
+            c.execute('''select prog_boost from user where user_id=:a''', {
+                      'a': user_id})
+            x = c.fetchone()
+            if x and x[0] == 1:
+                prog_boost_multiply = 300
 
-    stamina_multiply = 1
-    fragment_multiply = 100
-    prog_boost_multiply = 0
-    if 'stamina_multiply' in args:
-        stamina_multiply = int(args['stamina_multiply'])
-    if 'fragment_multiply' in args:
-        fragment_multiply = int(args['fragment_multiply'])
-    if 'prog_boost_multiply' in args:
-        prog_boost_multiply = int(args['prog_boost_multiply'])
+        c.execute('''delete from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
+            'a': user_id, 'b': args['song_id'], 'c': args['difficulty']})
+        c.execute('''insert into world_songplay values(:a,:b,:c,:d,:e,:f)''', {
+            'a': user_id, 'b': args['song_id'], 'c': args['difficulty'], 'd': stamina_multiply, 'e': fragment_multiply, 'f': prog_boost_multiply})
 
-    c.execute('''delete from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
-              'a': user_id, 'b': args['song_id'], 'c': args['difficulty']})
-    c.execute('''insert into world_songplay values(:a,:b,:c,:d,:e,:f)''', {
-              'a': user_id, 'b': args['song_id'], 'c': args['difficulty'], 'd': stamina_multiply, 'e': fragment_multiply, 'f': prog_boost_multiply})
-
-    conn.commit()
-    conn.close()
     return None
 
 

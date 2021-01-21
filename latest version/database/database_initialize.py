@@ -33,7 +33,8 @@ rating real,
 favorite_character int,
 max_stamina_notification_enabled int,
 current_map text,
-ticket int
+ticket int,
+prog_boost int
 );''')
 c.execute('''create table if not exists login(access_token text,
 user_id int primary key,
@@ -234,16 +235,16 @@ primary key(user_id, code)
 
 
 char = ['Hikari', 'Tairitsu', 'Kou', 'Sapphire', 'Lethe', '', 'Tairitsu(Axium)', 'Tairitsu(Grievous Lady)', 'Stella', 'Hikari & Fisica', 'Ilith', 'Eto', 'Luna', 'Shirabe', 'Hikari(Zero)', 'Hikari(Fracture)', 'Hikari(Summer)', 'Tairitsu(Summer)', 'Tairitsu & Trin',
-        'Ayu', 'Eto & Luna', 'Yume', 'Seine & Hikari', 'Saya', 'Tairitsu & Chuni Penguin', 'Chuni Penguin', 'Haruna', 'Nono', 'MTA-XXX', 'MDA-21', 'Kanae', 'Hikari(Fantasia)', 'Tairitsu(Sonata)', 'Sia', 'DORO*C', 'Tairitsu(Tempest)', 'Brillante', 'Ilith(Summer)', 'Etude', 'Alice & Tenniel', 'Luna & Mia']
+        'Ayu', 'Eto & Luna', 'Yume', 'Seine & Hikari', 'Saya', 'Tairitsu & Chuni Penguin', 'Chuni Penguin', 'Haruna', 'Nono', 'MTA-XXX', 'MDA-21', 'Kanae', 'Hikari(Fantasia)', 'Tairitsu(Sonata)', 'Sia', 'DORO*C', 'Tairitsu(Tempest)', 'Brillante', 'Ilith(Summer)', 'Etude', 'Alice & Tenniel', 'Luna & Mia', 'Areus', 'Seele', 'Isabelle']
 
 skill_id = ['gauge_easy', '', '', '', 'note_mirror', '', '', 'gauge_hard', 'frag_plus_10_pack_stellights', 'gauge_easy|frag_plus_15_pst&prs', 'gauge_hard|fail_frag_minus_100', 'frag_plus_5_side_light', 'visual_hide_hp', 'frag_plus_5_side_conflict', 'challenge_fullcombo_0gauge', 'gauge_overflow', 'gauge_easy|note_mirror', 'note_mirror', 'visual_tomato_pack_tonesphere',
-            'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', '', '', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', '', 'note_mirror|visual_hide_far', 'frags_ongeki']
+            'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', '', '', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', '', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle']
 
 skill_id_uncap = ['', '', 'frags_kou', '', 'visual_ink', '', '', '', '', '', '', '', '', 'shirabe_entry_fee',
-                  '', '', '', '', '', '', '', 'frags_yume', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+                  '', '', '', '', '', '', '', 'frags_yume', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
 
-for i in range(0, 41):
-    if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21]:
+for i in range(0, 44):
+    if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21, 42, 43]:
         sql = 'insert into character values('+str(
             i)+',"'+char[i]+'''",30,25000,25000,90,90,90,"'''+skill_id[i]+'''",0,0,"'''+skill_id_uncap[i]+'''",0,'',1,1)'''
         c.execute(sql)
