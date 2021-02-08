@@ -1,6 +1,8 @@
+# encoding: utf-8
+
 from flask import Flask, request, jsonify, make_response, send_from_directory
 from logging.config import dictConfig
-import configparser
+from setting import Config
 import base64
 import server.auth
 import server.info
@@ -87,32 +89,29 @@ def login():
     id_pwd = headers['Authorization']
     id_pwd = base64.b64decode(id_pwd[6:]).decode()
     name, password = id_pwd.split(':', 1)
-    try:
-        token, error_code = server.auth.arc_login(name, password)
-        if not error_code:
-            r = {"success": True, "token_type": "Bearer"}
-            r['access_token'] = token
-            return jsonify(r)
-        else:
-            return error_return(error_code)
-    except:
-        return error_return(108)
+    device_id = headers['DeviceId']
+    token, error_code = server.auth.arc_login(name, password, device_id)
+    if not error_code:
+        r = {"success": True, "token_type": "Bearer"}
+        r['access_token'] = token
+        return jsonify(r)
+    else:
+        return error_return(error_code)
 
 
 @app.route('/latte/13/user/', methods=['POST'])  # 注册接口
 def register():
     name = request.form['name']
     password = request.form['password']
-    try:
-        user_id, token, error_code = server.auth.arc_register(name, password)
-        if user_id is not None:
-            r = {"success": True, "value": {
-                'user_id': user_id, 'access_token': token}}
-            return jsonify(r)
-        else:
-            return error_return(error_code)  # 应该是101，用户名被占用，毕竟电子邮箱、设备号没记录
-    except:
-        return error_return(108)
+    device_id = request.form['device_id']
+    user_id, token, error_code = server.auth.arc_register(
+        name, password, device_id)
+    if user_id is not None:
+        r = {"success": True, "value": {
+            'user_id': user_id, 'access_token': token}}
+        return jsonify(r)
+    else:
+        return error_return(error_code)  # 应该是101，用户名被占用，毕竟电子邮箱没记录
 
 
 # 集成式请求，没想到什么好办法处理，就先这样写着
@@ -149,7 +148,9 @@ def character_change(user_id):
 @app.route('/latte/<path:path>/toggle_uncap', methods=['POST'])  # 角色觉醒切换
 @server.auth.auth_required(request)
 def character_uncap(user_id, path):
-    character_id = int(path[22:])
+    while '//' in path:
+        path = path.replace('//', '/')
+    character_id = int(path[21:])
     r = server.setme.change_char_uncap(user_id, character_id)
     if r is not None:
         return jsonify({
@@ -280,7 +281,7 @@ def song_score_post(user_id):
 
     r, re = server.arcscore.arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count,
                                            perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type)
-    if r:
+    if r is not None:
         if re:
             return jsonify({
                 "success": True,
@@ -512,12 +513,7 @@ def sys_set(user_id, path):
 
 
 def main():
-    config = configparser.ConfigParser()
-    path = r'setting.ini'
-    config.read(path, encoding="utf-8")
-    HOST = config.get('CONFIG', 'HOST')
-    PORT = config.get('CONFIG', 'PORT')
-    app.config.from_mapping(SECRET_KEY='1145141919810')
+    app.config.from_mapping(SECRET_KEY=Config.SECRET_KEY)
     app.register_blueprint(web.login.bp)
     app.register_blueprint(web.index.bp)
 
@@ -541,7 +537,7 @@ def main():
     else:
         app.logger.info('Complete!')
 
-    app.run(HOST, PORT)
+    app.run(Config.HOST, Config.PORT)
 
 
 if __name__ == '__main__':

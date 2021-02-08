@@ -37,10 +37,11 @@ ticket int,
 prog_boost int
 );''')
 c.execute('''create table if not exists login(access_token text,
-user_id int primary key,
-last_login_time int,
-last_login_ip text,
-last_login_device text
+user_id int,
+login_time int,
+login_ip text,
+login_device text,
+primary key(access_token, user_id)
 );''')
 c.execute('''create table if not exists friend(user_id_me int,
 user_id_other int,

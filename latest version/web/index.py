@@ -3,7 +3,7 @@ from flask import (
 )
 from web.login import login_required
 from werkzeug.utils import secure_filename
-import sqlite3
+from server.sql import Connect
 import web.webscore
 import web.system
 import time
@@ -43,26 +43,23 @@ def single_player_score():
         user_code = request.form['user_code']
         error = None
         if name or user_code:
-            conn = sqlite3.connect('./database/arcaea_database.db')
-            c = conn.cursor()
-            if user_code:
-                c.execute('''select user_id from user where user_code=:a''', {
-                          'a': user_code})
-            else:
-                c.execute(
-                    '''select user_id from user where name=:a''', {'a': name})
+            with Connect() as c:
+                if user_code:
+                    c.execute('''select user_id from user where user_code=:a''', {
+                        'a': user_code})
+                else:
+                    c.execute(
+                        '''select user_id from user where name=:a''', {'a': name})
 
-            user_id = c.fetchone()
-            posts = []
-            if user_id:
-                user_id = user_id[0]
-                posts = web.webscore.get_user_score(c, user_id)
-                if not posts:
-                    error = '无成绩 No score.'
-            else:
-                error = '玩家不存在 The player does not exist.'
-            conn.commit()
-            conn.close()
+                user_id = c.fetchone()
+                posts = []
+                if user_id:
+                    user_id = user_id[0]
+                    posts = web.webscore.get_user_score(c, user_id)
+                    if not posts:
+                        error = '无成绩 No score.'
+                else:
+                    error = '玩家不存在 The player does not exist.'
 
         else:
             error = '输入为空 Null Input.'
@@ -84,35 +81,33 @@ def single_player_ptt():
         user_code = request.form['user_code']
         error = None
         if name or user_code:
-            conn = sqlite3.connect('./database/arcaea_database.db')
-            c = conn.cursor()
-            if user_code:
-                c.execute('''select user_id from user where user_code=:a''', {
-                          'a': user_code})
-            else:
-                c.execute(
-                    '''select user_id from user where name=:a''', {'a': name})
-
-            user_id = c.fetchone()
-            posts = []
-            if user_id:
-                user_id = user_id[0]
-                user = web.webscore.get_user(c, user_id)
-                posts = web.webscore.get_user_score(c, user_id, 30)
-                recent, recentptt = web.webscore.get_user_recent30(c, user_id)
-                if not posts:
-                    error = '无成绩 No score.'
+            with Connect() as c:
+                if user_code:
+                    c.execute('''select user_id from user where user_code=:a''', {
+                        'a': user_code})
                 else:
-                    bestptt = 0
-                    for i in posts:
-                        if i['rating']:
-                            bestptt += i['rating']
-                    bestptt = bestptt / 30
-            else:
-                error = '玩家不存在 The player does not exist.'
+                    c.execute(
+                        '''select user_id from user where name=:a''', {'a': name})
 
-            conn.commit()
-            conn.close()
+                user_id = c.fetchone()
+                posts = []
+                if user_id:
+                    user_id = user_id[0]
+                    user = web.webscore.get_user(c, user_id)
+                    posts = web.webscore.get_user_score(c, user_id, 30)
+                    recent, recentptt = web.webscore.get_user_recent30(
+                        c, user_id)
+                    if not posts:
+                        error = '无成绩 No score.'
+                    else:
+                        bestptt = 0
+                        for i in posts:
+                            if i['rating']:
+                                bestptt += i['rating']
+                        bestptt = bestptt / 30
+                else:
+                    error = '玩家不存在 The player does not exist.'
+
         else:
             error = '输入为空 Null Input.'
 
@@ -128,44 +123,41 @@ def single_player_ptt():
 @login_required
 def all_player():
     # 所有玩家数据，按照ptt排序
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''select * from user order by rating_ptt DESC''')
-    x = c.fetchall()
     error = None
-    if x:
-        posts = []
-        for i in x:
-            join_data = None
-            time_played = None
-            if i[3]:
-                join_date = time.strftime('%Y-%m-%d %H:%M:%S',
-                                          time.localtime(int(i[3])//1000))
-            if i[20]:
-                time_played = time.strftime('%Y-%m-%d %H:%M:%S',
-                                            time.localtime(int(i[20])//1000))
-            posts.append({'name': i[1],
-                          'user_id': i[0],
-                          'join_date': join_date,
-                          'user_code': i[4],
-                          'rating_ptt': i[5],
-                          'song_id': i[11],
-                          'difficulty': i[12],
-                          'score': i[13],
-                          'shiny_perfect_count': i[14],
-                          'perfect_count': i[15],
-                          'near_count': i[16],
-                          'miss_count': i[17],
-                          'time_played': time_played,
-                          'clear_type': i[21],
-                          'rating': i[22],
-                          'ticket': i[26]
-                          })
-    else:
-        error = '没有玩家数据 No player data.'
+    with Connect() as c:
+        c.execute('''select * from user order by rating_ptt DESC''')
+        x = c.fetchall()
+        if x:
+            posts = []
+            for i in x:
+                join_data = None
+                time_played = None
+                if i[3]:
+                    join_date = time.strftime('%Y-%m-%d %H:%M:%S',
+                                              time.localtime(int(i[3])//1000))
+                if i[20]:
+                    time_played = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                time.localtime(int(i[20])//1000))
+                posts.append({'name': i[1],
+                              'user_id': i[0],
+                              'join_date': join_date,
+                              'user_code': i[4],
+                              'rating_ptt': i[5],
+                              'song_id': i[11],
+                              'difficulty': i[12],
+                              'score': i[13],
+                              'shiny_perfect_count': i[14],
+                              'perfect_count': i[15],
+                              'near_count': i[16],
+                              'miss_count': i[17],
+                              'time_played': time_played,
+                              'clear_type': i[21],
+                              'rating': i[22],
+                              'ticket': i[26]
+                              })
+        else:
+            error = '没有玩家数据 No player data.'
 
-    conn.commit()
-    conn.close()
     if error:
         flash(error)
         return render_template('web/allplayer.html')
@@ -184,26 +176,23 @@ def all_song():
         else:
             return None
 
-    conn = sqlite3.connect('./database/arcsong.db')
-    c = conn.cursor()
-    c.execute('''select * from songs''')
-    x = c.fetchall()
     error = None
-    if x:
-        posts = []
-        for i in x:
-            posts.append({'song_id': i[0],
-                          'name_en': i[1],
-                          'rating_pst': defnum(i[12]),
-                          'rating_prs': defnum(i[13]),
-                          'rating_ftr': defnum(i[14]),
-                          'rating_byn': defnum(i[15])
-                          })
-    else:
-        error = '没有铺面数据 No song data.'
+    with Connect('./database/arcsong.db') as c:
+        c.execute('''select * from songs''')
+        x = c.fetchall()
+        if x:
+            posts = []
+            for i in x:
+                posts.append({'song_id': i[0],
+                              'name_en': i[1],
+                              'rating_pst': defnum(i[12]),
+                              'rating_prs': defnum(i[13]),
+                              'rating_ftr': defnum(i[14]),
+                              'rating_byn': defnum(i[15])
+                              })
+        else:
+            error = '没有铺面数据 No song data.'
 
-    conn.commit()
-    conn.close()
     if error:
         flash(error)
         return render_template('web/allsong.html')
@@ -221,15 +210,13 @@ def single_chart_top():
         if difficulty.isdigit():
             difficulty = int(difficulty)
         error = None
-        conn = sqlite3.connect('./database/arcsong.db')
-        c = conn.cursor()
-        song_name = '%'+song_name+'%'
-        c.execute('''select sid, name_en from songs where sid like :a limit 1''',
-                  {'a': song_name})
-        x = c.fetchone()
-        conn.commit()
-        conn.close()
-        print(x)
+        x = None
+        with Connect('./database/arcsong.db') as c:
+            song_name = '%'+song_name+'%'
+            c.execute('''select sid, name_en from songs where sid like :a limit 1''',
+                      {'a': song_name})
+            x = c.fetchone()
+
         if x:
             song_id = x[0]
             posts = server.arcscore.arc_score_top(song_id, difficulty, -1)
@@ -317,19 +304,16 @@ def add_song():
         song_id = song_id[:200]
     if len(name_en) >= 256:
         name_en = name_en[:200]
-    conn = sqlite3.connect('./database/arcsong.db')
-    c = conn.cursor()
-    c.execute(
-        '''select exists(select * from songs where sid=:a)''', {'a': song_id})
-    if c.fetchone() == (0,):
-        c.execute('''insert into songs(sid,name_en,rating_pst,rating_prs,rating_ftr,rating_byn) values(:a,:b,:c,:d,:e,:f)''', {
-                  'a': song_id, 'b': name_en, 'c': rating_pst, 'd': rating_prs, 'e': rating_ftr, 'f': rating_byd})
-        flash('歌曲添加成功 Successfully add the song.')
-    else:
-        error = '歌曲已存在 The song exists.'
 
-    conn.commit()
-    conn.close()
+    with Connect('./database/arcsong.db') as c:
+        c.execute(
+            '''select exists(select * from songs where sid=:a)''', {'a': song_id})
+        if c.fetchone() == (0,):
+            c.execute('''insert into songs(sid,name_en,rating_pst,rating_prs,rating_ftr,rating_byn) values(:a,:b,:c,:d,:e,:f)''', {
+                'a': song_id, 'b': name_en, 'c': rating_pst, 'd': rating_prs, 'e': rating_ftr, 'f': rating_byd})
+            flash('歌曲添加成功 Successfully add the song.')
+        else:
+            error = '歌曲已存在 The song exists.'
 
     if error:
         flash(error)
@@ -344,18 +328,15 @@ def delete_song():
 
     error = None
     song_id = request.form['sid']
-    conn = sqlite3.connect('./database/arcsong.db')
-    c = conn.cursor()
-    c.execute(
-        '''select exists(select * from songs where sid=:a)''', {'a': song_id})
-    if c.fetchone() == (1,):
-        c.execute('''delete from songs where sid=:a''', {'a': song_id})
-        flash('歌曲删除成功 Successfully delete the song.')
-    else:
-        error = "歌曲不存在 The song doesn't exist."
+    with Connect('./database/arcsong.db') as c:
+        c.execute(
+            '''select exists(select * from songs where sid=:a)''', {'a': song_id})
+        if c.fetchone() == (1,):
+            c.execute('''delete from songs where sid=:a''', {'a': song_id})
+            flash('歌曲删除成功 Successfully delete the song.')
+        else:
+            error = "歌曲不存在 The song doesn't exist."
 
-    conn.commit()
-    conn.close()
     if error:
         flash(error)
 
@@ -366,31 +347,27 @@ def delete_song():
 @login_required
 def all_character():
     # 所有角色数据
-
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''select * from character''')
-    x = c.fetchall()
     error = None
-    if x:
-        posts = []
-        for i in x:
-            posts.append({'character_id': i[0],
-                          'name': i[1],
-                          'level': i[2],
-                          'frag': i[5],
-                          'prog': i[6],
-                          'overdrive': i[7],
-                          'skill_id': i[8],
-                          'skill_id_uncap': i[11],
-                          'char_type': i[12],
-                          'is_uncapped': i[14] == 1
-                          })
-    else:
-        error = '没有角色数据 No character data.'
+    with Connect() as c:
+        c.execute('''select * from character''')
+        x = c.fetchall()
+        if x:
+            posts = []
+            for i in x:
+                posts.append({'character_id': i[0],
+                              'name': i[1],
+                              'level': i[2],
+                              'frag': i[5],
+                              'prog': i[6],
+                              'overdrive': i[7],
+                              'skill_id': i[8],
+                              'skill_id_uncap': i[11],
+                              'char_type': i[12],
+                              'is_uncapped': i[14] == 1
+                              })
+        else:
+            error = '没有角色数据 No character data.'
 
-    conn.commit()
-    conn.close()
     if error:
         flash(error)
         return render_template('web/allchar.html')
@@ -443,49 +420,45 @@ def edit_char():
         flash(error)
         return redirect(url_for('index.change_character'))
 
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute(
-        '''select exists(select * from character where character_id=:a)''', {'a': character_id})
-    if c.fetchone() == (1,):
-        if level is None and frag is None and prog is None and overdrive is None and skill_id is None and skill_id_uncap is None:
-            error = '无修改 No change.'
+    with Connect() as c:
+        c.execute(
+            '''select exists(select * from character where character_id=:a)''', {'a': character_id})
+        if c.fetchone() == (1,):
+            if level is None and frag is None and prog is None and overdrive is None and skill_id is None and skill_id_uncap is None:
+                error = '无修改 No change.'
+            else:
+
+                sql = '''update character set level_exp=25000'''
+                sql_dict = {'character_id': character_id}
+                if level is not None:
+                    sql += ', level = :level'
+                    sql_dict['level'] = level
+                if frag is not None:
+                    sql += ', frag = :frag'
+                    sql_dict['frag'] = frag
+                if prog is not None:
+                    sql += ', prog = :prog'
+                    sql_dict['prog'] = prog
+                if overdrive is not None:
+                    sql += ', overdrive = :overdrive'
+                    sql_dict['overdrive'] = overdrive
+                if skill_id is not None:
+                    sql += ', skill_id = :skill_id'
+                    if skill_id == 'No_skill':
+                        sql_dict['skill_id'] = ''
+                    else:
+                        sql_dict['skill_id'] = skill_id
+                if skill_id_uncap is not None:
+                    sql += ', skill_id_uncap = :skill_id_uncap'
+                    if skill_id_uncap == 'No_skill':
+                        sql_dict['skill_id_uncap'] = ''
+                    else:
+                        sql_dict['skill_id_uncap'] = skill_id_uncap
+                sql += ' where character_id = :character_id'
+                c.execute(sql, sql_dict)
+                flash('角色修改成功 Successfully edit the character.')
         else:
-
-            sql = '''update character set level_exp=25000'''
-            sql_dict = {'character_id': character_id}
-            if level is not None:
-                sql += ', level = :level'
-                sql_dict['level'] = level
-            if frag is not None:
-                sql += ', frag = :frag'
-                sql_dict['frag'] = frag
-            if prog is not None:
-                sql += ', prog = :prog'
-                sql_dict['prog'] = prog
-            if overdrive is not None:
-                sql += ', overdrive = :overdrive'
-                sql_dict['overdrive'] = overdrive
-            if skill_id is not None:
-                sql += ', skill_id = :skill_id'
-                if skill_id == 'No_skill':
-                    sql_dict['skill_id'] = ''
-                else:
-                    sql_dict['skill_id'] = skill_id
-            if skill_id_uncap is not None:
-                sql += ', skill_id_uncap = :skill_id_uncap'
-                if skill_id_uncap == 'No_skill':
-                    sql_dict['skill_id_uncap'] = ''
-                else:
-                    sql_dict['skill_id_uncap'] = skill_id_uncap
-            sql += ' where character_id = :character_id'
-            c.execute(sql, sql_dict)
-            flash('角色修改成功 Successfully edit the character.')
-    else:
-        error = '角色不存在 The character does not exist.'
-
-    conn.commit()
-    conn.close()
+            error = '角色不存在 The character does not exist.'
 
     if error:
         flash(error)
@@ -497,11 +470,8 @@ def edit_char():
 @login_required
 def update_character():
     # 更新角色数据
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    web.system.update_user_char(c)
-    conn.commit()
-    conn.close()
+    with Connect() as c:
+        web.system.update_user_char(c)
 
     flash('数据更新成功 Success update data.')
     return redirect(url_for('index.change_character'))
@@ -535,56 +505,53 @@ def edit_user():
         flash(error)
         return redirect(url_for('index.change_user'))
 
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
+    with Connect() as c:
 
-    # 全修改
-    if 'name' not in request.form and 'user_code' not in request.form:
-        flag = False
-        if not ticket:
-            error = '无修改 No change.'
-        else:
-            sql = '''update user set ticket = :ticket'''
-            sql_dict = {'ticket': ticket}
-            c.execute(sql, sql_dict)
-            flash("全部用户信息修改成功 Successfully edit all the users' information.")
-
-    else:
-        name = request.form['name']
-        user_code = request.form['user_code']
-
-    # 指定修改
-
-    if name or user_code:
-
-        if user_code:
-            c.execute('''select user_id from user where user_code=:a''', {
-                'a': user_code})
-        else:
-            c.execute(
-                '''select user_id from user where name=:a''', {'a': name})
-
-        user_id = c.fetchone()
-        if user_id:
-            user_id = user_id[0]
-
+       # 全修改
+        if 'name' not in request.form and 'user_code' not in request.form:
+            flag = False
             if not ticket:
                 error = '无修改 No change.'
             else:
-                sql = '''update user set ticket = :ticket where user_id = :user_id'''
-                sql_dict = {'ticket': ticket, 'user_id': user_id}
+                sql = '''update user set ticket = :ticket'''
+                sql_dict = {'ticket': ticket}
                 c.execute(sql, sql_dict)
-                flash('用户信息修改成功 Successfully edit the user information.')
+                flash("全部用户信息修改成功 Successfully edit all the users' information.")
 
         else:
-            error = '玩家不存在 The player does not exist.'
+            name = request.form['name']
+            user_code = request.form['user_code']
 
-    else:
-        if flag:
-            error = '输入为空 Null Input.'
+        # 指定修改
 
-    conn.commit()
-    conn.close()
+        if name or user_code:
+
+            if user_code:
+                c.execute('''select user_id from user where user_code=:a''', {
+                    'a': user_code})
+            else:
+                c.execute(
+                    '''select user_id from user where name=:a''', {'a': name})
+
+            user_id = c.fetchone()
+            if user_id:
+                user_id = user_id[0]
+
+                if not ticket:
+                    error = '无修改 No change.'
+                else:
+                    sql = '''update user set ticket = :ticket where user_id = :user_id'''
+                    sql_dict = {'ticket': ticket, 'user_id': user_id}
+                    c.execute(sql, sql_dict)
+                    flash('用户信息修改成功 Successfully edit the user information.')
+
+            else:
+                error = '玩家不存在 The player does not exist.'
+
+        else:
+            if flag:
+                error = '输入为空 Null Input.'
+
     if error:
         flash(error)
 
@@ -614,53 +581,50 @@ def edit_user_purchase():
         flash('输入为空 Null Input.')
         return redirect(url_for('index.change_user_purchase'))
 
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
+    with Connect() as c:
 
-    # 全修改
-    if 'name' not in request.form and 'user_code' not in request.form:
-        flag = False
-        if method == '0':
-            web.system.unlock_all_user_item(c)
-        else:
-            c.execute('''delete from user_item''')
-
-        flash("全部用户购买信息修改成功 Successfully edit all the users' purchase information.")
-
-    else:
-        name = request.form['name']
-        user_code = request.form['user_code']
-
-    # 指定修改
-    if name or user_code:
-
-        if user_code:
-            c.execute('''select user_id from user where user_code=:a''', {
-                'a': user_code})
-        else:
-            c.execute(
-                '''select user_id from user where name=:a''', {'a': name})
-
-        user_id = c.fetchone()
-        if user_id:
-            user_id = user_id[0]
-
+        # 全修改
+        if 'name' not in request.form and 'user_code' not in request.form:
+            flag = False
             if method == '0':
-                web.system.unlock_user_item(c, user_id)
+                web.system.unlock_all_user_item(c)
             else:
-                c.execute('''delete from user_item where user_id=:a''', {
-                          'a': user_id})
-            flash('用户购买信息修改成功 Successfully edit the user purchase information.')
+                c.execute('''delete from user_item''')
+
+            flash("全部用户购买信息修改成功 Successfully edit all the users' purchase information.")
 
         else:
-            error = '玩家不存在 The player does not exist.'
+            name = request.form['name']
+            user_code = request.form['user_code']
 
-    else:
-        if flag:
-            error = '输入为空 Null Input.'
+        # 指定修改
+        if name or user_code:
 
-    conn.commit()
-    conn.close()
+            if user_code:
+                c.execute('''select user_id from user where user_code=:a''', {
+                    'a': user_code})
+            else:
+                c.execute(
+                    '''select user_id from user where name=:a''', {'a': name})
+
+            user_id = c.fetchone()
+            if user_id:
+                user_id = user_id[0]
+
+                if method == '0':
+                    web.system.unlock_user_item(c, user_id)
+                else:
+                    c.execute('''delete from user_item where user_id=:a''', {
+                        'a': user_id})
+                flash('用户购买信息修改成功 Successfully edit the user purchase information.')
+
+            else:
+                error = '玩家不存在 The player does not exist.'
+
+        else:
+            if flag:
+                error = '输入为空 Null Input.'
+
     if error:
         flash(error)
 
@@ -730,40 +694,37 @@ def change_item():
             flash(error)
             return redirect(url_for('index.change_item'))
 
-        conn = sqlite3.connect('./database/arcaea_database.db')
-        c = conn.cursor()
-        c.execute(
-            '''select exists(select * from item where item_id=:a and type=:b)''', {'a': item_id, 'b': item_type})
-        if c.fetchone() == (1,):
-            if is_available is None and price is None and orig_price is None and not discount_from and not discount_to:
-                error = '无修改 No change.'
+        with Connect() as c:
+            c.execute(
+                '''select exists(select * from item where item_id=:a and type=:b)''', {'a': item_id, 'b': item_type})
+            if c.fetchone() == (1,):
+                if is_available is None and price is None and orig_price is None and not discount_from and not discount_to:
+                    error = '无修改 No change.'
+                else:
+                    sql = '''update item set type=:type'''
+                    sql_dict = {'item_id': item_id, 'type': item_type}
+                    if price is not None:
+                        sql += ', price = :price'
+                        sql_dict['price'] = price
+                    if orig_price is not None:
+                        sql += ', orig_price = :orig_price'
+                        sql_dict['orig_price'] = orig_price
+                    if discount_from is not None:
+                        sql += ', discount_from = :discount_from'
+                        sql_dict['discount_from'] = discount_from
+                    if discount_to is not None:
+                        sql += ', discount_to = :discount_to'
+                        sql_dict['discount_to'] = discount_to
+                    if is_available is not None:
+                        sql += ', is_available = :is_available'
+                        sql_dict['is_available'] = is_available
+
+                    sql += ' where item_id = :item_id and type = :type'
+                    c.execute(sql, sql_dict)
+                    flash('购买项目修改成功 Successfully edit the item.')
             else:
-                sql = '''update item set type=:type'''
-                sql_dict = {'item_id': item_id, 'type': item_type}
-                if price is not None:
-                    sql += ', price = :price'
-                    sql_dict['price'] = price
-                if orig_price is not None:
-                    sql += ', orig_price = :orig_price'
-                    sql_dict['orig_price'] = orig_price
-                if discount_from is not None:
-                    sql += ', discount_from = :discount_from'
-                    sql_dict['discount_from'] = discount_from
-                if discount_to is not None:
-                    sql += ', discount_to = :discount_to'
-                    sql_dict['discount_to'] = discount_to
-                if is_available is not None:
-                    sql += ', is_available = :is_available'
-                    sql_dict['is_available'] = is_available
+                error = '购买项目不存在 The item does not exist.'
 
-                sql += ' where item_id = :item_id and type = :type'
-                c.execute(sql, sql_dict)
-                flash('购买项目修改成功 Successfully edit the item.')
-        else:
-            error = '购买项目不存在 The item does not exist.'
-
-        conn.commit()
-        conn.close()
         if error:
             flash(error)
 
@@ -783,44 +744,41 @@ def update_user_save():
     name = None
     user_code = None
 
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
+    with Connect() as c:
 
-    # 全修改
-    if 'name' not in request.form and 'user_code' not in request.form:
-        flag = False
-        web.system.update_all_save(c)
-        flash("全部用户存档同步成功 Successfully update all users' saves.")
-
-    else:
-        name = request.form['name']
-        user_code = request.form['user_code']
-
-    # 指定修改
-    if name or user_code:
-
-        if user_code:
-            c.execute('''select user_id from user where user_code=:a''', {
-                'a': user_code})
-        else:
-            c.execute(
-                '''select user_id from user where name=:a''', {'a': name})
-
-        user_id = c.fetchone()
-        if user_id:
-            user_id = user_id[0]
-            web.system.update_one_save(c, user_id)
-            flash("用户存档同步成功 Successfully update the user's saves.")
+        # 全修改
+        if 'name' not in request.form and 'user_code' not in request.form:
+            flag = False
+            web.system.update_all_save(c)
+            flash("全部用户存档同步成功 Successfully update all users' saves.")
 
         else:
-            error = '玩家不存在 The player does not exist.'
+            name = request.form['name']
+            user_code = request.form['user_code']
 
-    else:
-        if flag:
-            error = '输入为空 Null Input.'
+        # 指定修改
+        if name or user_code:
 
-    conn.commit()
-    conn.close()
+            if user_code:
+                c.execute('''select user_id from user where user_code=:a''', {
+                    'a': user_code})
+            else:
+                c.execute(
+                    '''select user_id from user where name=:a''', {'a': name})
+
+            user_id = c.fetchone()
+            if user_id:
+                user_id = user_id[0]
+                web.system.update_one_save(c, user_id)
+                flash("用户存档同步成功 Successfully update the user's saves.")
+
+            else:
+                error = '玩家不存在 The player does not exist.'
+
+        else:
+            if flag:
+                error = '输入为空 Null Input.'
+
     if error:
         flash(error)
 
@@ -832,30 +790,27 @@ def update_user_save():
 def all_present():
     # 所有奖励数据
 
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''select * from present''')
-    x = c.fetchall()
     error = None
-    if x:
-        posts = []
-        for i in x:
-            items = json.loads(i[2])
-            items_string = ''
-            for j in items:
-                items_string = items_string + '\n' + \
-                    str(j['id']) + ': ' + str(j['amount'])
+    with Connect() as c:
+        c.execute('''select * from present''')
+        x = c.fetchall()
+        if x:
+            posts = []
+            for i in x:
+                items = json.loads(i[2])
+                items_string = ''
+                for j in items:
+                    items_string = items_string + '\n' + \
+                        str(j['id']) + ': ' + str(j['amount'])
 
-            posts.append({'present_id': i[0],
-                          'expire_ts': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(i[1])//1000)),
-                          'items': items_string,
-                          'description': i[3]
-                          })
-    else:
-        error = '没有奖励数据 No present data.'
+                posts.append({'present_id': i[0],
+                              'expire_ts': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(i[1])//1000)),
+                              'items': items_string,
+                              'description': i[3]
+                              })
+        else:
+            error = '没有奖励数据 No present data.'
 
-    conn.commit()
-    conn.close()
     if error:
         flash(error)
         return render_template('web/allpresent.html')
@@ -941,47 +896,42 @@ def deliver_present():
     user_code = None
     present_id = request.form['present_id']
 
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    if not web.system.is_present_available(c, present_id):
-        flash("奖励不存在 The present does not exist.")
-        conn.commit()
-        conn.close()
-        return render_template('web/deliverpresent.html')
+    with Connect() as c:
+        if not web.system.is_present_available(c, present_id):
+            flash("奖励不存在 The present does not exist.")
+            return render_template('web/deliverpresent.html')
 
-    # 全修改
-    if 'name' not in request.form and 'user_code' not in request.form:
-        flag = False
-        web.system.deliver_all_user_present(c, present_id)
-        flash("全部用户奖励分发成功 Successfully deliver the present to all users.")
-    else:
-        name = request.form['name']
-        user_code = request.form['user_code']
-
-    # 指定修改f
-    if name or user_code:
-        if user_code:
-            c.execute('''select user_id from user where user_code=:a''', {
-                'a': user_code})
+        # 全修改
+        if 'name' not in request.form and 'user_code' not in request.form:
+            flag = False
+            web.system.deliver_all_user_present(c, present_id)
+            flash("全部用户奖励分发成功 Successfully deliver the present to all users.")
         else:
-            c.execute(
-                '''select user_id from user where name=:a''', {'a': name})
+            name = request.form['name']
+            user_code = request.form['user_code']
 
-        user_id = c.fetchone()
-        if user_id:
-            user_id = user_id[0]
-            web.system.deliver_one_user_present(c, present_id, user_id)
-            flash("用户奖励分发成功 Successfully deliver the present to the user.")
+        # 指定修改f
+        if name or user_code:
+            if user_code:
+                c.execute('''select user_id from user where user_code=:a''', {
+                    'a': user_code})
+            else:
+                c.execute(
+                    '''select user_id from user where name=:a''', {'a': name})
+
+            user_id = c.fetchone()
+            if user_id:
+                user_id = user_id[0]
+                web.system.deliver_one_user_present(c, present_id, user_id)
+                flash("用户奖励分发成功 Successfully deliver the present to the user.")
+
+            else:
+                error = '玩家不存在 The player does not exist.'
 
         else:
-            error = '玩家不存在 The player does not exist.'
+            if flag:
+                error = '输入为空 Null Input.'
 
-    else:
-        if flag:
-            error = '输入为空 Null Input.'
-
-    conn.commit()
-    conn.close()
     if error:
         flash(error)
 
@@ -993,29 +943,26 @@ def deliver_present():
 def all_redeem():
     # 所有兑换码数据
 
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''select * from redeem''')
-    x = c.fetchall()
     error = None
-    if x:
-        posts = []
-        for i in x:
-            items = json.loads(i[1])
-            items_string = ''
-            for j in items:
-                items_string = items_string + '\n' + \
-                    str(j['id']) + ': ' + str(j['amount'])
+    with Connect() as c:
+        c.execute('''select * from redeem''')
+        x = c.fetchall()
+        if x:
+            posts = []
+            for i in x:
+                items = json.loads(i[1])
+                items_string = ''
+                for j in items:
+                    items_string = items_string + '\n' + \
+                        str(j['id']) + ': ' + str(j['amount'])
 
-            posts.append({'code': i[0],
-                          'items': items_string,
-                          'type': i[2]
-                          })
-    else:
-        error = '没有兑换码数据 No redeem code data.'
+                posts.append({'code': i[0],
+                              'items': items_string,
+                              'type': i[2]
+                              })
+        else:
+            error = '没有兑换码数据 No redeem code data.'
 
-    conn.commit()
-    conn.close()
     if error:
         flash(error)
         return render_template('web/allredeem.html')
@@ -1106,24 +1053,21 @@ def delete_redeem():
 def one_redeem(code):
     # 某个兑换码的用户使用情况数据
 
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute(
-        '''select user_id, name, user_code from user where user_id in (select user_id from user_redeem where code=:a)''', {'a': code})
-    x = c.fetchall()
     error = None
-    if x:
-        posts = []
-        for i in x:
-            posts.append({'user_id': i[0],
-                          'name': i[1],
-                          'user_code': i[2]
-                          })
-    else:
-        error = '没有数据 No data.'
+    with Connect() as c:
+        c.execute(
+            '''select user_id, name, user_code from user where user_id in (select user_id from user_redeem where code=:a)''', {'a': code})
+        x = c.fetchall()
+        if x:
+            posts = []
+            for i in x:
+                posts.append({'user_id': i[0],
+                              'name': i[1],
+                              'user_code': i[2]
+                              })
+        else:
+            error = '没有数据 No data.'
 
-    conn.commit()
-    conn.close()
     if error:
         flash(error)
         return render_template('web/redeem.html', code=code)
@@ -1152,32 +1096,28 @@ def edit_userpwd():
             flash('密码太长或太短 Password is too long or too short!')
             return render_template('web/changeuserpwd.html')
 
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
+    with Connect() as c:
+        if name or user_code:
 
-    if name or user_code:
+            if user_code:
+                c.execute('''select user_id from user where user_code=:a''', {
+                    'a': user_code})
+            else:
+                c.execute(
+                    '''select user_id from user where name=:a''', {'a': name})
 
-        if user_code:
-            c.execute('''select user_id from user where user_code=:a''', {
-                'a': user_code})
+            user_id = c.fetchone()
+            if user_id:
+                user_id = user_id[0]
+                web.system.change_userpwd(c, user_id, pwd)
+                flash('用户密码修改成功 Successfully edit the user information.')
+
+            else:
+                error = '玩家不存在 The player does not exist.'
+
         else:
-            c.execute(
-                '''select user_id from user where name=:a''', {'a': name})
+            error = '输入为空 Null Input.'
 
-        user_id = c.fetchone()
-        if user_id:
-            user_id = user_id[0]
-            web.system.change_userpwd(c, user_id, pwd)
-            flash('用户密码修改成功 Successfully edit the user information.')
-
-        else:
-            error = '玩家不存在 The player does not exist.'
-
-    else:
-        error = '输入为空 Null Input.'
-
-    conn.commit()
-    conn.close()
     if error:
         flash(error)
 
@@ -1196,31 +1136,27 @@ def ban_user():
     name = request.form['name']
     user_code = request.form['user_code']
 
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
+    with Connect() as c:
+        if name or user_code:
+            if user_code:
+                c.execute('''select user_id from user where user_code=:a''', {
+                    'a': user_code})
+            else:
+                c.execute(
+                    '''select user_id from user where name=:a''', {'a': name})
 
-    if name or user_code:
-        if user_code:
-            c.execute('''select user_id from user where user_code=:a''', {
-                'a': user_code})
+            user_id = c.fetchone()
+            if user_id:
+                user_id = user_id[0]
+                web.system.ban_one_user(c, user_id)
+                flash('用户封禁成功 Successfully ban the user.')
+
+            else:
+                error = '玩家不存在 The player does not exist.'
+
         else:
-            c.execute(
-                '''select user_id from user where name=:a''', {'a': name})
+            error = '输入为空 Null Input.'
 
-        user_id = c.fetchone()
-        if user_id:
-            user_id = user_id[0]
-            web.system.ban_one_user(c, user_id)
-            flash('用户封禁成功 Successfully ban the user.')
-
-        else:
-            error = '玩家不存在 The player does not exist.'
-
-    else:
-        error = '输入为空 Null Input.'
-
-    conn.commit()
-    conn.close()
     if error:
         flash(error)
 
@@ -1236,31 +1172,27 @@ def delete_user_score():
     name = request.form['name']
     user_code = request.form['user_code']
 
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
+    with Connect() as c:
+        if name or user_code:
+            if user_code:
+                c.execute('''select user_id from user where user_code=:a''', {
+                    'a': user_code})
+            else:
+                c.execute(
+                    '''select user_id from user where name=:a''', {'a': name})
 
-    if name or user_code:
-        if user_code:
-            c.execute('''select user_id from user where user_code=:a''', {
-                'a': user_code})
+            user_id = c.fetchone()
+            if user_id:
+                user_id = user_id[0]
+                web.system.clear_user_score(c, user_id)
+                flash("用户成绩删除成功 Successfully delete the user's scores.")
+
+            else:
+                error = '玩家不存在 The player does not exist.'
+
         else:
-            c.execute(
-                '''select user_id from user where name=:a''', {'a': name})
+            error = '输入为空 Null Input.'
 
-        user_id = c.fetchone()
-        if user_id:
-            user_id = user_id[0]
-            web.system.clear_user_score(c, user_id)
-            flash("用户成绩删除成功 Successfully delete the user's scores.")
-
-        else:
-            error = '玩家不存在 The player does not exist.'
-
-    else:
-        error = '输入为空 Null Input.'
-
-    conn.commit()
-    conn.close()
     if error:
         flash(error)
 

@@ -4,9 +4,10 @@ from flask import url_for
 import sqlite3
 from server.sql import Connect
 import time
+from setting import Config
 
-time_limit = 3000  # 每个玩家24小时下载次数限制
-time_gap_limit = 1000  # 下载链接有效秒数
+time_limit = Config.DOWNLOAD_TIMES_LIMIT  # 每个玩家24小时下载次数限制
+time_gap_limit = Config.DOWNLOAD_TIME_GAP_LIMIT  # 下载链接有效秒数
 
 
 def get_file_md5(file_path):

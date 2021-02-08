@@ -364,7 +364,7 @@ def update_recent30(c, user_id, song_id, rating, is_protected):
 
 def arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count, perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type):
     # 分数上传，返回变化后的ptt，和世界模式变化
-    ptt = 0
+    ptt = None
     re = None
     with Connect() as c:
         rating = get_one_ptt(song_id, difficulty, score)

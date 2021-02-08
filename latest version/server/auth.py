@@ -3,9 +3,10 @@ import time
 import server.arcworld
 from server.sql import Connect
 import functools
+from setting import Config
 
 
-def arc_login(name: str, password: str) -> str:  # 登录判断
+def arc_login(name: str, password: str, device_id: str):  # 登录判断
     # 查询数据库中的user表，验证账号密码，返回并记录token，多返回个error code
     # token采用user_id和时间戳连接后hash生成（真的是瞎想的，没用bear）
     # 密码和token的加密方式为 SHA-256
@@ -27,14 +28,29 @@ def arc_login(name: str, password: str) -> str:  # 登录判断
                 token = hashlib.sha256(
                     (user_id + str(now)).encode("utf8")).hexdigest()
                 c.execute(
-                    '''select exists(select * from login where user_id = :user_id)''', {"user_id": user_id})
+                    '''select login_device from login where user_id = :user_id''', {"user_id": user_id})
+                y = c.fetchall()
+                if y:
+                    device_list = []
+                    for i in y:
+                        if i[0]:
+                            device_list.append(i[0])
+                        else:
+                            device_list.append('')
+                    if device_id in device_list:
+                        c.execute('''delete from login where login_device=:a''', {
+                                  'a': device_id})
+                        should_delete_num = len(
+                            device_list) - Config.LOGIN_DEVICE_NUMBER_LIMIT
+                    else:
+                        should_delete_num = len(
+                            device_list) + 1 - Config.LOGIN_DEVICE_NUMBER_LIMIT
+                    if should_delete_num >= 1:  # 删掉多余token
+                        c.execute('''delete from login where rowid in (select rowid from login where user_id=:user_id limit :a);''',
+                                  {'user_id': user_id, 'a': int(should_delete_num)})
 
-                if c.fetchone() == (1,):  # 删掉多余token
-                    c.execute('''delete from login where user_id = :user_id''',
-                              {'user_id': user_id})
-
-                c.execute('''insert into login(access_token, user_id) values(:access_token, :user_id)''', {
-                    'user_id': user_id, 'access_token': token})
+                c.execute('''insert into login(access_token, user_id, login_device) values(:access_token, :user_id, :device_id)''', {
+                    'user_id': user_id, 'access_token': token, 'device_id': device_id})
                 error_code = None
             else:
                 # 密码错误
@@ -46,7 +62,7 @@ def arc_login(name: str, password: str) -> str:  # 登录判断
     return token, error_code
 
 
-def arc_register(name: str, password: str):  # 注册
+def arc_register(name: str, password: str, device_id: str):  # 注册
     # 账号注册，只记录hash密码和用户名，生成user_id和user_code，自动登录返回token
     # token和密码的处理同登录部分
 
@@ -100,8 +116,8 @@ def arc_register(name: str, password: str):  # 注册
 
             token = hashlib.sha256(
                 (str(user_id) + str(now)).encode("utf8")).hexdigest()
-            c.execute('''insert into login(access_token, user_id) values(:access_token, :user_id)''', {
-                'user_id': user_id, 'access_token': token})
+            c.execute('''insert into login(access_token, user_id, login_device) values(:access_token, :user_id, :device_id)''', {
+                'user_id': user_id, 'access_token': token, 'device_id': device_id})
 
             insert_user_char(c, user_id)
             error_code = 0

@@ -2,7 +2,7 @@
 from flask import (Blueprint, flash, g, redirect,
                    render_template, request, session, url_for)
 import functools
-import configparser
+from setting import Config
 
 bp = Blueprint('login', __name__, url_prefix='/web')
 
@@ -15,18 +15,12 @@ def login():
         password = request.form['password']
         error = None
 
-        config = configparser.ConfigParser()
-        path = r'setting.ini'
-        config.read(path, encoding="utf-8")
-        USERNAME = config.get('WEB', 'USERNAME')
-        PASSWORD = config.get('WEB', 'PASSWORD')
-
-        if username != USERNAME and password != PASSWORD:
+        if username != Config.USERNAME or password != Config.PASSWORD:
             error = '错误的用户名或密码 Incorrect username or password.'
 
         if error is None:
             session.clear()
-            session['user_id'] = USERNAME + PASSWORD
+            session['user_id'] = Config.USERNAME + Config.PASSWORD
             return redirect(url_for('index.index'))
 
         flash(error)
@@ -48,16 +42,10 @@ def login_required(view):
     def wrapped_view(**kwargs):
         x = session.get('user_id')
 
-        config = configparser.ConfigParser()
-        path = r'setting.ini'
-        config.read(path, encoding="utf-8")
-        USERNAME = config.get('WEB', 'USERNAME')
-        PASSWORD = config.get('WEB', 'PASSWORD')
-
-        if x != USERNAME + PASSWORD:
+        if x != Config.USERNAME + Config.PASSWORD:
             return redirect(url_for('login.login'))
 
-        g.user = {'user_id': x, 'username': USERNAME}
+        g.user = {'user_id': x, 'username': Config.USERNAME}
         return view(**kwargs)
 
     return wrapped_view
