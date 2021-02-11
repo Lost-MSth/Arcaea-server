@@ -37,14 +37,17 @@ def arc_login(name: str, password: str, device_id: str):  # 登录判断
                             device_list.append(i[0])
                         else:
                             device_list.append('')
-                    if device_id in device_list:
-                        c.execute('''delete from login where login_device=:a''', {
-                                  'a': device_id})
-                        should_delete_num = len(
-                            device_list) - Config.LOGIN_DEVICE_NUMBER_LIMIT
-                    else:
-                        should_delete_num = len(
-                            device_list) + 1 - Config.LOGIN_DEVICE_NUMBER_LIMIT
+
+                    should_delete_num = len(
+                        device_list) + 1 - Config.LOGIN_DEVICE_NUMBER_LIMIT
+
+                    if not Config.ALLOW_LOGIN_SAME_DEVICE:
+                        if device_id in device_list:  # 对相同设备进行删除
+                            c.execute('''delete from login where login_device=:a''', {
+                                'a': device_id})
+                            should_delete_num = len(
+                                device_list) + 1 - device_list.count(device_id) - Config.LOGIN_DEVICE_NUMBER_LIMIT
+
                     if should_delete_num >= 1:  # 删掉多余token
                         c.execute('''delete from login where rowid in (select rowid from login where user_id=:user_id limit :a);''',
                                   {'user_id': user_id, 'a': int(should_delete_num)})

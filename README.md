@@ -2,14 +2,21 @@
 一个微型的Arcaea本地服务器  A small local server for Arcaea
 
 ## 简介 Introduction
-这是基于Python以及Flask的微型本地Arcaea服务器，可以模拟游戏的主要功能，一时兴起在五天之内糊了出来。这可能是我第一次写这种大程序，若有不妥之处，敬请谅解。  
-This is a small local Arcaea server based on Python and Flask, which can simulate the main functions of the game. I completed it on the spur of the moment in five days. This may be the first time I have written such a large program. Please understand if there is something wrong with it.
+这是基于Python以及Flask的微型本地Arcaea服务器，可以模拟游戏的主要功能。这可能是我第一次写这种大程序，若有不妥之处，敬请谅解。  
+
+本程序主要用于学习研究，不得用于任何商业行为，否则后果自负，这不是强制要求，只是一个提醒与警告。  
+
+This is a small local Arcaea server based on Python and Flask, which can simulate the main functions of the game. This may be the first time I have written such a large program. Please understand if there is something wrong with it.  
+
+This procedure is mainly used for study and research, and shall not be used for any commercial activities, otherwise the consequences will be borne by oneself. This is not a mandatory requirement, just a reminder and warning.
+
 > 虽然看起来很蠢，但是可以用！
 > It looks stupid, but it works!
 
 ## 特性 Features
 有以下 We have：
 - 登录、注册 Login and registration
+- 多设备登录 Multi device login
 - 成绩上传 Score upload
 - PTT
 - 排名 Rank
@@ -37,6 +44,7 @@ This is a small local Arcaea server based on Python and Flask, which can simulat
 可能有问题 There may be problems：
 - Recent 30
 - 一些歌曲的解锁 Some songs' unlocking
+- 同设备多共存登录 Multiple app logins on the same device
 
 ## 说明 Statement
 只是很有趣，用处探索中。  
@@ -55,13 +63,17 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss.
 
-### Version 2.1
-- 适用于Arcaea 3.5.0版本 For Arcaea 3.5.0
+### Version 2.2
+- 适用于Arcaea 3.5.1版本 For Arcaea 3.5.1
 - 更新了歌曲数据库 Update the song database.
-- 新搭档**阿莱乌斯**、**希尔**、**伊莎贝尔**已解锁 Unlock the new characters **Areus**, **Seele** and **Isabelle**.
-- 源韵强化机制修改，现在源点会正常扣去 The mechanism of Memory Boost has been modified. Now the memories will be decreased normally.
+- 新增多设备登录 Add multi device login.
+- 修改了配置文件结构 The configuration file structure has been modified.
 - 优化了代码结构 Optimize the code structure.
-- 修复了一些Bug Fix some bugs.
+- 修复了一堆Bug Fix many bugs.
+
+> 提醒：本次更新需重新登录
+> 
+> Tip: You need to log in Arcaea again in this update.
 
 
 ## 运行环境与依赖 Running environment and requirements

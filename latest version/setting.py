@@ -8,7 +8,7 @@ class Config():
     主机的地址和端口号
     Host and port of your server
     '''
-    HOST = '192.168.1.113'
+    HOST = '192.168.1.101'
     PORT = '80'
     '''
     --------------------
@@ -57,6 +57,11 @@ class Config():
     The maximum number of devices allowed to log in Arcaea, minimum: 1
     '''
     LOGIN_DEVICE_NUMBER_LIMIT = 1
+    '''
+    是否允许同设备多应用共存登录
+    If multiple applications on the same device to log in is allowed
+    '''
+    ALLOW_LOGIN_SAME_DEVICE = False
     '''
     --------------------
     '''

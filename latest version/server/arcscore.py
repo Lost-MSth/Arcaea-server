@@ -130,8 +130,6 @@ def arc_score_me(user_id, song_id, difficulty, limit=20):
             x = c.fetchone()
             myrank = int(x[0]) + 1
             if myrank <= 4:  # 排名在前4
-                conn.commit()
-                conn.close()
                 return arc_score_top(song_id, difficulty, limit)
             elif myrank >= 5 and myrank <= 9999 - limit + 4:  # 万名内，前面有4个人
                 c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
