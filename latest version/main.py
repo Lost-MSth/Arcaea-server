@@ -89,7 +89,11 @@ def login():
     id_pwd = headers['Authorization']
     id_pwd = base64.b64decode(id_pwd[6:]).decode()
     name, password = id_pwd.split(':', 1)
-    device_id = headers['DeviceId']
+    if 'DeviceId' in headers:
+        device_id = headers['DeviceId']
+    else:
+        device_id = 'low_version'
+
     token, error_code = server.auth.arc_login(name, password, device_id)
     if not error_code:
         r = {"success": True, "token_type": "Bearer"}
@@ -103,7 +107,11 @@ def login():
 def register():
     name = request.form['name']
     password = request.form['password']
-    device_id = request.form['device_id']
+    if 'DeviceId' in headers:
+        device_id = headers['DeviceId']
+    else:
+        device_id = 'low_version'
+
     user_id, token, error_code = server.auth.arc_register(
         name, password, device_id)
     if user_id is not None:
