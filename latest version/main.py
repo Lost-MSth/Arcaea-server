@@ -107,8 +107,8 @@ def login():
 def register():
     name = request.form['name']
     password = request.form['password']
-    if 'DeviceId' in headers:
-        device_id = headers['DeviceId']
+    if 'device_id' in request.form:
+        device_id = request.form['device_id']
     else:
         device_id = 'low_version'
 
