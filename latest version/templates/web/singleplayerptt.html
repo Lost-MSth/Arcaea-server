@@ -22,6 +22,9 @@
         <div class="name">{{user['name']}}
             <span class="rank">UID: {{user['user_id']}}</span>
             <span class="rank">User code: {{user['user_code']}}</span>
+            {% if user['ban_flag'] %}
+            <span class="rank">Banned</span>
+            {% endif %}
         </div>
         <div class="join-date">注册于 Registered in: {{user['join_date']}}</div>
         <div class="ptt">Memories: {{user['ticket']}}</div>
@@ -161,7 +164,7 @@
     {% if recent %}
     <div class="title">Recent 30</div>
     {% for i in recent %}
-    
+
     {% if i %}
     <div class="score-item">
         <span class="song-title">

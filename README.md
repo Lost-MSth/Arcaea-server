@@ -36,6 +36,7 @@ This procedure is mainly used for study and research, and shall not be used for 
 - 后台自定义信息 Customize some things in the background
 - 成绩校验 Score check
 - 下载校验 Download check
+- 服务器日志 Server log
 
 没有以下 We don't have：
 - 角色数值 Character characteristic value
@@ -63,24 +64,19 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss.
 
-### Version 2.2
-- 适用于Arcaea 3.5.1版本 For Arcaea 3.5.1
+### Version 2.3
+- 适用于Arcaea 3.5.2版本 For Arcaea 3.5.2
 - 更新了歌曲数据库 Update the song database.
-- 新增多设备登录 Add multi device login.
-- 修改了配置文件结构 The configuration file structure has been modified.
+- 新增服务器日志 Add server log.
 - 优化了代码结构 Optimize the code structure.
-- 修复了一堆Bug Fix many bugs.
-
-> 提醒：本次更新需重新登录
-> 
-> Tip: You need to log in Arcaea again in this update.
+- 修复了一些Bug，提升服务器安全性 Fix some bugs and improve server security.
 
 
 ## 运行环境与依赖 Running environment and requirements
-- Windows操作系统 Windows operating system
+- Windows/Linux/Mac OS/Android
 - Python 3
-- Flask模块 Flask module
-- Charles
+- Flask module
+- Charles (optional)
 
 ## 环境搭建 Environment construction
 [中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA)  

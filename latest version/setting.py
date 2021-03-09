@@ -8,7 +8,7 @@ class Config():
     主机的地址和端口号
     Host and port of your server
     '''
-    HOST = '192.168.1.101'
+    HOST = '192.168.1.105'
     PORT = '80'
     '''
     --------------------
@@ -38,8 +38,8 @@ class Config():
 
     '''
     --------------------
-    玩家歌曲下载的24小时次数限制
-    Player's song download limit times in 24 hours
+    玩家歌曲下载的24小时次数限制，每个文件算一次
+    Player's song download limit times in 24 hours, once per file
     '''
     DOWNLOAD_TIMES_LIMIT = 3000
     '''
@@ -59,9 +59,19 @@ class Config():
     LOGIN_DEVICE_NUMBER_LIMIT = 1
     '''
     是否允许同设备多应用共存登录
-    If multiple applications on the same device to log in is allowed
+    If logging in from multiple applications on the same device is allowed
     '''
     ALLOW_LOGIN_SAME_DEVICE = False
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
+    是否记录详细的服务器日志
+    If recording detailed server logs is enabled
+    '''
+    ALLOW_LOG_INFO = False
     '''
     --------------------
     '''

@@ -1,4 +1,6 @@
 import sqlite3
+from flask import current_app
+import traceback
 
 
 class Connect():
@@ -21,5 +23,9 @@ class Connect():
         if self.conn:
             self.conn.commit()
             self.conn.close()
+
+        if exc_type is not None:
+            current_app.logger.error(
+                traceback.format_exception(exc_type, exc_val, exc_tb))
 
         return True

@@ -1,5 +1,5 @@
 import os
-import sqlite3
+from server.sql import Connect
 import time
 import json
 import server.arcscore
@@ -179,46 +179,34 @@ def update_database():
     # 对于arcaea_datebase.db，更新一些表，并用character数据更新user_char
     # 对于arcsong.db，更新songs
     if os.path.isfile("database/old_arcaea_database.db") and os.path.isfile("database/arcaea_database.db"):
-        conn1 = sqlite3.connect('./database/old_arcaea_database.db')
-        c1 = conn1.cursor()
-        conn2 = sqlite3.connect('./database/arcaea_database.db')
-        c2 = conn2.cursor()
+        with Connect('./database/old_arcaea_database.db') as c1:
+            with Connect() as c2:
 
-        update_one_table(c1, c2, 'user')
-        update_one_table(c1, c2, 'friend')
-        update_one_table(c1, c2, 'best_score')
-        update_one_table(c1, c2, 'recent30')
-        update_one_table(c1, c2, 'user_world')
-        update_one_table(c1, c2, 'item')
-        update_one_table(c1, c2, 'user_item')
-        update_one_table(c1, c2, 'user_save')
-        update_one_table(c1, c2, 'login')
-        update_one_table(c1, c2, 'present')
-        update_one_table(c1, c2, 'user_present')
-        update_one_table(c1, c2, 'redeem')
-        update_one_table(c1, c2, 'user_redeem')
+                update_one_table(c1, c2, 'user')
+                update_one_table(c1, c2, 'friend')
+                update_one_table(c1, c2, 'best_score')
+                update_one_table(c1, c2, 'recent30')
+                update_one_table(c1, c2, 'user_world')
+                update_one_table(c1, c2, 'item')
+                update_one_table(c1, c2, 'user_item')
+                update_one_table(c1, c2, 'user_save')
+                update_one_table(c1, c2, 'login')
+                update_one_table(c1, c2, 'present')
+                update_one_table(c1, c2, 'user_present')
+                update_one_table(c1, c2, 'redeem')
+                update_one_table(c1, c2, 'user_redeem')
 
-        update_user_char(c2)
+                update_user_char(c2)
 
-        conn1.commit()
-        conn1.close()
-        conn2.commit()
-        conn2.close()
         os.remove('database/old_arcaea_database.db')
 
     # songs
     if os.path.isfile("database/old_arcsong.db") and os.path.isfile("database/arcsong.db"):
-        conn1 = sqlite3.connect('./database/old_arcsong.db')
-        c1 = conn1.cursor()
-        conn2 = sqlite3.connect('./database/arcsong.db')
-        c2 = conn2.cursor()
+        with Connect('./database/old_arcsong.db') as c1:
+            with Connect('./database/arcsong.db') as c2:
 
-        update_one_table(c1, c2, 'songs')
+                update_one_table(c1, c2, 'songs')
 
-        conn1.commit()
-        conn1.close()
-        conn2.commit()
-        conn2.close()
         os.remove('database/old_arcsong.db')
 
 
@@ -257,34 +245,31 @@ def unlock_user_item(c, user_id):
 
 def get_all_item():
     # 所有购买数据查询
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute('''select * from item''')
-    x = c.fetchall()
-    re = []
-    if x:
-        for i in x:
-            discount_from = None
-            discount_to = None
+    with Connect() as c:
+        c.execute('''select * from item''')
+        x = c.fetchall()
+        re = []
+        if x:
+            for i in x:
+                discount_from = None
+                discount_to = None
 
-            if i[5] and i[5] >= 0:
-                discount_from = time.strftime(
-                    "%Y-%m-%d %H:%M:%S", time.localtime(int(i[5])/1000))
-            if i[6] and i[6] >= 0:
-                discount_to = time.strftime(
-                    "%Y-%m-%d %H:%M:%S", time.localtime(int(i[6])//1000))
+                if i[5] and i[5] >= 0:
+                    discount_from = time.strftime(
+                        "%Y-%m-%d %H:%M:%S", time.localtime(int(i[5])/1000))
+                if i[6] and i[6] >= 0:
+                    discount_to = time.strftime(
+                        "%Y-%m-%d %H:%M:%S", time.localtime(int(i[6])//1000))
 
-            re.append({'item_id': i[0],
-                       'type': i[1],
-                       'is_available': int2b(i[2]),
-                       'price': i[3],
-                       'orig_price': i[4],
-                       'discount_from': discount_from,
-                       'discount_to': discount_to
-                       })
+                re.append({'item_id': i[0],
+                           'type': i[1],
+                           'is_available': int2b(i[2]),
+                           'price': i[3],
+                           'orig_price': i[4],
+                           'discount_from': discount_from,
+                           'discount_to': discount_to
+                           })
 
-    conn.commit()
-    conn.close()
     return re
 
 
@@ -346,19 +331,16 @@ def add_one_present(present_id, expire_ts, description, items):
     # 添加一个奖励
 
     message = None
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute(
-        '''select exists(select * from present where present_id=:a)''', {'a': present_id})
-    if c.fetchone() == (0,):
-        c.execute('''insert into present values(:a,:b,:c,:d)''', {
-                  'a': present_id, 'b': expire_ts, 'c': items, 'd': description})
-        message = '添加成功 Successfully add it.'
-    else:
-        message = '奖励已存在 The present exists.'
+    with Connect() as c:
+        c.execute(
+            '''select exists(select * from present where present_id=:a)''', {'a': present_id})
+        if c.fetchone() == (0,):
+            c.execute('''insert into present values(:a,:b,:c,:d)''', {
+                'a': present_id, 'b': expire_ts, 'c': items, 'd': description})
+            message = '添加成功 Successfully add it.'
+        else:
+            message = '奖励已存在 The present exists.'
 
-    conn.commit()
-    conn.close()
     return message
 
 
@@ -366,21 +348,18 @@ def delete_one_present(present_id):
     # 删除一个奖励
 
     message = None
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute(
-        '''select exists(select * from present where present_id=:a)''', {'a': present_id})
-    if c.fetchone() == (1,):
-        c.execute('''delete from present where present_id = :a''',
-                  {'a': present_id})
-        c.execute('''delete from user_present where present_id =:a''', {
-                  'a': present_id})
-        message = '删除成功 Successfully delete it.'
-    else:
-        message = '奖励不存在 The present does not exist.'
+    with Connect() as c:
+        c.execute(
+            '''select exists(select * from present where present_id=:a)''', {'a': present_id})
+        if c.fetchone() == (1,):
+            c.execute('''delete from present where present_id = :a''',
+                      {'a': present_id})
+            c.execute('''delete from user_present where present_id =:a''', {
+                'a': present_id})
+            message = '删除成功 Successfully delete it.'
+        else:
+            message = '奖励不存在 The present does not exist.'
 
-    conn.commit()
-    conn.close()
     return message
 
 
@@ -423,19 +402,16 @@ def add_one_redeem(code, redeem_type, items):
     # 添加一个兑换码
 
     message = None
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute(
-        '''select exists(select * from redeem where code=:a)''', {'a': code})
-    if c.fetchone() == (0,):
-        c.execute('''insert into redeem values(:a,:b,:c)''', {
-                  'a': code, 'b': items, 'c': redeem_type})
-        message = '添加成功 Successfully add it.'
-    else:
-        message = '兑换码已存在 The redeem code exists.'
+    with Connect() as c:
+        c.execute(
+            '''select exists(select * from redeem where code=:a)''', {'a': code})
+        if c.fetchone() == (0,):
+            c.execute('''insert into redeem values(:a,:b,:c)''', {
+                'a': code, 'b': items, 'c': redeem_type})
+            message = '添加成功 Successfully add it.'
+        else:
+            message = '兑换码已存在 The redeem code exists.'
 
-    conn.commit()
-    conn.close()
     return message
 
 
@@ -443,21 +419,19 @@ def add_some_random_redeem(amount, redeem_type, items):
     # 随机生成一堆10位的兑换码
 
     message = None
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    i = 1
-    while i <= amount:
-        code = random_str()
-        c.execute(
-            '''select exists(select * from redeem where code=:a)''', {'a': code})
-        if c.fetchone() == (0,):
-            c.execute('''insert into redeem values(:a,:b,:c)''',
-                      {'a': code, 'b': items, 'c': redeem_type})
-            i += 1
+    with Connect() as c:
+        i = 1
+        while i <= amount:
+            code = random_str()
+            c.execute(
+                '''select exists(select * from redeem where code=:a)''', {'a': code})
+            if c.fetchone() == (0,):
+                c.execute('''insert into redeem values(:a,:b,:c)''',
+                          {'a': code, 'b': items, 'c': redeem_type})
+                i += 1
 
-    message = '添加成功 Successfully add it.'
-    conn.commit()
-    conn.close()
+        message = '添加成功 Successfully add it.'
+
     return message
 
 
@@ -465,19 +439,17 @@ def delete_one_redeem(code):
     # 删除一个兑换码
 
     message = None
-    conn = sqlite3.connect('./database/arcaea_database.db')
-    c = conn.cursor()
-    c.execute(
-        '''select exists(select * from redeem where code=:a)''', {'a': code})
-    if c.fetchone() == (1,):
-        c.execute('''delete from redeem where code = :a''', {'a': code})
-        c.execute('''delete from user_redeem where code =:a''', {'a': code})
-        message = '删除成功 Successfully delete it.'
-    else:
-        message = '兑换码不存在 The redeem code does not exist.'
+    with Connect() as c:
+        c.execute(
+            '''select exists(select * from redeem where code=:a)''', {'a': code})
+        if c.fetchone() == (1,):
+            c.execute('''delete from redeem where code = :a''', {'a': code})
+            c.execute(
+                '''delete from user_redeem where code =:a''', {'a': code})
+            message = '删除成功 Successfully delete it.'
+        else:
+            message = '兑换码不存在 The redeem code does not exist.'
 
-    conn.commit()
-    conn.close()
     return message
 
 

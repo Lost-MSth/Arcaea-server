@@ -11,6 +11,9 @@
     <div class="name">{{user['name']}}
         <span class="rank">UID: {{user['user_id']}}</span>
         <span class="rank">User code: {{user['user_code']}}</span>
+        {% if user['ban_flag'] %}
+        <span class="rank">Banned</span>
+        {% endif %}
     </div>
     <div class="join-date">注册于 Registered in: {{user['join_date']}}</div>
     <div class="ptt">PTT: {{'%0.2f'|format(user['rating_ptt']/100|float)}}</div>

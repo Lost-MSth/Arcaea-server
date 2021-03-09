@@ -242,8 +242,9 @@ def get_song_state(x):
         return 0
 
 
-def get_user_ptt(c, user_id) -> int:
-    # 总ptt计算
+def get_user_ptt_float(c, user_id) -> float:
+    # 总ptt计算，返回浮点数
+
     sumr = 0
     c.execute('''select rating from best_score where user_id = :a order by rating DESC limit 30''', {
               'a': user_id})
@@ -272,8 +273,13 @@ def get_user_ptt(c, user_id) -> int:
                 sumr += r30[i]
                 songs.append(s30[i])
             i += 1
+    return sumr/40
 
-    return int(sumr/40*100)
+
+def get_user_ptt(c, user_id) -> int:
+    # 总ptt计算，返回4位整数，向下取整
+
+    return int(get_user_ptt_float(c, user_id)*100)
 
 
 def update_recent30(c, user_id, song_id, rating, is_protected):
@@ -333,7 +339,7 @@ def update_recent30(c, user_id, song_id, rating, is_protected):
         b.append(x[i+1])
 
     if is_protected:
-        ptt_pre = get_user_ptt(c, user_id)
+        ptt_pre = get_user_ptt_float(c, user_id)
         a_pre = [x for x in a]
         b_pre = [x for x in b]
 
@@ -346,7 +352,7 @@ def update_recent30(c, user_id, song_id, rating, is_protected):
     insert_r30table(c, user_id, a, b)
 
     if is_protected:
-        ptt = get_user_ptt(c, user_id)
+        ptt = get_user_ptt_float(c, user_id)
         if ptt < ptt_pre:
             # 触发保护
             if song_id in b_pre:
@@ -898,7 +904,23 @@ def arc_all_get(user_id):
                 "mi": 6,
                 "c": True,
                 "r": True
-            }]},
+            }, {
+                "ma": 8,
+                "mi": 1,
+                "c": True,
+                "r": True
+            }, {
+                "ma": 8,
+                "mi": 2,
+                "c": True,
+                "r": True
+            }, {
+                "ma": 8,
+                "mi": 3,
+                "c": True,
+                "r": True
+            }]
+        },
         "devicemodelname": {
             "val": devicemodelname_data
         },

@@ -3,6 +3,7 @@ from flask import (Blueprint, flash, g, redirect,
                    render_template, request, session, url_for)
 import functools
 from setting import Config
+import hashlib
 
 bp = Blueprint('login', __name__, url_prefix='/web')
 
@@ -20,7 +21,11 @@ def login():
 
         if error is None:
             session.clear()
-            session['user_id'] = Config.USERNAME + Config.PASSWORD
+            hash_session = username + \
+                hashlib.sha256(password.encode("utf8")).hexdigest()
+            hash_session = hashlib.sha256(
+                hash_session.encode("utf8")).hexdigest()
+            session['user_id'] = hash_session
             return redirect(url_for('index.index'))
 
         flash(error)
@@ -42,7 +47,11 @@ def login_required(view):
     def wrapped_view(**kwargs):
         x = session.get('user_id')
 
-        if x != Config.USERNAME + Config.PASSWORD:
+        hash_session = Config.USERNAME + \
+            hashlib.sha256(Config.PASSWORD.encode("utf8")).hexdigest()
+        hash_session = hashlib.sha256(hash_session.encode("utf8")).hexdigest()
+
+        if x != hash_session:
             return redirect(url_for('login.login'))
 
         g.user = {'user_id': x, 'username': Config.USERNAME}

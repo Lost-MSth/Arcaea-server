@@ -138,6 +138,11 @@ def all_player():
                 if i[20]:
                     time_played = time.strftime('%Y-%m-%d %H:%M:%S',
                                                 time.localtime(int(i[20])//1000))
+                if i[2] == '':
+                    ban_flag = True
+                else:
+                    ban_flag = False
+
                 posts.append({'name': i[1],
                               'user_id': i[0],
                               'join_date': join_date,
@@ -153,7 +158,8 @@ def all_player():
                               'time_played': time_played,
                               'clear_type': i[21],
                               'rating': i[22],
-                              'ticket': i[26]
+                              'ticket': i[26],
+                              'ban_flag': ban_flag
                               })
         else:
             error = '没有玩家数据 No player data.'

@@ -514,18 +514,51 @@ def sys_set(user_id, path):
 
 def main():
     app.config.from_mapping(SECRET_KEY=Config.SECRET_KEY)
+    app.config['SESSION_TYPE'] = 'filesystem'
     app.register_blueprint(web.login.bp)
     app.register_blueprint(web.index.bp)
 
-    dictConfig({
+    log_dict = {
         'version': 1,
-        'formatters': {'default': {
-            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-        }},
         'root': {
-            'level': 'INFO'
+            'level': 'INFO',
+            'handlers': ['wsgi', 'error_file']
+        },
+        'handlers': {
+            'wsgi': {
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://flask.logging.wsgi_errors_stream',
+                'formatter': 'default'
+            },
+            "error_file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "maxBytes": 1024 * 1024,
+                "backupCount": 1,
+                "encoding": "utf-8",
+                "level": "ERROR",
+                "formatter": "default",
+                "filename": "./log/error.log"
+            }
+        },
+        'formatters': {
+            'default': {
+                'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+            }
         }
-    })
+    }
+    if Config.ALLOW_LOG_INFO:
+        log_dict['root']['handlers'] = ['wsgi', 'info_file', 'error_file']
+        log_dict['handlers']['info_file'] = {
+            "class": "logging.handlers.RotatingFileHandler",
+            "maxBytes": 1024 * 1024,
+            "backupCount": 1,
+            "encoding": "utf-8",
+            "level": "INFO",
+            "formatter": "default",
+            "filename": "./log/info.log"
+        }
+
+    dictConfig(log_dict)
 
     app.logger.info("Start to initialize data in 'songfile' table...")
     try:

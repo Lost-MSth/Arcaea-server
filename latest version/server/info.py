@@ -198,9 +198,8 @@ def get_value_0(c, user_id):
              "stamina": 12,
              "world_unlocks": ["scenery_chap1", "scenery_chap2", "scenery_chap3", "scenery_chap4", "scenery_chap5"],
              "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take"],
-             "singles": get_user_singles(c, user_id),  # ["dataerror", "yourvoiceso", "crosssoul", "impurebird", "auxesia", "modelista", "yozakurafubuki", "surrender", "metallicpunisher", "carminescythe", "bethere", "callmyname", "fallensquare", "dropdead", "alexandrite", "astraltale", "phantasia", "empireofwinter", "libertas", "dottodot", "dreadnought", "mirzam", "heavenlycaress", "filament", "avantraze", "battlenoone", "saikyostronger", "izana", "einherjar", "laqryma", "amygdata", "altale", "feelssoright", "scarletcage", "teriqma", "mahoroba", "badtek", "maliciousmischance", "buchigireberserker", "galaxyfriends", "xeraphinite", "xanatos"]
+             "singles": get_user_singles(c, user_id),
              "packs": get_user_packs(c, user_id),
-             # ["vs", "extend", "dynamix", "prelude", "core", "yugamu", "omatsuri", "zettai", "mirai", "shiawase", "chunithm", "nijuusei", "groovecoaster", "rei", "tonesphere", "lanota"]
              "characters": characters,
              "cores": [],
              "recent_score": get_recent_score(c, user_id),
