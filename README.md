@@ -67,6 +67,7 @@ It is just so interesting. What it can do is under exploration.
 ### Version 2.3
 - 适用于Arcaea 3.5.2版本 For Arcaea 3.5.2
 - 更新了歌曲数据库 Update the song database.
+- 新搭档**迷尔**已解锁 Unlock the new character **Mir**.
 - 新增服务器日志 Add server log.
 - 优化了代码结构 Optimize the code structure.
 - 修复了一些Bug，提升服务器安全性 Fix some bugs and improve server security.
