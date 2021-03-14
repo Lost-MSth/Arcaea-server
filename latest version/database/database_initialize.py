@@ -244,16 +244,36 @@ skill_id = ['gauge_easy', '', '', '', 'note_mirror', '', '', 'gauge_hard', 'frag
 skill_id_uncap = ['', '', 'frags_kou', '', 'visual_ink', '', '', '', '', '', '', '', '', 'shirabe_entry_fee',
                   '', '', '', '', '', '', '', 'frags_yume', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
 
+frag = [88, 90, 100, 75, 80, 0, 70, 79, 65, 40, 50, 80, 90, 92, 0, 61, 67, 92, 85, 50, 86, 62,
+        65, 85, 67, 88, 74, 0.5, 105, 80, 95, 50, 80, 87, 71, 50, 95, 0, 80, 75, 50, 70, 80, 100, 65]
+
+prog = [71, 90, 80, 75, 100, 0, 90, 102, 84, 78, 105, 67, 63, 78, 0, 99, 80, 66, 46, 83, 40, 83,
+        80, 90, 93, 50, 96, 88, 99, 108, 75, 80, 50, 64, 55, 100, 100, 110, 80, 50, 74, 90, 80, 80, 56]
+
+overdrive = [71, 90, 57, 75, 80, 0, 95, 79, 65, 31, 50, 59, 90, 68, 0, 78, 50, 70, 62, 49, 64,
+             56, 73, 95, 67, 84, 80, 88, 79, 80, 50, 80, 80, 63, 25, 50, 82, 55, 50, 95, 55, 70, 100, 80, 90]
+
+char_type = [1, 0, 0, 0, 0, 0, 0, 2, 0, 1, 2, 0, 0, 0, 2, 3, 1, 0, 0, 0, 1,
+             0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 1]
+
+print(len(char))
+print(len(skill_id))
+print(len(skill_id_uncap))
+print(len(frag))
+print(len(prog))
+print(len(overdrive))
+print(len(char_type))
+
 for i in range(0, 45):
     if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21, 42, 43]:
-        sql = 'insert into character values('+str(
-            i)+',"'+char[i]+'''",30,25000,25000,90,90,90,"'''+skill_id[i]+'''",0,0,"'''+skill_id_uncap[i]+'''",0,'',1,1)'''
-        c.execute(sql)
+        sql = '''insert into character values(:a,:b,30,25000,25000,:c,:d,:e,:f,0,0,:g,:h,'',1,1)'''
+        c.execute(sql, {'a': i, 'b': char[i], 'c': frag[i], 'd': prog[i],
+                        'e': overdrive[i], 'f': skill_id[i], 'g': skill_id_uncap[i], 'h': char_type[i]})
     else:
         if i != 5:
-            sql = 'insert into character values('+str(
-                i)+',"'+char[i]+'''",30,25000,25000,90,90,90,"'''+skill_id[i]+'''",0,0,"'''+skill_id_uncap[i]+'''",0,'',0,0)'''
-            c.execute(sql)
+            sql = '''insert into character values(:a,:b,20,10000,10000,:c,:d,:e,:f,0,0,:g,:h,'',0,0)'''
+            c.execute(sql, {'a': i, 'b': char[i], 'c': frag[i], 'd': prog[i],
+                            'e': overdrive[i], 'f': skill_id[i], 'g': skill_id_uncap[i], 'h': char_type[i]})
 
 
 def b2int(x):

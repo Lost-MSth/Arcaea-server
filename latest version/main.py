@@ -14,6 +14,7 @@ import server.arcworld
 import server.arcdownload
 import server.arcpurchase
 import os
+import sys
 
 
 app = Flask(__name__)
@@ -521,6 +522,7 @@ def sys_set(user_id, path):
 
 
 def main():
+    os.chdir(sys.path[0])  # 更改工作路径，以便于愉快使用相对路径
     app.config.from_mapping(SECRET_KEY=Config.SECRET_KEY)
     app.config['SESSION_TYPE'] = 'filesystem'
     app.register_blueprint(web.login.bp)

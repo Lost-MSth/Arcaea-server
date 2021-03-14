@@ -75,3 +75,13 @@ class Config():
     '''
     --------------------
     '''
+
+    '''
+    --------------------
+    用户注册时的默认记忆源点数量
+    The default amount of memories at the time of user registration
+    '''
+    DEFAULT_MEMORIES = 0
+    '''
+    --------------------
+    '''
