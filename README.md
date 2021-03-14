@@ -79,6 +79,8 @@ It is just so interesting. What it can do is under exploration.
 - Flask module
 - Charles (optional)
 
+<div style='display: none'>
+
 ## 环境搭建 Environment construction
 [中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA)  
 [English](https://github.com/Lost-MSth/Arcaea-server/wiki/Environment-construction)
@@ -90,6 +92,8 @@ It is just so interesting. What it can do is under exploration.
 ## 注意 Attentions
 [中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E6%B3%A8%E6%84%8F)  
 [English](https://github.com/Lost-MSth/Arcaea-server/wiki/Attentions)
+
+</div>
 
 ## 鸣谢 Thanks
 歌曲数据库来自 Using song database from
