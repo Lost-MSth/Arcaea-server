@@ -2,6 +2,7 @@ from server.sql import Connect
 import server.arcworld
 import server.arcpurchase
 import time
+from setting import Config
 
 
 def int2b(x):
@@ -174,7 +175,7 @@ def get_value_0(c, user_id):
         if x[27] and x[27] != 0:
             prog_boost = 300
 
-        r = {"is_aprilfools": False,
+        r = {"is_aprilfools": Config.IS_APRILFOOLS,
              "curr_available_maps": [],
              "character_stats": user_character,
              "friends": get_user_friend(c, user_id),

@@ -8,8 +8,18 @@ class Config():
     主机的地址和端口号
     Host and port of your server
     '''
-    HOST = '192.168.1.105'
+    HOST = '192.168.1.101'
     PORT = '80'
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
+    愚人节模式开关
+    Switch of April Fool's Day
+    '''
+    IS_APRILFOOLS = True
     '''
     --------------------
     '''
