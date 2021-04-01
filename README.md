@@ -39,7 +39,6 @@ This procedure is mainly used for study and research, and shall not be used for 
 - 服务器日志 Server log
 
 没有以下 We don't have：
-- 角色数值 Character characteristic value
 - 服务器安全性保证 Server security assurance
 
 可能有问题 There may be problems：
