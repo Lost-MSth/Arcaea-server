@@ -64,11 +64,8 @@ It is just so interesting. What it can do is under exploration.
 > Tips: When updating, please keep the original database in case of data loss.
 
 ### Version 2.3.1
-- **不**适用于Arcaea 3.5.3版本 **Not** for Arcaea 3.5.3
-- **新增**了一些Bug **Add** some bugs.
-
-> Happy April Fool's Day!
-
+- 适用于Arcaea 3.5.3版本 For Arcaea 3.5.3
+- 修复了一些Bug Fix some bugs.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows/Linux/Mac OS/Android
