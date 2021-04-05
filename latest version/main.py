@@ -580,11 +580,7 @@ def main():
     else:
         app.logger.info('Complete!')
 
-    if Config.SSL_CERT and Config.SSL_KEY:
-        app.run(Config.HOST, Config.PORT, ssl_context=(
-            Config.SSL_CERT, Config.SSL_KEY))
-    else:
-        app.run(Config.HOST, Config.PORT)
+    app.run(Config.HOST, Config.PORT)
 
 
 if __name__ == '__main__':

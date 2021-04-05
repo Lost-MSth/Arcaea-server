@@ -16,19 +16,6 @@ class Config():
 
     '''
     --------------------
-    SSL证书路径
-    留空则使用HTTP
-    SSL certificate path
-    If left blank, use HTTP.
-    '''
-    SSL_CERT = '' # *.pem
-    SSL_KEY = '' # *.key
-    '''
-    --------------------
-    '''
-
-    '''
-    --------------------
     愚人节模式开关
     Switch of April Fool's Day
     '''
@@ -105,16 +92,6 @@ class Config():
     The default amount of memories at the time of user registration
     '''
     DEFAULT_MEMORIES = 0
-    '''
-    --------------------
-    '''
-
-    '''
-    --------------------
-    是否强制使用全解锁云端存档
-    If forcing full unlocked cloud save is enabled
-    '''
-    SAVE_FULL_UNLOCK = True
     '''
     --------------------
     '''
