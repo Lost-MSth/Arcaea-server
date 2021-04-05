@@ -59,9 +59,10 @@ It is just so interesting. What it can do is under exploration.
 ## 更新日志 Update log
 只保留最新版本 Only keep the latest version.
 
-> 提醒：更新时请注意保留原先的数据库，以防数据丢失
+> 提醒：更新时请注意保留原先的数据库，以防数据丢失。使用前请先运行**database_initialize.py**以获得初始数据库。
 >
-> Tips: When updating, please keep the original database in case of data loss.
+> Tips: When updating, please keep the original database in case of data loss. 
+> Before using, please run **database_initialize.py** to get the initial database.
 
 ### Version 2.3.1
 - 适用于Arcaea 3.5.3版本 For Arcaea 3.5.3

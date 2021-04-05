@@ -25,6 +25,23 @@ def get_file_md5(file_path):
     return myhash.hexdigest()
 
 
+def get_url(file_path, **kwargs):
+    # 获取下载地址
+
+    t = ''
+    if 't' in kwargs:
+        t = kwargs['t']
+
+    if Config.DOWNLOAD_LINK_PREFIX:
+        prefix = Config.DOWNLOAD_LINK_PREFIX
+        if prefix[-1] != '/':
+            prefix += '/'
+
+        return prefix + file_path + '?t=' + t
+    else:
+        return url_for('download', file_path=file_path, t=t, _external=True)
+
+
 def get_one_song(c, user_id, song_id, file_dir='./database/songs'):
     # 获取一首歌的下载链接，返回字典
     dir_list = os.listdir(os.path.join(file_dir, song_id))
@@ -37,7 +54,6 @@ def get_one_song(c, user_id, song_id, file_dir='./database/songs'):
         if os.path.isfile(os.path.join(file_dir, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg']:
             token = hashlib.md5(
                 (str(user_id) + song_id + i + str(now)).encode(encoding='UTF-8')).hexdigest()
-            token = token[:8]
 
             if i == 'base.ogg':
                 c.execute(
@@ -48,8 +64,8 @@ def get_one_song(c, user_id, song_id, file_dir='./database/songs'):
                 else:
                     checksum = get_file_md5(os.path.join(
                         file_dir, song_id, 'base.ogg'))
-                re['audio'] = {"checksum": checksum,
-                               "url": url_for('download', file_path=song_id+'/base.ogg', t=token, _external=True)}
+                re['audio'] = {"checksum": checksum, "url": get_url(
+                    file_path=song_id+'/base.ogg', t=token)}
             else:
                 if 'chart' not in re:
                     re['chart'] = {}
@@ -60,8 +76,8 @@ def get_one_song(c, user_id, song_id, file_dir='./database/songs'):
                     checksum = x[0]
                 else:
                     checksum = get_file_md5(os.path.join(file_dir, song_id, i))
-                re['chart'][i[0]] = {"checksum": checksum,
-                                     "url": url_for('download', file_path=song_id+'/'+i, t=token, _external=True)}
+                re['chart'][i[0]] = {"checksum": checksum, "url": get_url(
+                    file_path=song_id+'/'+i, t=token)}
 
             c.execute('''insert into download_token values(:a,:b,:c,:d,:e)''', {
                 'a': user_id, 'b': song_id, 'c': i, 'd': token, 'e': now})
