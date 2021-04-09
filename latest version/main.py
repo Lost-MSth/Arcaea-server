@@ -13,6 +13,7 @@ import web.index
 import server.arcworld
 import server.arcdownload
 import server.arcpurchase
+import server.init
 import os
 import sys
 
@@ -569,6 +570,11 @@ def main():
         }
 
     dictConfig(log_dict)
+
+    if not server.init.check_before_run(app):
+        app.logger.error('Something wrong. The server will not run.')
+        input('Press ENTER key to exit.')
+        sys.exit()
 
     app.logger.info("Start to initialize data in 'songfile' table...")
     try:

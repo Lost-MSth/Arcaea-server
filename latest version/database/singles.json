@@ -12,10 +12,10 @@
 	"items": [{
 		"id": "dataerror",
 		"type": "single",
-		"_id": "6046bab736651a07ebc537f3",
+		"_id": "606f9f5636651a07ebc541f3",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -24,10 +24,10 @@
 	"items": [{
 		"id": "yourvoiceso",
 		"type": "single",
-		"_id": "6046bab736651a07ebc53800",
+		"_id": "606f9f5636651a07ebc54201",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -36,10 +36,10 @@
 	"items": [{
 		"id": "crosssoul",
 		"type": "single",
-		"_id": "6046bab736651a07ebc5380d",
+		"_id": "606f9f5636651a07ebc5420e",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -48,10 +48,10 @@
 	"items": [{
 		"type": "single",
 		"id": "impurebird",
-		"_id": "6046bab736651a07ebc53801",
+		"_id": "606f9f5636651a07ebc541f4",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -60,7 +60,7 @@
 	"items": [{
 		"type": "single",
 		"id": "auxesia",
-		"_id": "6046bab736651a07ebc5380e",
+		"_id": "606f9f5636651a07ebc5420f",
 		"is_available": true
 	}],
 	"price": 100,
@@ -72,10 +72,10 @@
 	"items": [{
 		"type": "single",
 		"id": "modelista",
-		"_id": "6046bab736651a07ebc537f4",
+		"_id": "606f9f5636651a07ebc54202",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -84,10 +84,10 @@
 	"items": [{
 		"type": "single",
 		"id": "yozakurafubuki",
-		"_id": "6046bab736651a07ebc53802",
+		"_id": "606f9f5636651a07ebc541f5",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -96,10 +96,10 @@
 	"items": [{
 		"type": "single",
 		"id": "surrender",
-		"_id": "6046bab736651a07ebc5380f",
+		"_id": "606f9f5636651a07ebc54210",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -108,7 +108,7 @@
 	"items": [{
 		"type": "single",
 		"id": "metallicpunisher",
-		"_id": "6046bab736651a07ebc537f5",
+		"_id": "606f9f5636651a07ebc54203",
 		"is_available": true
 	}],
 	"price": 100,
@@ -118,7 +118,7 @@
 	"items": [{
 		"type": "single",
 		"id": "carminescythe",
-		"_id": "6046bab736651a07ebc53803",
+		"_id": "606f9f5636651a07ebc541f6",
 		"is_available": true
 	}],
 	"price": 100,
@@ -128,10 +128,10 @@
 	"items": [{
 		"type": "single",
 		"id": "bethere",
-		"_id": "6046bab736651a07ebc53810",
+		"_id": "606f9f5636651a07ebc54211",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -140,10 +140,10 @@
 	"items": [{
 		"type": "single",
 		"id": "callmyname",
-		"_id": "6046bab736651a07ebc537e9",
+		"_id": "606f9f5636651a07ebc5421c",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -152,10 +152,10 @@
 	"items": [{
 		"type": "single",
 		"id": "fallensquare",
-		"_id": "6046bab736651a07ebc537de",
+		"_id": "606f9f5636651a07ebc541e9",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -164,10 +164,10 @@
 	"items": [{
 		"type": "single",
 		"id": "dropdead",
-		"_id": "6046bab736651a07ebc53804",
+		"_id": "606f9f5636651a07ebc541f7",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -176,10 +176,10 @@
 	"items": [{
 		"type": "single",
 		"id": "alexandrite",
-		"_id": "6046bab736651a07ebc53811",
+		"_id": "606f9f5636651a07ebc54212",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -188,10 +188,10 @@
 	"items": [{
 		"type": "single",
 		"id": "astraltale",
-		"_id": "6046bab736651a07ebc537f7",
+		"_id": "606f9f5636651a07ebc54205",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -200,7 +200,7 @@
 	"items": [{
 		"type": "single",
 		"id": "phantasia",
-		"_id": "6046bab736651a07ebc537df",
+		"_id": "606f9f5636651a07ebc541ea",
 		"is_available": true
 	}],
 	"price": 100,
@@ -210,7 +210,7 @@
 	"items": [{
 		"type": "single",
 		"id": "empireofwinter",
-		"_id": "6046bab736651a07ebc53805",
+		"_id": "606f9f5636651a07ebc541f8",
 		"is_available": true
 	}],
 	"price": 100,
@@ -220,10 +220,10 @@
 	"items": [{
 		"type": "single",
 		"id": "libertas",
-		"_id": "6046bab736651a07ebc537eb",
+		"_id": "606f9f5636651a07ebc5421e",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -232,10 +232,10 @@
 	"items": [{
 		"type": "single",
 		"id": "dottodot",
-		"_id": "6046bab736651a07ebc537e0",
+		"_id": "606f9f5636651a07ebc541eb",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -244,10 +244,10 @@
 	"items": [{
 		"type": "single",
 		"id": "dreadnought",
-		"_id": "6046bab736651a07ebc537ec",
+		"_id": "606f9f5636651a07ebc5421f",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -256,10 +256,10 @@
 	"items": [{
 		"type": "single",
 		"id": "mirzam",
-		"_id": "6046bab736651a07ebc537e1",
+		"_id": "606f9f5636651a07ebc541ec",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -268,10 +268,10 @@
 	"items": [{
 		"type": "single",
 		"id": "heavenlycaress",
-		"_id": "6046bab736651a07ebc53807",
+		"_id": "606f9f5636651a07ebc541fa",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -280,10 +280,10 @@
 	"items": [{
 		"type": "single",
 		"id": "filament",
-		"_id": "6046bab736651a07ebc53814",
+		"_id": "606f9f5636651a07ebc54215",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -292,7 +292,7 @@
 	"items": [{
 		"type": "single",
 		"id": "avantraze",
-		"_id": "6046bab736651a07ebc537ed",
+		"_id": "606f9f5636651a07ebc54220",
 		"is_available": true
 	}],
 	"price": 100,
@@ -302,10 +302,10 @@
 	"items": [{
 		"type": "single",
 		"id": "battlenoone",
-		"_id": "6046bab736651a07ebc537fa",
+		"_id": "606f9f5636651a07ebc54208",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -314,7 +314,7 @@
 	"items": [{
 		"type": "single",
 		"id": "saikyostronger",
-		"_id": "6046bab736651a07ebc537e2",
+		"_id": "606f9f5636651a07ebc541ed",
 		"is_available": true
 	}],
 	"price": 100,
@@ -324,10 +324,10 @@
 	"items": [{
 		"type": "single",
 		"id": "izana",
-		"_id": "6046bab736651a07ebc53808",
+		"_id": "606f9f5636651a07ebc541fb",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -336,10 +336,10 @@
 	"items": [{
 		"type": "single",
 		"id": "einherjar",
-		"_id": "6046bab736651a07ebc53815",
+		"_id": "606f9f5636651a07ebc54216",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -348,10 +348,10 @@
 	"items": [{
 		"type": "single",
 		"id": "laqryma",
-		"_id": "6046bab736651a07ebc537ee",
+		"_id": "606f9f5636651a07ebc54221",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -360,10 +360,10 @@
 	"items": [{
 		"type": "single",
 		"id": "amygdata",
-		"_id": "6046bab736651a07ebc537fb",
+		"_id": "606f9f5636651a07ebc54209",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -372,10 +372,10 @@
 	"items": [{
 		"type": "single",
 		"id": "altale",
-		"_id": "6046bab736651a07ebc537e3",
+		"_id": "606f9f5636651a07ebc541ee",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -384,10 +384,10 @@
 	"items": [{
 		"type": "single",
 		"id": "feelssoright",
-		"_id": "6046bab736651a07ebc537ef",
+		"_id": "606f9f5636651a07ebc54222",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -396,7 +396,7 @@
 	"items": [{
 		"type": "single",
 		"id": "scarletcage",
-		"_id": "6046bab736651a07ebc537fc",
+		"_id": "606f9f5636651a07ebc5420a",
 		"is_available": true
 	}],
 	"price": 100,
@@ -406,7 +406,7 @@
 	"items": [{
 		"type": "single",
 		"id": "teriqma",
-		"_id": "6046bab736651a07ebc537e4",
+		"_id": "606f9f5636651a07ebc541ef",
 		"is_available": true
 	}],
 	"price": 100,
@@ -416,10 +416,10 @@
 	"items": [{
 		"type": "single",
 		"id": "mahoroba",
-		"_id": "6046bab736651a07ebc5380a",
+		"_id": "606f9f5636651a07ebc541fd",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -428,10 +428,10 @@
 	"items": [{
 		"type": "single",
 		"id": "badtek",
-		"_id": "6046bab736651a07ebc537f0",
+		"_id": "606f9f5636651a07ebc54223",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -440,7 +440,7 @@
 	"items": [{
 		"type": "single",
 		"id": "maliciousmischance",
-		"_id": "6046bab736651a07ebc53817",
+		"_id": "606f9f5636651a07ebc54218",
 		"is_available": true
 	}],
 	"price": 100,
@@ -450,7 +450,7 @@
 	"items": [{
 		"type": "single",
 		"id": "buchigireberserker",
-		"_id": "6046bab736651a07ebc537e5",
+		"_id": "606f9f5636651a07ebc541f0",
 		"is_available": true
 	}],
 	"price": 100,
@@ -460,10 +460,10 @@
 	"items": [{
 		"type": "single",
 		"id": "galaxyfriends",
-		"_id": "6046bab736651a07ebc5380b",
+		"_id": "606f9f5636651a07ebc541fe",
 		"is_available": true
 	}],
-	"price": 50,
+	"price": 100,
 	"orig_price": 100,
 	"discount_from": 1615248000000,
 	"discount_to": 1615852799000
@@ -472,7 +472,7 @@
 	"items": [{
 		"type": "single",
 		"id": "xeraphinite",
-		"_id": "6046bab736651a07ebc53818",
+		"_id": "606f9f5636651a07ebc54219",
 		"is_available": true
 	}],
 	"orig_price": 100,
@@ -482,7 +482,7 @@
 	"items": [{
 		"type": "single",
 		"id": "xanatos",
-		"_id": "6046bab736651a07ebc537f1",
+		"_id": "606f9f5636651a07ebc54224",
 		"is_available": true
 	}],
 	"price": 100,
@@ -492,7 +492,7 @@
 	"items": [{
 		"type": "single",
 		"id": "attraqtia",
-		"_id": "6046bab736651a07ebc537ff",
+		"_id": "606f9f5636651a07ebc5420d",
 		"is_available": true
 	}],
 	"orig_price": 100,
@@ -502,7 +502,17 @@
 	"items": [{
 		"type": "single",
 		"id": "gimmedablood",
-		"_id": "6046bab736651a07ebc537e7",
+		"_id": "606f9f5636651a07ebc541f2",
+		"is_available": true
+	}],
+	"orig_price": 100,
+	"price": 100
+}, {
+	"name": "bassline",
+	"items": [{
+		"type": "single",
+		"id": "bassline",
+		"_id": "606f9f5636651a07ebc54200",
 		"is_available": true
 	}],
 	"orig_price": 100,

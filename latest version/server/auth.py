@@ -168,9 +168,10 @@ def auth_required(request):
             user_id = None
             with Connect() as c:
                 headers = request.headers
-                token = headers['Authorization']
-                token = token[7:]
-                user_id = token_get_id(token)
+                if 'Authorization' in headers:
+                    token = headers['Authorization']
+                    token = token[7:]
+                    user_id = token_get_id(token)
 
             if user_id is not None:
                 return view(user_id, *args, **kwargs)

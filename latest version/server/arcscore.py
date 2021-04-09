@@ -569,6 +569,14 @@ def arc_score_check(user_id, song_id, difficulty, score, shiny_perfect_count, pe
     if abs(ascore - score) >= 5:
         return False
 
+    with Connect() as c:  # 歌曲谱面MD5检查，服务器没有谱面就不管了
+        c.execute('''select md5 from songfile where song_id=:a and file_type=:b''', {
+                  'a': song_id, 'b': int(difficulty)})
+        x = c.fetchone()
+        if x:
+            if x[0] != song_hash:
+                return False
+
     x = song_token + song_hash + song_id + str(difficulty) + str(score) + str(shiny_perfect_count) + str(
         perfect_count) + str(near_count) + str(miss_count) + str(health) + str(modifier) + str(clear_type)
     y = str(user_id) + song_hash

@@ -125,7 +125,7 @@ class Config():
     是否强制使用全解锁云端存档
     If forcing full unlocked cloud save is enabled
     '''
-    SAVE_FULL_UNLOCK = True
+    SAVE_FULL_UNLOCK = False
     '''
     --------------------
     '''

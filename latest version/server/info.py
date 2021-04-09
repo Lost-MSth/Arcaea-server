@@ -1,6 +1,7 @@
 from server.sql import Connect
 import server.arcworld
 import server.arcpurchase
+import server.arcdownload
 import time
 from setting import Config
 
@@ -198,7 +199,7 @@ def get_value_0(c, user_id):
              "max_stamina_ts": 1586274871917,
              "stamina": 12,
              "world_unlocks": ["scenery_chap1", "scenery_chap2", "scenery_chap3", "scenery_chap4", "scenery_chap5"],
-             "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take"],
+             "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano"],
              "singles": get_user_singles(c, user_id),
              "packs": get_user_packs(c, user_id),
              "characters": characters,
@@ -226,7 +227,7 @@ def arc_aggregate_small(user_id):
 
 
 def arc_aggregate_big(user_id):
-    # 返回用户数据和地图歌曲信息
+    # 返回比较全的用户数据
     r = {"success": False}
     with Connect() as c:
         r = {"success": True,
@@ -238,7 +239,7 @@ def arc_aggregate_big(user_id):
                  "value": server.arcpurchase.get_item(c, 'pack')
              }, {
                  "id": 2,
-                 "value": {}
+                 "value": server.arcdownload.get_all_songs(user_id, url_flag=False)
              }, {
                  "id": 3,
                  "value": {

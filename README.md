@@ -40,6 +40,7 @@ This procedure is mainly used for study and research, and shall not be used for 
 
 没有以下 We don't have：
 - 服务器安全性保证 Server security assurance
+- 世界模式下的搭档升级、觉醒，以及某些奖励的获取 Partner upgrading, uncapping, and receiving some rewards in the world mode
 
 可能有问题 There may be problems：
 - Recent 30
@@ -64,8 +65,12 @@ It is just so interesting. What it can do is under exploration.
 > Tips: When updating, please keep the original database in case of data loss. 
 > Before using, please run **database_initialize.py** to get the initial database.
 
-### Version 2.3.1
-- 适用于Arcaea 3.5.3版本 For Arcaea 3.5.3
+### Version 2.3.2
+- 适用于Arcaea 3.5.4版本 For Arcaea 3.5.4
+- 更新了歌曲数据库 Update the song database.
+- 新增运行前关键性文件检查 Add checking critical files before running.
+- 新增可下载数据的客户端校验更新 Add client verification update of downloadable data.
+- 新增歌曲成绩的谱面校验 Add checking chart file when submitting the song score.
 - 修复了一些Bug Fix some bugs.
 
 ## 运行环境与依赖 Running environment and requirements
