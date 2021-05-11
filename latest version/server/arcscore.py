@@ -188,8 +188,22 @@ def arc_score_me(user_id, song_id, difficulty, limit=20):
     return r
 
 
+def calculate_rating(defnum, score):
+    # 计算rating
+    if score >= 10000000:
+        ptt = defnum + 2
+    elif score < 9800000:
+        ptt = defnum + (score-9500000) / 300000
+        if ptt < 0 and defnum != -10:
+            ptt = 0
+    else:
+        ptt = defnum + 1 + (score-9800000) / 200000
+
+    return ptt
+
+
 def get_one_ptt(song_id, difficulty, score: int) -> float:
-    # 单曲ptt计算，ptt为负说明没铺面定数数据
+    # 单曲ptt计算，ptt为负说明没谱面定数数据
     ptt = -10
     with Connect('./database/arcsong.db') as c:
         if difficulty == 0:
@@ -212,14 +226,7 @@ def get_one_ptt(song_id, difficulty, score: int) -> float:
             if defnum <= 0:
                 defnum = -10  # 缺少难度的当做定数-10
 
-        if score >= 10000000:
-            ptt = defnum + 2
-        elif score < 9800000:
-            ptt = defnum + (score-9500000) / 300000
-            if ptt < 0 and defnum != -10:
-                ptt = 0
-        else:
-            ptt = defnum + 1 + (score-9800000) / 200000
+        ptt = calculate_rating(defnum, score)
 
     return ptt
 
@@ -299,7 +306,7 @@ def get_user_ptt(c, user_id) -> int:
 
 
 def update_recent30(c, user_id, song_id, rating, is_protected):
-    # 刷新r30，这里的判断方法存疑
+    # 刷新r30，这里的判断方法存疑，这里的song_id结尾包含难度数字
     def insert_r30table(c, user_id, a, b):
         # 更新r30表
         c.execute('''delete from recent30 where user_id = :a''',
@@ -585,6 +592,49 @@ def arc_score_check(user_id, song_id, difficulty, score, shiny_perfect_count, pe
         return False
 
     return True
+
+
+def refresh_all_score_rating():
+    # 刷新所有best成绩的rating
+    error = 'Unknown error.'
+    song_data = []
+
+    with Connect('./database/arcsong.db') as c:
+        with Connect() as c2:
+            c.execute(
+                '''select sid, rating_pst, rating_prs, rating_ftr, rating_byn from songs''')
+            x = c.fetchall()
+
+    if x:
+        song_list = [i[0] for i in song_data]
+        with Connect() as c:
+            c.execute('''update best_score set rating=0 where song_id not in ({0})'''.format(
+                ','.join(['?']*len(song_list))), tuple(song_list))
+            for i in x:
+                for j in range(0, 4):
+                    defnum = -10  # 没在库里的全部当做定数-10
+                    if i is not None:
+                        defnum = float(i[j+1]) / 10
+                        if defnum <= 0:
+                            defnum = -10  # 缺少难度的当做定数-10
+
+                    c.execute('''select user_id, score from best_score where song_id=:a and difficulty=:b''', {
+                              'a': i[0], 'b': j})
+                    y = c.fetchall()
+                    if y:
+                        for k in y:
+                            ptt = calculate_rating(defnum, k[1])
+                            if ptt < 0:
+                                ptt = 0
+
+                            c.execute('''update best_score set rating=:a where user_id=:b and song_id=:c and difficulty=:d''', {
+                                      'a': ptt, 'b': k[0], 'c': i[0], 'd': j})
+            error = None
+
+    else:
+        error = 'No song data.'
+
+    return error
 
 
 def arc_all_post(user_id, scores_data, clearlamps_data, clearedsongs_data, unlocklist_data, installid_data, devicemodelname_data, story_data):
@@ -883,6 +933,36 @@ def arc_all_get(user_id):
             "c": True,
             "r": True
         }, {
+            "ma": 9,
+            "mi": 1,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 9,
+            "mi": 2,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 9,
+            "mi": 3,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 9,
+            "mi": 4,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 9,
+            "mi": 5,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 9,
+            "mi": 6,
+            "c": True,
+            "r": True
+        }, {
             "ma": 6,
             "mi": 1,
             "c": True,
@@ -944,9 +1024,6 @@ def arc_all_get(user_id):
             "r": True
         }]
         unlocklist_data = [{
-            "unlock_key": "worldvanquisher|2|0",
-            "complete": 1
-        }, {
             "unlock_key": "worldvanquisher|1|0",
             "complete": 1
         }, {
@@ -956,13 +1033,16 @@ def arc_all_get(user_id):
             "unlock_key": "viyellastears|2|0",
             "complete": 1
         }, {
-            "unlock_key": "viyellastears|1|0",
-            "complete": 1
-        }, {
             "unlock_key": "viciousheroism|2|0",
             "complete": 1
         }, {
+            "unlock_key": "loschen|2|0",
+            "complete": 1
+        }, {
             "unlock_key": "vector|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "corpssansorganes|2|0",
             "complete": 1
         }, {
             "unlock_key": "valhallazero|2|0",
@@ -971,8 +1051,14 @@ def arc_all_get(user_id):
             "unlock_key": "tiferet|1|0",
             "complete": 1
         }, {
+            "unlock_key": "ouroboros|2|0",
+            "complete": 1
+        }, {
             "unlock_key": "tiemedowngently|1|0",
             "complete": 1
+        }, {
+            "unlock_key": "aegleseeker|2|3|crystalgravity|2",
+            "complete": 10
         }, {
             "unlock_key": "tempestissimo|0|101",
             "complete": 100
@@ -980,16 +1066,13 @@ def arc_all_get(user_id):
             "unlock_key": "syro|2|0",
             "complete": 1
         }, {
+            "unlock_key": "ringedgenesis|2|0",
+            "complete": 1
+        }, {
             "unlock_key": "suomi|1|0",
             "complete": 1
         }, {
-            "unlock_key": "solitarydream|2|0",
-            "complete": 1
-        }, {
             "unlock_key": "snowwhite|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "sheriruth|2|0",
             "complete": 1
         }, {
             "unlock_key": "senkyou|2|0",
@@ -1001,7 +1084,13 @@ def arc_all_get(user_id):
             "unlock_key": "scarletlance|2|0",
             "complete": 1
         }, {
+            "unlock_key": "toaliceliddell|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "scarletlance|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "aterlbus|1|0",
             "complete": 1
         }, {
             "unlock_key": "rugie|2|0",
@@ -1019,22 +1108,31 @@ def arc_all_get(user_id):
             "unlock_key": "reinvent|1|0",
             "complete": 1
         }, {
+            "unlock_key": "essenceoftwilight|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "redandblue|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "espebranch|1|0",
             "complete": 1
         }, {
             "unlock_key": "redandblue|1|0",
             "complete": 1
         }, {
+            "unlock_key": "lostcivilization|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "supernova|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "rabbitintheblackroom|2|0",
             "complete": 1
         }, {
+            "unlock_key": "pragmatism|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "rabbitintheblackroom|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "worldexecuteme|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "ringedgenesis|2|0",
             "complete": 1
         }, {
             "unlock_key": "quon|1|0",
@@ -1049,7 +1147,16 @@ def arc_all_get(user_id):
             "unlock_key": "supernova|2|0",
             "complete": 1
         }, {
+            "unlock_key": "halcyon|2|0",
+            "complete": 1
+        }, {
             "unlock_key": "saikyostronger|2|3|einherjar|2",
+            "complete": 3
+        }, {
+            "unlock_key": "cyanine|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "saikyostronger|2|3|laqryma|2",
             "complete": 1
         }, {
             "unlock_key": "purgatorium|1|0",
@@ -1058,10 +1165,13 @@ def arc_all_get(user_id):
             "unlock_key": "pragmatism|2|0",
             "complete": 1
         }, {
-            "unlock_key": "ouroboros|2|0",
+            "unlock_key": "ringedgenesis|1|0",
             "complete": 1
         }, {
             "unlock_key": "ouroboros|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "partyvinyl|2|0",
             "complete": 1
         }, {
             "unlock_key": "oracle|1|0",
@@ -1070,16 +1180,22 @@ def arc_all_get(user_id):
             "unlock_key": "onelastdrive|2|0",
             "complete": 1
         }, {
+            "unlock_key": "nirvluce|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "onelastdrive|1|0",
             "complete": 1
         }, {
             "unlock_key": "omegafour|1|0",
             "complete": 1
         }, {
-            "unlock_key": "oblivia|2|0",
+            "unlock_key": "harutopia|1|0",
             "complete": 1
         }, {
-            "unlock_key": "pragmatism|1|0",
+            "unlock_key": "anokumene|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "oblivia|2|0",
             "complete": 1
         }, {
             "unlock_key": "nhelv|2|0",
@@ -1091,9 +1207,6 @@ def arc_all_get(user_id):
             "unlock_key": "melodyoflove|2|0",
             "complete": 1
         }, {
-            "unlock_key": "saikyostronger|2|3|laqryma|2",
-            "complete": 1
-        }, {
             "unlock_key": "omegafour|2|0",
             "complete": 1
         }, {
@@ -1101,6 +1214,12 @@ def arc_all_get(user_id):
             "complete": 1
         }, {
             "unlock_key": "lucifer|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "gloryroad|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "babaroque|2|0",
             "complete": 1
         }, {
             "unlock_key": "lucifer|1|0",
@@ -1112,19 +1231,34 @@ def arc_all_get(user_id):
             "unlock_key": "tiemedowngently|2|0",
             "complete": 1
         }, {
+            "unlock_key": "solitarydream|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "lostdesire|1|0",
             "complete": 1
         }, {
-            "unlock_key": "viciousheroism|1|0",
+            "unlock_key": "lostcivilization|1|0",
             "complete": 1
         }, {
-            "unlock_key": "flyburg|1|0",
+            "unlock_key": "loschen|1|0",
             "complete": 1
         }, {
-            "unlock_key": "lostcivilization|2|0",
+            "unlock_key": "shadesoflight|1|0",
             "complete": 1
+        }, {
+            "unlock_key": "kanagawa|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "grievouslady|1|101",
+            "complete": 100
         }, {
             "unlock_key": "infinityheaven|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "worldvanquisher|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "bookmaker|2|0",
             "complete": 1
         }, {
             "unlock_key": "ignotus|2|0",
@@ -1136,7 +1270,16 @@ def arc_all_get(user_id):
             "unlock_key": "partyvinyl|1|0",
             "complete": 1
         }, {
+            "unlock_key": "viciousheroism|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "gloryroad|0|0",
+            "complete": 1
+        }, {
             "unlock_key": "axiumcrisis|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "kanagawa|1|0",
             "complete": 1
         }, {
             "unlock_key": "ifi|2|0",
@@ -1145,28 +1288,19 @@ def arc_all_get(user_id):
             "unlock_key": "jump|2|0",
             "complete": 1
         }, {
+            "unlock_key": "nhelv|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "harutopia|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "revixy|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "aterlbus|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "linearaccelerator|2|0",
             "complete": 1
         }, {
             "unlock_key": "guardina|2|0",
             "complete": 1
         }, {
-            "unlock_key": "corpssansorganes|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "linearaccelerator|1|0",
-            "complete": 1
-        }, {
             "unlock_key": "guardina|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "lethaeus|1|0",
             "complete": 1
         }, {
             "unlock_key": "saikyostronger|2|0",
@@ -1181,20 +1315,17 @@ def arc_all_get(user_id):
             "unlock_key": "oshamascramble|2|0",
             "complete": 1
         }, {
+            "unlock_key": "aiueoon|2|0",
+            "complete": 1
+        }, {
             "unlock_key": "blaster|2|0",
             "complete": 1
         }, {
             "unlock_key": "grievouslady|2|101",
             "complete": 100
         }, {
-            "unlock_key": "partyvinyl|2|0",
-            "complete": 1
-        }, {
             "unlock_key": "darakunosono|1|0",
             "complete": 1
-        }, {
-            "unlock_key": "grievouslady|1|101",
-            "complete": 100
         }, {
             "unlock_key": "valhallazero|1|0",
             "complete": 1
@@ -1208,8 +1339,14 @@ def arc_all_get(user_id):
             "unlock_key": "gothiveofra|1|0",
             "complete": 1
         }, {
+            "unlock_key": "cyanine|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "tempestissimo|3|101",
             "complete": 100
+        }, {
+            "unlock_key": "overwhelm|2|0",
+            "complete": 1
         }, {
             "unlock_key": "chronostasis|2|0",
             "complete": 1
@@ -1217,19 +1354,13 @@ def arc_all_get(user_id):
             "unlock_key": "gloryroad|2|0",
             "complete": 1
         }, {
-            "unlock_key": "supernova|1|0",
+            "unlock_key": "etherstrike|1|0",
             "complete": 1
         }, {
             "unlock_key": "singularity|2|0",
             "complete": 1
         }, {
-            "unlock_key": "gloryroad|0|0",
-            "complete": 1
-        }, {
-            "unlock_key": "shadesoflight|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "kanagawa|2|0",
+            "unlock_key": "buchigireberserker|2|3|gothiveofra|2",
             "complete": 1
         }, {
             "unlock_key": "genesis|1|0",
@@ -1241,8 +1372,14 @@ def arc_all_get(user_id):
             "unlock_key": "freefall|2|0",
             "complete": 1
         }, {
+            "unlock_key": "revixy|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "fractureray|2|101",
             "complete": 100
+        }, {
+            "unlock_key": "goodtek|1|0",
+            "complete": 1
         }, {
             "unlock_key": "monochromeprincess|2|0",
             "complete": 1
@@ -1259,28 +1396,28 @@ def arc_all_get(user_id):
             "unlock_key": "clotho|2|0",
             "complete": 1
         }, {
+            "unlock_key": "quon|2|0",
+            "complete": 1
+        }, {
             "unlock_key": "gou|2|0",
             "complete": 1
         }, {
             "unlock_key": "felis|2|0",
             "complete": 1
         }, {
+            "unlock_key": "cyaegha|2|0",
+            "complete": 1
+        }, {
             "unlock_key": "qualia|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "buchigireberserker|2|0",
             "complete": 1
         }, {
             "unlock_key": "etherstrike|2|0",
             "complete": 1
         }, {
-            "unlock_key": "etherstrike|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "syro|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "anokumene|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "essenceoftwilight|2|0",
+            "unlock_key": "flyburg|1|0",
             "complete": 1
         }, {
             "unlock_key": "shadesoflight|2|0",
@@ -1289,25 +1426,22 @@ def arc_all_get(user_id):
             "unlock_key": "espebranch|2|0",
             "complete": 1
         }, {
-            "unlock_key": "tempestissimo|1|101",
-            "complete": 100
-        }, {
-            "unlock_key": "nhelv|1|0",
+            "unlock_key": "aterlbus|2|0",
             "complete": 1
         }, {
-            "unlock_key": "conflict|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "espebranch|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "lostcivilization|1|0",
+            "unlock_key": "dreaminattraction|2|0",
             "complete": 1
         }, {
             "unlock_key": "goodtek|2|0",
             "complete": 1
         }, {
+            "unlock_key": "infinityheaven|2|0",
+            "complete": 1
+        }, {
             "unlock_key": "dandelion|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "blrink|2|0",
             "complete": 1
         }, {
             "unlock_key": "suomi|2|0",
@@ -1322,103 +1456,103 @@ def arc_all_get(user_id):
             "unlock_key": "cyberneciacatharsis|1|0",
             "complete": 1
         }, {
-            "unlock_key": "quon|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "chronostasis|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "bookmaker|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "heavensdoor|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "tempestissimo|2|101",
-            "complete": 100
-        }, {
-            "unlock_key": "cyaegha|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "axiumcrisis|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "blrink|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "rise|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "cyanine|1|0",
-            "complete": 1
-        }, {
             "unlock_key": "corpssansorganes|0|0",
             "complete": 1
         }, {
             "unlock_key": "vector|1|0",
             "complete": 1
         }, {
-            "unlock_key": "infinityheaven|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "essenceoftwilight|1|0",
-            "complete": 1
-        }, {
             "unlock_key": "conflict|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "singularity|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "harutopia|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "cyberneciacatharsis|2|0",
             "complete": 1
         }, {
             "unlock_key": "ignotus|1|0",
             "complete": 1
         }, {
-            "unlock_key": "nirvluce|1|0",
-            "complete": 1
-        }, {
             "unlock_key": "monochromeprincess|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "lethaeus|1|0",
             "complete": 1
         }, {
             "unlock_key": "clotho|1|0",
             "complete": 1
         }, {
-            "unlock_key": "aterlbus|2|0",
+            "unlock_key": "heavensdoor|1|0",
             "complete": 1
         }, {
-            "unlock_key": "dreaminattraction|2|0",
+            "unlock_key": "chronostasis|1|0",
             "complete": 1
         }, {
-            "unlock_key": "solitarydream|1|0",
+            "unlock_key": "lethaeus|2|0",
             "complete": 1
         }, {
-            "unlock_key": "ringedgenesis|1|0",
+            "unlock_key": "amazingmightyyyy|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "aegleseeker|0|103",
+            "complete": 1
+        }, {
+            "unlock_key": "buchigireberserker|2|3|ouroboros|2",
+            "complete": 1
+        }, {
+            "unlock_key": "oshamascramble|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "gothiveofra|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "linearaccelerator|2|0",
             "complete": 1
         }, {
             "unlock_key": "corpssansorganes|1|0",
             "complete": 1
         }, {
-            "unlock_key": "buchigireberserker|2|0",
+            "unlock_key": "worldexecuteme|1|0",
             "complete": 1
         }, {
             "unlock_key": "bookmaker|1|0",
             "complete": 1
         }, {
-            "unlock_key": "heavensdoor|2|0",
+            "unlock_key": "fractureray|0|101",
+            "complete": 100
+        }, {
+            "unlock_key": "singularity|1|0",
             "complete": 1
         }, {
-            "unlock_key": "genesis|2|0",
+            "unlock_key": "blaster|1|0",
             "complete": 1
         }, {
-            "unlock_key": "halcyon|2|0",
+            "unlock_key": "rise|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "axiumcrisis|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "tempestissimo|2|101",
+            "complete": 100
+        }, {
+            "unlock_key": "solitarydream|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "aegleseeker|1|103",
+            "complete": 103
+        }, {
+            "unlock_key": "amazingmightyyyy|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "cyaegha|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "linearaccelerator|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "tempestissimo|1|101",
+            "complete": 100
+        }, {
+            "unlock_key": "conflict|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "grievouslady|0|101",
+            "complete": 100
+        }, {
+            "unlock_key": "dreaminattraction|1|0",
             "complete": 1
         }, {
             "unlock_key": "saikyostronger|2|3|izana|2",
@@ -1433,56 +1567,26 @@ def arc_all_get(user_id):
             "unlock_key": "felis|1|0",
             "complete": 1
         }, {
+            "unlock_key": "overwhelm|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "toaliceliddell|2|0",
             "complete": 1
         }, {
             "unlock_key": "blrink|1|0",
             "complete": 1
         }, {
-            "unlock_key": "grievouslady|0|101",
-            "complete": 100
-        }, {
-            "unlock_key": "buchigireberserker|2|3|gothiveofra|2",
+            "unlock_key": "heavensdoor|2|0",
             "complete": 1
         }, {
-            "unlock_key": "kanagawa|1|0",
+            "unlock_key": "genesis|2|0",
             "complete": 1
         }, {
-            "unlock_key": "darakunosono|2|0",
+            "unlock_key": "viyellastears|1|0",
             "complete": 1
         }, {
-            "unlock_key": "freefall|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "nirvluce|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "cyanine|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "goodtek|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "buchigireberserker|2|3|ouroboros|2",
-            "complete": 1
-        }, {
-            "unlock_key": "fractureray|0|101",
-            "complete": 100
-        }, {
-            "unlock_key": "blaster|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "dreaminattraction|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "toaliceliddell|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "oshamascramble|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "gothiveofra|2|0",
-            "complete": 1
+            "unlock_key": "aegleseeker|2|103",
+            "complete": 103
         }, {
             "unlock_key": "tiferet|2|0",
             "complete": 1
@@ -1490,11 +1594,8 @@ def arc_all_get(user_id):
             "unlock_key": "grimheart|2|0",
             "complete": 1
         }, {
-            "unlock_key": "amazingmightyyyy|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "lethaeus|2|0",
-            "complete": 1
+            "unlock_key": "aegleseeker|2|3|farawaylight|2",
+            "complete": 10
         }, {
             "unlock_key": "rugie|1|0",
             "complete": 1
@@ -1502,25 +1603,37 @@ def arc_all_get(user_id):
             "unlock_key": "gou|1|0",
             "complete": 1
         }, {
+            "unlock_key": "sheriruth|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "aegleseeker|2|3|paperwitch|2",
+            "complete": 10
+        }, {
             "unlock_key": "sheriruth|1|0",
             "complete": 1
         }, {
-            "unlock_key": "babaroque|2|0",
+            "unlock_key": "aegleseeker|2|3|loschen|2",
+            "complete": 10
+        }, {
+            "unlock_key": "cyberneciacatharsis|2|0",
             "complete": 1
         }, {
-            "unlock_key": "aiueoon|2|0",
+            "unlock_key": "essenceoftwilight|2|0",
             "complete": 1
         }, {
-            "unlock_key": "gloryroad|1|0",
+            "unlock_key": "syro|1|0",
             "complete": 1
         }, {
-            "unlock_key": "cyaegha|1|0",
+            "unlock_key": "anokumene|2|0",
             "complete": 1
         }, {
-            "unlock_key": "amazingmightyyyy|2|0",
+            "unlock_key": "freefall|1|0",
             "complete": 1
         }, {
-            "unlock_key": "anokumene|1|0",
+            "unlock_key": "darakunosono|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "nirvluce|2|0",
             "complete": 1
         }]
 

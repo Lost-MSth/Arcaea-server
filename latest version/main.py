@@ -10,6 +10,7 @@ import server.setme
 import server.arcscore
 import web.login
 import web.index
+import api.api_main
 import server.arcworld
 import server.arcdownload
 import server.arcpurchase
@@ -20,6 +21,95 @@ import sys
 
 app = Flask(__name__)
 wsgi_app = app.wsgi_app
+
+os.chdir(sys.path[0])  # 更改工作路径，以便于愉快使用相对路径
+
+app.config.from_mapping(SECRET_KEY=Config.SECRET_KEY)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.register_blueprint(web.login.bp)
+app.register_blueprint(web.index.bp)
+app.register_blueprint(api.api_main.bp)
+
+log_dict = {
+    'version': 1,
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi', 'error_file']
+    },
+    'handlers': {
+        'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'
+        },
+        "error_file": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "maxBytes": 1024 * 1024,
+            "backupCount": 1,
+            "encoding": "utf-8",
+            "level": "ERROR",
+            "formatter": "default",
+            "filename": "./log/error.log"
+        }
+    },
+    'formatters': {
+        'default': {
+            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+        }
+    }
+}
+if Config.ALLOW_LOG_INFO:
+    log_dict['root']['handlers'] = ['wsgi', 'info_file', 'error_file']
+    log_dict['handlers']['info_file'] = {
+        "class": "logging.handlers.RotatingFileHandler",
+        "maxBytes": 1024 * 1024,
+        "backupCount": 1,
+        "encoding": "utf-8",
+        "level": "INFO",
+        "formatter": "default",
+        "filename": "./log/info.log"
+    }
+
+dictConfig(log_dict)
+
+if not server.init.check_before_run(app):
+    app.logger.error('Something wrong. The server will not run.')
+    input('Press ENTER key to exit.')
+    sys.exit()
+
+app.logger.info("Start to initialize data in 'songfile' table...")
+try:
+    error = server.arcdownload.initialize_songfile()
+except:
+    error = 'Something wrong.'
+if error:
+    app.logger.warning(error)
+else:
+    app.logger.info('Complete!')
+
+
+def add_url_prefix(url, strange_flag=False):
+    # 给url加前缀，返回字符串
+    if not url or not Config.GAME_API_PREFIX:
+        return Config.GAME_API_PREFIX + url
+
+    prefix = Config.GAME_API_PREFIX
+    if prefix[0] != '/':
+        prefix = '/' + prefix
+    if prefix[-1] == '/':
+        prefix = prefix[:-1]
+
+    if url[0] != '/':
+        r = '/' + url
+    else:
+        r = url
+
+    if strange_flag and prefix.count('/') >= 1:  # 为了方便处理双斜杠
+        t = prefix[::-1]
+        t = t[t.find('/')+1:]
+        prefix = t[::-1]
+
+    return prefix + r
 
 
 def error_return(error_code):  # 错误返回
@@ -74,6 +164,7 @@ def error_return(error_code):  # 错误返回
 @app.route('/')
 def hello():
     return "Hello World!"
+# 自定义路径
 
 
 @app.route('/favicon.ico', methods=['GET'])  # 图标
@@ -85,7 +176,7 @@ def favicon():
     return app.send_static_file('favicon.ico')
 
 
-@app.route('/latte/13/auth/login', methods=['POST'])  # 登录接口
+@app.route(add_url_prefix('/auth/login'), methods=['POST'])  # 登录接口
 def login():
     headers = request.headers
     id_pwd = headers['Authorization']
@@ -96,7 +187,8 @@ def login():
     else:
         device_id = 'low_version'
 
-    token, error_code = server.auth.arc_login(name, password, device_id)
+    token, error_code = server.auth.arc_login(
+        name, password, device_id, request.remote_addr)
     if not error_code:
         r = {"success": True, "token_type": "Bearer"}
         r['access_token'] = token
@@ -105,27 +197,28 @@ def login():
         return error_return(error_code)
 
 
-@app.route('/latte/13/user/', methods=['POST'])  # 注册接口
+@app.route(add_url_prefix('/user/'), methods=['POST'])  # 注册接口
 def register():
     name = request.form['name']
     password = request.form['password']
+    email = request.form['email']
     if 'device_id' in request.form:
         device_id = request.form['device_id']
     else:
         device_id = 'low_version'
 
     user_id, token, error_code = server.auth.arc_register(
-        name, password, device_id)
+        name, password, device_id, email, request.remote_addr)
     if user_id is not None:
         r = {"success": True, "value": {
             'user_id': user_id, 'access_token': token}}
         return jsonify(r)
     else:
-        return error_return(error_code)  # 应该是101，用户名被占用，毕竟电子邮箱没记录
+        return error_return(error_code)
 
 
 # 集成式请求，没想到什么好办法处理，就先这样写着
-@app.route('/latte/13/compose/aggregate', methods=['GET'])
+@app.route(add_url_prefix('/compose/aggregate'), methods=['GET'])
 @server.auth.auth_required(request)
 def aggregate(user_id):
     calls = request.args.get('calls')
@@ -136,7 +229,7 @@ def aggregate(user_id):
     return jsonify(r)
 
 
-@app.route('/latte/13/user/me/character', methods=['POST'])  # 角色切换
+@app.route(add_url_prefix('/user/me/character'), methods=['POST'])  # 角色切换
 @server.auth.auth_required(request)
 def character_change(user_id):
     character_id = request.form['character']
@@ -155,7 +248,8 @@ def character_change(user_id):
         return error_return(108)
 
 
-@app.route('/latte/<path:path>/toggle_uncap', methods=['POST'])  # 角色觉醒切换
+# 角色觉醒切换
+@app.route(add_url_prefix('/<path:path>/toggle_uncap', True), methods=['POST'])
 @server.auth.auth_required(request)
 def character_uncap(user_id, path):
     while '//' in path:
@@ -174,7 +268,7 @@ def character_uncap(user_id, path):
         return error_return(108)
 
 
-@app.route('/latte/13/friend/me/add', methods=['POST'])  # 加好友
+@app.route(add_url_prefix('/friend/me/add'), methods=['POST'])  # 加好友
 @server.auth.auth_required(request)
 def add_friend(user_id):
     friend_code = request.form['friend_code']
@@ -200,7 +294,7 @@ def add_friend(user_id):
         return error_return(401)
 
 
-@app.route('/latte/13/friend/me/delete', methods=['POST'])  # 删好友
+@app.route(add_url_prefix('/friend/me/delete'), methods=['POST'])  # 删好友
 @server.auth.auth_required(request)
 def delete_friend(user_id):
     friend_id = int(request.form['friend_id'])
@@ -222,7 +316,8 @@ def delete_friend(user_id):
         return error_return(401)
 
 
-@app.route('/latte/13/score/song/friend', methods=['GET'])  # 好友排名，默认最多50
+# 好友排名，默认最多50
+@app.route(add_url_prefix('/score/song/friend'), methods=['GET'])
 @server.auth.auth_required(request)
 def song_score_friend(user_id):
     song_id = request.args.get('song_id')
@@ -237,7 +332,7 @@ def song_score_friend(user_id):
         return error_return(108)
 
 
-@app.route('/latte/13/score/song/me', methods=['GET'])  # 我的排名，默认最多20
+@app.route(add_url_prefix('/score/song/me'), methods=['GET'])  # 我的排名，默认最多20
 @server.auth.auth_required(request)
 def song_score_me(user_id):
     song_id = request.args.get('song_id')
@@ -252,7 +347,7 @@ def song_score_me(user_id):
         return error_return(108)
 
 
-@app.route('/latte/13/score/song', methods=['GET'])  # TOP20
+@app.route(add_url_prefix('/score/song'), methods=['GET'])  # TOP20
 @server.auth.auth_required(request)
 def song_score_top(user_id):
     song_id = request.args.get('song_id')
@@ -267,7 +362,7 @@ def song_score_top(user_id):
         return error_return(108)
 
 
-@app.route('/latte/13/score/song', methods=['POST'])  # 成绩上传
+@app.route(add_url_prefix('/score/song'), methods=['POST'])  # 成绩上传
 @server.auth.auth_required(request)
 def song_score_post(user_id):
     song_token = request.form['song_token']
@@ -306,7 +401,8 @@ def song_score_post(user_id):
         return error_return(108)
 
 
-@app.route('/latte/13/score/token', methods=['GET'])  # 成绩上传所需的token，显然我不想验证
+# 成绩上传所需的token，显然我不想验证
+@app.route(add_url_prefix('/score/token'), methods=['GET'])
 def score_token():
     return jsonify({
         "success": True,
@@ -317,7 +413,7 @@ def score_token():
 
 
 # 世界模式成绩上传所需的token，无验证
-@app.route('/latte/13/score/token/world', methods=['GET'])
+@app.route(add_url_prefix('/score/token/world'), methods=['GET'])
 @server.auth.auth_required(request)
 def score_token_world(user_id):
     args = request.args
@@ -332,7 +428,7 @@ def score_token_world(user_id):
     })
 
 
-@app.route('/latte/13/user/me/save', methods=['GET'])  # 从云端同步
+@app.route(add_url_prefix('/user/me/save'), methods=['GET'])  # 从云端同步
 @server.auth.auth_required(request)
 def cloud_get(user_id):
     r = server.arcscore.arc_all_get(user_id)
@@ -345,7 +441,7 @@ def cloud_get(user_id):
         return error_return(108)
 
 
-@app.route('/latte/13/user/me/save', methods=['POST'])  # 向云端同步
+@app.route(add_url_prefix('/user/me/save'), methods=['POST'])  # 向云端同步
 @server.auth.auth_required(request)
 def cloud_post(user_id):
     scores_data = request.form['scores_data']
@@ -366,7 +462,7 @@ def cloud_post(user_id):
     })
 
 
-@app.route('/latte/13/purchase/me/redeem', methods=['POST'])  # 兑换码
+@app.route(add_url_prefix('/purchase/me/redeem'), methods=['POST'])  # 兑换码
 @server.auth.auth_required(request)
 def redeem(user_id):
     code = request.form['code']
@@ -388,7 +484,7 @@ def redeem(user_id):
 
 
 # 礼物确认
-@app.route('/latte/13/present/me/claim/<present_id>', methods=['POST'])
+@app.route(add_url_prefix('/present/me/claim/<present_id>'), methods=['POST'])
 @server.auth.auth_required(request)
 def claim_present(user_id, present_id):
     flag = server.arcpurchase.claim_user_present(user_id, present_id)
@@ -400,7 +496,8 @@ def claim_present(user_id, present_id):
         return error_return(108)
 
 
-@app.route('/latte/13/purchase/me/item', methods=['POST'])  # 购买，world模式boost
+# 购买，world模式boost
+@app.route(add_url_prefix('/purchase/me/item'), methods=['POST'])
 @server.auth.auth_required(request)
 def prog_boost(user_id):
     re = {"success": False}
@@ -417,20 +514,19 @@ def prog_boost(user_id):
     return jsonify(re)
 
 
-@app.route('/latte/13/purchase/me/pack', methods=['POST'])  # 曲包和单曲购买
+@app.route(add_url_prefix('/purchase/me/pack'), methods=['POST'])  # 曲包和单曲购买
 @server.auth.auth_required(request)
 def pack(user_id):
     if 'pack_id' in request.form:
-        return jsonify(server.arcpurchase.buy_pack(user_id, request.form['pack_id']))
+        return jsonify(server.arcpurchase.buy_thing(user_id, request.form['pack_id'], 'pack'))
     if 'single_id' in request.form:
-        return jsonify(server.arcpurchase.buy_single(user_id, request.form['single_id']))
+        return jsonify(server.arcpurchase.buy_thing(user_id, request.form['single_id'], 'single'))
 
-    return jsonify({
-        "success": True
-    })
+    return jsonify({"success": True})
 
 
-@app.route('/latte/13/purchase/bundle/single', methods=['GET'])  # 单曲购买信息获取
+# 单曲购买信息获取
+@app.route(add_url_prefix('/purchase/bundle/single'), methods=['GET'])
 def single():
     return jsonify({
         "success": True,
@@ -438,7 +534,7 @@ def single():
     })
 
 
-@app.route('/latte/13/world/map/me', methods=['GET'])  # 获得世界模式信息，所有地图
+@app.route(add_url_prefix('/world/map/me'), methods=['GET'])  # 获得世界模式信息，所有地图
 @server.auth.auth_required(request)
 def world_all(user_id):
     return jsonify({
@@ -451,7 +547,7 @@ def world_all(user_id):
     })
 
 
-@app.route('/latte/13/world/map/me/', methods=['POST'])  # 进入地图
+@app.route(add_url_prefix('/world/map/me/'), methods=['POST'])  # 进入地图
 @server.auth.auth_required(request)
 def world_in(user_id):
     map_id = request.form['map_id']
@@ -461,7 +557,8 @@ def world_in(user_id):
     })
 
 
-@app.route('/latte/13/world/map/me/<map_id>', methods=['GET'])  # 获得单个地图完整信息
+# 获得单个地图完整信息
+@app.route(add_url_prefix('/world/map/me/<map_id>'), methods=['GET'])
 @server.auth.auth_required(request)
 def world_one(user_id, map_id):
     server.arcworld.change_user_current_map(user_id, map_id)
@@ -475,7 +572,7 @@ def world_one(user_id, map_id):
     })
 
 
-@app.route('/latte/13/serve/download/me/song', methods=['GET'])  # 歌曲下载
+@app.route(add_url_prefix('/serve/download/me/song'), methods=['GET'])  # 歌曲下载
 @server.auth.auth_required(request)
 def download_song(user_id):
     song_ids = request.args.getlist('sid')
@@ -511,7 +608,8 @@ def download(file_path):
         return error_return(108)
 
 
-@app.route('/latte/<path:path>', methods=['POST'])  # 三个设置，写在最后降低优先级
+# 三个设置，写在最后降低优先级
+@app.route(add_url_prefix('/<path:path>', True), methods=['POST'])
 @server.auth.auth_required(request)
 def sys_set(user_id, path):
     set_arg = path[10:]
@@ -523,69 +621,6 @@ def sys_set(user_id, path):
 
 
 def main():
-    os.chdir(sys.path[0])  # 更改工作路径，以便于愉快使用相对路径
-    app.config.from_mapping(SECRET_KEY=Config.SECRET_KEY)
-    app.config['SESSION_TYPE'] = 'filesystem'
-    app.register_blueprint(web.login.bp)
-    app.register_blueprint(web.index.bp)
-
-    log_dict = {
-        'version': 1,
-        'root': {
-            'level': 'INFO',
-            'handlers': ['wsgi', 'error_file']
-        },
-        'handlers': {
-            'wsgi': {
-                'class': 'logging.StreamHandler',
-                'stream': 'ext://flask.logging.wsgi_errors_stream',
-                'formatter': 'default'
-            },
-            "error_file": {
-                "class": "logging.handlers.RotatingFileHandler",
-                "maxBytes": 1024 * 1024,
-                "backupCount": 1,
-                "encoding": "utf-8",
-                "level": "ERROR",
-                "formatter": "default",
-                "filename": "./log/error.log"
-            }
-        },
-        'formatters': {
-            'default': {
-                'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
-            }
-        }
-    }
-    if Config.ALLOW_LOG_INFO:
-        log_dict['root']['handlers'] = ['wsgi', 'info_file', 'error_file']
-        log_dict['handlers']['info_file'] = {
-            "class": "logging.handlers.RotatingFileHandler",
-            "maxBytes": 1024 * 1024,
-            "backupCount": 1,
-            "encoding": "utf-8",
-            "level": "INFO",
-            "formatter": "default",
-            "filename": "./log/info.log"
-        }
-
-    dictConfig(log_dict)
-
-    if not server.init.check_before_run(app):
-        app.logger.error('Something wrong. The server will not run.')
-        input('Press ENTER key to exit.')
-        sys.exit()
-
-    app.logger.info("Start to initialize data in 'songfile' table...")
-    try:
-        error = server.arcdownload.initialize_songfile()
-    except:
-        error = 'Something wrong.'
-    if error:
-        app.logger.warning(error)
-    else:
-        app.logger.info('Complete!')
-
     if Config.SSL_CERT and Config.SSL_KEY:
         app.run(Config.HOST, Config.PORT, ssl_context=(
             Config.SSL_CERT, Config.SSL_KEY))

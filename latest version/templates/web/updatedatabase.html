@@ -18,4 +18,26 @@
     Uploadable files: arcaea_database.db & arcsong.db<br />
     Data that does not exist in the new database will be added and the existing duplicate data will also be changed.
 </div>
+<br />
+<hr />
+<form action="/web/updatedatabase/refreshsonghash" method="post">
+    <div class="title">Refresh songs' hash</div>
+    <br />
+    <input type="submit" value="Refresh">
+
+    <div class="content">这里可以刷新储存在数据库中的songs文件夹下所有文件的Hash值。目的是应对歌曲谱面文件的更新。</div>
+    <div class="content">Here you can refresh the hash values of all the files stored in the songs folder in the
+        database. The purpose is to deal with the updating of songs' files.</div>
+</form>
+<br />
+<hr />
+<form action="/web/updatedatabase/refreshsongrating" method="post">
+    <div class="title">Refresh songs' rating</div>
+    <br />
+    <input type="submit" value="Refresh">
+
+    <div class="content">这里可以刷新数据库中所有成绩的评分。目的是应对歌曲谱面定数的更新。</div>
+    <div class="content">Here you can refresh the ratings of all scores in the database. The purpose is to deal
+        with the updating of songs' chart consts.</div>
+</form>
 {% endblock %}

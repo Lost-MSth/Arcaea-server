@@ -10,6 +10,7 @@ import time
 import server.arcscore
 import os
 import json
+from server.arcdownload import initialize_songfile
 
 UPLOAD_FOLDER = 'database'
 ALLOWED_EXTENSIONS = {'db'}
@@ -274,6 +275,30 @@ def update_database():
         if error:
             flash(error)
 
+    return render_template('web/updatedatabase.html')
+
+
+@bp.route('/updatedatabase/refreshsonghash', methods=['POST'])
+@login_required
+def update_song_hash():
+    # 更新数据库内谱面文件hash值
+    error = initialize_songfile()
+    if error:
+        flash(error)
+    else:
+        flash('数据刷新成功 Success refresh data.')
+    return render_template('web/updatedatabase.html')
+
+
+@bp.route('/updatedatabase/refreshsongrating', methods=['POST'])
+@login_required
+def update_song_rating():
+    # 更新所有分数的rating
+    error = server.arcscore.refresh_all_score_rating()
+    if error:
+        flash(error)
+    else:
+        flash('数据刷新成功 Success refresh data.')
     return render_template('web/updatedatabase.html')
 
 

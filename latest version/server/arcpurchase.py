@@ -1,4 +1,5 @@
 from server.sql import Connect
+import server.info
 import time
 import json
 
@@ -67,49 +68,55 @@ def buy_item(c, user_id, price):
     return True, ticket - price
 
 
-def buy_pack(user_id, pack_id):
-    # 曲包购买，返回字典
-    re = {"success": False}
-    with Connect() as c:
-        c.execute('''select price from item where item_id = :a''',
-                  {'a': pack_id})
-        price = c.fetchone()
-        if price:
-            price = price[0]
-        else:
-            price = 0
+def buy_thing(user_id, item_id, item_type):
+    # 购买物品接口，返回字典
+    success_flag = False
+    ticket = 0
+    packs = []
+    singles = []
+    characters = []
 
-        flag, ticket = buy_item(c, user_id, price)
+    with Connect() as c:
+        c.execute('''select is_available, price, orig_price, discount_from, discount_to from item where item_id=:a and type=:b''',
+                  {'a': item_id, 'b': item_type})
+        x = c.fetchone()
+        price = 0
+        flag = False
+        if x:
+            is_available = x[0]
+            price = x[1]
+            orig_price = x[2]
+            discount_from = x[3]
+            discount_to = x[4]
+
+            if not is_available:
+                return False
+
+            now = int(time.time() * 1000)
+            if not(discount_from <= now <= discount_to):
+                price = orig_price
+
+            flag, ticket = buy_item(c, user_id, price)
 
         if flag:
-            c.execute('''insert into user_item values(:a,:b,'pack')''',
-                      {'a': user_id, 'b': pack_id})
+            c.execute('''insert into user_item values(:a,:b,:c)''',
+                      {'a': user_id, 'b': item_id, 'c': item_type})
 
-            re = {"success": True}
+            success_flag = True
 
-    return re
+        packs = server.info.get_user_packs(c, user_id)
+        singles = server.info.get_user_singles(c, user_id)
+        characters = server.info.get_user_characters(c, user_id)
 
-
-def buy_single(user_id, single_id):
-    # 单曲购买，返回字典
-    re = {"success": False}
-    with Connect() as c:
-        c.execute('''select price from item where item_id = :a''',
-                  {'a': single_id})
-        price = c.fetchone()
-        if price:
-            price = price[0]
-        else:
-            price = 0
-
-        flag, ticket = buy_item(c, user_id, price)
-
-        if flag:
-            c.execute('''insert into user_item values(:a,:b,'single')''',
-                      {'a': user_id, 'b': single_id})
-            re = {"success": True}
-
-    return re
+    return {
+        "success": success_flag,
+        "value": {'user_id': user_id,
+                  'ticket': ticket,
+                  'packs': packs,
+                  'singles': singles,
+                  'characters': characters
+                  }
+    }
 
 
 def get_prog_boost(user_id):

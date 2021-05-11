@@ -118,12 +118,16 @@ def get_user_friend(c, user_id):
                         is_char_uncapped = int2b(z[0])
                         is_char_uncapped_override = int2b(z[1])
 
+                rating = y[5]
+                if int2b(y[10]):
+                    rating = -1
+
                 s.append({
                     "is_mutual": is_mutual,
                     "is_char_uncapped_override": is_char_uncapped_override,
                     "is_char_uncapped": is_char_uncapped,
                     "is_skill_sealed": int2b(y[7]),
-                    "rating": y[5],
+                    "rating": rating,
                     "join_date": int(y[3]),
                     "character": character,
                     "recent_score": get_recent_score(c, i[0]),
@@ -162,16 +166,34 @@ def get_user_packs(c, user_id):
     return re
 
 
-def get_value_0(c, user_id):
-    # 构造value id=0的数据，返回字典
+def get_user_characters(c, user_id):
+    # 获取用户所拥有角色，返回列表
+
+    c.execute('''select character_id from user_char where user_id = :user_id''',
+              {'user_id': user_id})
+
+    x = c.fetchall()
+    characters = []
+
+    if x:
+        for i in x:
+            characters.append(i[0])
+
+    return characters
+
+
+def get_user_me(c, user_id):
+    # 构造user/me的数据，返回字典
     c.execute('''select * from user where user_id = :x''', {'x': user_id})
     x = c.fetchone()
     r = {}
     if x is not None:
         user_character = get_user_character(c, user_id)
+        # 下面没有使用get_user_characters函数是为了节省一次查询
         characters = []
         for i in user_character:
             characters.append(i['character_id'])
+
         prog_boost = 0
         if x[27] and x[27] != 0:
             prog_boost = 300
@@ -199,7 +221,7 @@ def get_value_0(c, user_id):
              "max_stamina_ts": 1586274871917,
              "stamina": 12,
              "world_unlocks": ["scenery_chap1", "scenery_chap2", "scenery_chap3", "scenery_chap4", "scenery_chap5"],
-             "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano"],
+             "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano", "vandalism", "nexttoyou3", "lostcivilization3"],
              "singles": get_user_singles(c, user_id),
              "packs": get_user_packs(c, user_id),
              "characters": characters,
@@ -207,7 +229,8 @@ def get_value_0(c, user_id):
              "recent_score": get_recent_score(c, user_id),
              "max_friend": 50,
              "rating": x[5],
-             "join_date": int(x[3])
+             "join_date": int(x[3]),
+             "global_rank": 114514
              }
 
     return r
@@ -220,7 +243,7 @@ def arc_aggregate_small(user_id):
         r = {"success": True,
              "value": [{
                  "id": 0,
-                 "value": get_value_0(c, user_id)
+                 "value": get_user_me(c, user_id)
              }]}
 
     return r
@@ -233,7 +256,7 @@ def arc_aggregate_big(user_id):
         r = {"success": True,
              "value": [{
                  "id": 0,
-                 "value": get_value_0(c, user_id)
+                 "value": get_user_me(c, user_id)
              }, {
                  "id": 1,
                  "value": server.arcpurchase.get_item(c, 'pack')

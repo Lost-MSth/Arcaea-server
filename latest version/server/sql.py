@@ -29,3 +29,52 @@ class Connect():
                 traceback.format_exception(exc_type, exc_val, exc_tb))
 
         return True
+
+class Sql():
+
+    @staticmethod
+    def select(c, table_name, target_column=[], limit=-1, offset=0, query={}, sort=[]):
+        # 执行查询单句sql语句，返回fetchall数据
+        # 使用准确查询，且在单表内
+
+        sql = 'select '
+        sql_dict = {}
+        if len(target_column) >= 2:
+            sql += target_column[0]
+            for i in range(1, len(target_column)):
+                sql += ',' + target_column[i]
+            sql += ' from ' + table_name
+        elif len(target_column) == 1:
+            sql += target_column[0] + ' from ' + table_name
+        else:
+            sql += '* from ' + table_name
+
+        where_field = []
+        where_value = []
+        for i in query:
+            where_field.append(i)
+            where_value.append(query[i])
+
+        if where_field and where_value:
+            sql += ' where '
+            sql += where_field[0] + '=:' + where_field[0]
+            sql_dict[where_field[0]] = where_value[0]
+            if len(where_field) >= 2:
+                for i in range(1, len(where_field)):
+                    sql_dict[where_field[i]] = where_value[i]
+                    sql += ' and ' + where_field[i] + '=:' + where_field[i]
+
+        if sort:
+            sql += ' order by ' + sort[0]['column'] + ' ' + sort[0]['order']
+            if len(sort) >= 2:
+                for i in range(1, len(sort)):
+                    sql += ', ' + sort[i]['column'] + ' ' + sort[i]['order']
+
+        if limit >= 0:
+            sql += ' limit :limit offset :offset'
+            sql_dict['limit'] = limit
+            sql_dict['offset'] = offset
+
+        c.execute(sql, sql_dict)
+
+        return c.fetchall()

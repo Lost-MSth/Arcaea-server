@@ -195,6 +195,11 @@ def update_database():
                 update_one_table(c1, c2, 'user_present')
                 update_one_table(c1, c2, 'redeem')
                 update_one_table(c1, c2, 'user_redeem')
+                update_one_table(c1, c2, 'role')
+                update_one_table(c1, c2, 'user_role')
+                update_one_table(c1, c2, 'power')
+                update_one_table(c1, c2, 'role_power')
+                update_one_table(c1, c2, 'api_auth')
 
                 update_user_char(c2)
 

@@ -1,0 +1,78 @@
+{
+	"map_id": "byd_lostcivilization",
+	"is_legacy": false,
+	"chapter": 1001,
+	"available_from": -1,
+	"available_to": 9999999999999,
+	"is_repeatable": false,
+	"require_id": "lostcivilization2",
+	"require_type": "chart_unlock",
+	"coordinate": "-650,-900",
+	"is_beyond": true,
+	"stamina_cost": 3,
+	"beyond_health": 250,
+	"character_affinity": [0, 1],
+	"affinity_multiplier": [1.9, 1.9],
+	"step_count": 7,
+	"custom_bg": "",
+	"curr_position": 0,
+	"curr_capture": 0,
+	"is_locked": false,
+	"steps": [{
+		"map_id": "byd_lostcivilization",
+		"position": 0,
+		"capture": 85
+	}, {
+		"map_id": "byd_lostcivilization",
+		"position": 1,
+		"capture": 5,
+		"items": [{
+			"type": "core",
+			"id": "core_generic",
+			"amount": 1
+		}]
+	}, {
+		"map_id": "byd_lostcivilization",
+		"position": 2,
+		"capture": 5,
+		"items": [{
+			"type": "core",
+			"id": "core_generic",
+			"amount": 1
+		}]
+	}, {
+		"map_id": "byd_lostcivilization",
+		"position": 3,
+		"capture": 5,
+		"items": [{
+			"type": "core",
+			"id": "core_generic",
+			"amount": 1
+		}]
+	}, {
+		"map_id": "byd_lostcivilization",
+		"position": 4,
+		"capture": 100,
+		"items": [{
+			"type": "core",
+			"id": "core_generic",
+			"amount": 1
+		}]
+	}, {
+		"map_id": "byd_lostcivilization",
+		"position": 5,
+		"capture": 50,
+		"items": [{
+			"type": "fragment",
+			"amount": 525
+		}]
+	}, {
+		"map_id": "byd_lostcivilization",
+		"position": 6,
+		"capture": 0,
+		"items": [{
+			"id": "lostcivilization3",
+			"type": "world_song"
+		}]
+	}]
+}

@@ -1,12 +1,12 @@
 import hashlib
 import time
-import server.arcworld
 from server.sql import Connect
 import functools
 from setting import Config
+from flask import jsonify
 
 
-def arc_login(name: str, password: str, device_id: str):  # 登录判断
+def arc_login(name: str, password: str, device_id: str, ip: str):  # 登录判断
     # 查询数据库中的user表，验证账号密码，返回并记录token，多返回个error code
     # token采用user_id和时间戳连接后hash生成（真的是瞎想的，没用bear）
     # 密码和token的加密方式为 SHA-256
@@ -43,8 +43,8 @@ def arc_login(name: str, password: str, device_id: str):  # 登录判断
 
                     if not Config.ALLOW_LOGIN_SAME_DEVICE:
                         if device_id in device_list:  # 对相同设备进行删除
-                            c.execute('''delete from login where login_device=:a''', {
-                                'a': device_id})
+                            c.execute('''delete from login where login_device=:a and user_id=:b''', {
+                                'a': device_id, 'b': user_id})
                             should_delete_num = len(
                                 device_list) + 1 - device_list.count(device_id) - Config.LOGIN_DEVICE_NUMBER_LIMIT
 
@@ -52,8 +52,8 @@ def arc_login(name: str, password: str, device_id: str):  # 登录判断
                         c.execute('''delete from login where rowid in (select rowid from login where user_id=:user_id limit :a);''',
                                   {'user_id': user_id, 'a': int(should_delete_num)})
 
-                c.execute('''insert into login(access_token, user_id, login_device) values(:access_token, :user_id, :device_id)''', {
-                    'user_id': user_id, 'access_token': token, 'device_id': device_id})
+                c.execute('''insert into login values(:access_token, :user_id, :time, :ip, :device_id)''', {
+                    'user_id': user_id, 'access_token': token, 'device_id': device_id, 'time': now, 'ip': ip})
                 error_code = None
             else:
                 # 密码错误
@@ -65,8 +65,8 @@ def arc_login(name: str, password: str, device_id: str):  # 登录判断
     return token, error_code
 
 
-def arc_register(name: str, password: str, device_id: str):  # 注册
-    # 账号注册，只记录hash密码和用户名，生成user_id和user_code，自动登录返回token
+def arc_register(name: str, password: str, device_id: str, email: str, ip: str):  # 注册
+    # 账号注册，记录hash密码、用户名和邮箱，生成user_id和user_code，自动登录返回token
     # token和密码的处理同登录部分
 
     def build_user_code(c):
@@ -107,23 +107,28 @@ def arc_register(name: str, password: str, device_id: str):  # 注册
         c.execute(
             '''select exists(select * from user where name = :name)''', {'name': name})
         if c.fetchone() == (0,):
-            user_code = build_user_code(c)
-            user_id = build_user_id(c)
-            now = int(time.time() * 1000)
-            c.execute('''insert into user(user_id, name, password, join_date, user_code, rating_ptt, 
-            character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, is_hide_rating, favorite_character, max_stamina_notification_enabled, current_map, ticket, prog_boost)
-            values(:user_id, :name, :password, :join_date, :user_code, 0, 0, 0, 0, 0, 0, -1, 0, '', :memories, 0)
-            ''', {'user_code': user_code, 'user_id': user_id, 'join_date': now, 'name': name, 'password': hash_pwd, 'memories': Config.DEFAULT_MEMORIES})
-            c.execute('''insert into recent30(user_id) values(:user_id)''', {
-                'user_id': user_id})
+            c.execute(
+                '''select exists(select * from user where email = :email)''', {'email': email})
+            if c.fetchone() == (0,):
+                user_code = build_user_code(c)
+                user_id = build_user_id(c)
+                now = int(time.time() * 1000)
+                c.execute('''insert into user(user_id, name, password, join_date, user_code, rating_ptt, 
+                character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, is_hide_rating, favorite_character, max_stamina_notification_enabled, current_map, ticket, prog_boost, email)
+                values(:user_id, :name, :password, :join_date, :user_code, 0, 0, 0, 0, 0, 0, -1, 0, '', :memories, 0, :email)
+                ''', {'user_code': user_code, 'user_id': user_id, 'join_date': now, 'name': name, 'password': hash_pwd, 'memories': Config.DEFAULT_MEMORIES, 'email': email})
+                c.execute('''insert into recent30(user_id) values(:user_id)''', {
+                    'user_id': user_id})
 
-            token = hashlib.sha256(
-                (str(user_id) + str(now)).encode("utf8")).hexdigest()
-            c.execute('''insert into login(access_token, user_id, login_device) values(:access_token, :user_id, :device_id)''', {
-                'user_id': user_id, 'access_token': token, 'device_id': device_id})
+                token = hashlib.sha256(
+                    (str(user_id) + str(now)).encode("utf8")).hexdigest()
+                c.execute('''insert into login values(:access_token, :user_id, :time, :ip, :device_id)''', {
+                    'user_id': user_id, 'access_token': token, 'device_id': device_id, 'time': now, 'ip': ip})
 
-            insert_user_char(c, user_id)
-            error_code = 0
+                insert_user_char(c, user_id)
+                error_code = 0
+            else:
+                error_code = 102
         else:
             error_code = 101
 
@@ -166,17 +171,16 @@ def auth_required(request):
         def wrapped_view(*args, **kwargs):
 
             user_id = None
-            with Connect() as c:
-                headers = request.headers
-                if 'Authorization' in headers:
-                    token = headers['Authorization']
-                    token = token[7:]
-                    user_id = token_get_id(token)
+            headers = request.headers
+            if 'Authorization' in headers:
+                token = headers['Authorization']
+                token = token[7:]
+                user_id = token_get_id(token)
 
             if user_id is not None:
                 return view(user_id, *args, **kwargs)
             else:
-                return '''{"success":false,"error_code":108}'''
+                return jsonify({"success": False, "error_code": 108})
 
         return wrapped_view
     return decorator

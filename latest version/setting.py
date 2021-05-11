@@ -16,6 +16,16 @@ class Config():
 
     '''
     --------------------
+    游戏API地址前缀
+    Game API's URL prefix
+    '''
+    GAME_API_PREFIX = '/blockchain/14'
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
     SSL证书路径
     留空则使用HTTP
     SSL certificate path
@@ -55,6 +65,17 @@ class Config():
     If you don't know what it is, please don't modify it.
     '''
     SECRET_KEY = '1145141919810'
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
+    API接口完全控制权限Token，留空则不使用
+    API interface full control permission Token
+    If you don't want to use it, leave it blank.
+    '''
+    API_TOKEN = ''
     '''
     --------------------
     '''

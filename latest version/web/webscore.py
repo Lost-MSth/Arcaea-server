@@ -1,11 +1,11 @@
 import time
 
 
-def get_user_score(c, user_id, limit=-1):
+def get_user_score(c, user_id, limit=-1, offset=0):
     # 返回用户的所有歌曲数据，带排名，返回字典列表
     if limit >= 0:
-        c.execute('''select * from best_score where user_id =:a order by rating DESC limit :b''',
-                  {'a': user_id, 'b': limit})
+        c.execute('''select * from best_score where user_id =:a order by rating DESC limit :b offset :c''',
+                  {'a': user_id, 'b': limit, 'c': offset})
     else:
         c.execute(
             '''select * from best_score where user_id =:a order by rating DESC''', {'a': user_id})
@@ -77,7 +77,7 @@ def get_user(c, user_id):
 
 
 def get_user_recent30(c, user_id):
-    # 获取玩家recent30信息并计算这一部分的ptt，返回字典列表和一个值
+    # 获取玩家recent30信息并计算recent10的ptt，返回字典列表和一个值
     c.execute('''select * from recent30 where user_id=:a''', {'a': user_id})
     sumr = 0
     x = c.fetchone()
