@@ -178,6 +178,11 @@ def favicon():
 
 @app.route(add_url_prefix('/auth/login'), methods=['POST'])  # 登录接口
 def login():
+    if 'AppVersion' in request.headers:  # 版本检查
+        if Config.ALLOW_APPVERSION:
+            if request.headers['AppVersion'] not in Config.ALLOW_APPVERSION:
+                return jsonify({"success": False, "error_code": 5})
+
     headers = request.headers
     id_pwd = headers['Authorization']
     id_pwd = base64.b64decode(id_pwd[6:]).decode()
@@ -199,6 +204,11 @@ def login():
 
 @app.route(add_url_prefix('/user/'), methods=['POST'])  # 注册接口
 def register():
+    if 'AppVersion' in request.headers:  # 版本检查
+        if Config.ALLOW_APPVERSION:
+            if request.headers['AppVersion'] not in Config.ALLOW_APPVERSION:
+                return jsonify({"success": False, "error_code": 5})
+
     name = request.form['name']
     password = request.form['password']
     email = request.form['email']

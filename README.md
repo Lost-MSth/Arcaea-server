@@ -41,6 +41,7 @@ This procedure is mainly used for study and research, and shall not be used for 
 没有以下 We don't have：
 - 服务器安全性保证 Server security assurance
 - 世界模式下的搭档升级、觉醒，以及某些奖励的获取 Partner upgrading, uncapping, and receiving some rewards in the world mode
+- 世界排名 Global rank
 
 可能有问题 There may be problems：
 - Recent 30
@@ -60,24 +61,27 @@ It is just so interesting. What it can do is under exploration.
 ## 更新日志 Update log
 只保留最新版本 Only keep the latest version.
 
-> 提醒：更新时请注意保留原先的数据库，以防数据丢失。使用前请先运行**database_initialize.py**以获得初始数据库。
+> 提醒：更新时请注意保留原先的数据库，以防数据丢失。
 >
 > Tips: When updating, please keep the original database in case of data loss. 
-> Before using, please run **database_initialize.py** to get the initial database.
 
-### Version 2.3.2
-- 适用于Arcaea 3.5.4版本 For Arcaea 3.5.4
+### Version 2.4
+- 适用于Arcaea 3.6.0版本 For Arcaea 3.6.0
 - 更新了歌曲数据库 Update the song database.
-- 新增运行前关键性文件检查 Add checking critical files before running.
-- 新增可下载数据的客户端校验更新 Add client verification update of downloadable data.
-- 新增歌曲成绩的谱面校验 Add checking chart file when submitting the song score.
+- 新搭档 **拉格兰（拉格朗日！）** 已解锁 Unlock the new character **Lagrange**.
+- 新增游戏版本校验 Add game version verification.
+- 新增注册时邮箱记录 Add email recording while registering.
+- 新增登录时IP地址记录 Add IP address recording at login time.
+- 新增了一些设置选项和后台功能 Add some setting options and background functions.
+- 新增数据库自动更新功能 Add database automatic update function.
+- 正在构建API接口 Building API interface.
 - 修复了一些Bug Fix some bugs.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows/Linux/Mac OS/Android
 - Python 3
 - Flask module
-- Charles (optional)
+- Charles, IDA, proxy app... (optional)
 
 <!--
 ## 环境搭建 Environment construction
@@ -87,11 +91,12 @@ It is just so interesting. What it can do is under exploration.
 ## 使用说明 Instruction for use
 [中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E)  
 [English](https://github.com/Lost-MSth/Arcaea-server/wiki/Instruction-for-use)
+-->
 
 ## 注意 Attentions
 [中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E6%B3%A8%E6%84%8F)  
 [English](https://github.com/Lost-MSth/Arcaea-server/wiki/Attentions)
--->
+
 
 ## 鸣谢 Thanks
 歌曲数据库来自 Using song database from

@@ -26,6 +26,18 @@ class Config():
 
     '''
     --------------------
+    允许使用的游戏版本，若为空，则默认全部允许
+    Allowed game versions
+    If it is blank, all are allowed.
+    '''
+    ALLOW_APPVERSION = ['3.5.3', '3.5.3c',
+                        '3.6.0', '3.6.0c', '3.6.1', '3.6.1c']
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
     SSL证书路径
     留空则使用HTTP
     SSL certificate path
