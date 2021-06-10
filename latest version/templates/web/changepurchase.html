@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Change the purchases{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/web/changepurchase" method="post">
+    <div class="title">Add the purchase</div>
+    <label for="purchase_name">Purchase name</label>
+    <input name="purchase_name" id="purchase_name" required>
+    <label for="price">Price</label>
+    <input name="price" id="price">
+    <label for="orig_price">Original price</label>
+    <input name="orig_price" id="orig_price">
+    <label for="discount_from">Discount from</label>
+    <input type="datetime-local" name="discount_from" id="discount_from">
+    <label for="discount_to">Discount to</label>
+    <input type="datetime-local" name="discount_to" id="discount_to">
+    <div class="content">时间填写是一个HTML5控件</div>
+    <div class="content">Time filling is an HTML5 control.</div>
+    <br />
+    <input type="submit" value="Add">
+</form>
+
+<form action="/web/changepurchase/delete" method="post">
+    <div class="title">Delete the purchase</div>
+    <label for="purchase_name">Purchase name</label>
+    <input name="purchase_name" id="purchase_name" required>
+    <br />
+    <input type="submit" value="Delete">
+</form>
+{% endblock %}

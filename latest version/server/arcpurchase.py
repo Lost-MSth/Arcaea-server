@@ -1,5 +1,6 @@
 from server.sql import Connect
-import server.info
+import server.item
+import server.character
 import time
 import json
 
@@ -12,28 +13,37 @@ def int2b(x):
         return True
 
 
-def get_item(c, type='pack'):
+def get_purchase(c, type='pack'):
     # 读取packs内容，返回字典列表
-    c.execute('''select * from item where type = :a''', {'a': type})
+    c.execute(
+        '''select * from purchase where purchase_name in (select purchase_name from purchase_item where type = :a)''', {'a': type})
     x = c.fetchall()
     if not x:
         return []
 
     re = []
     for i in x:
-        r = {"name": i[0],
-             "items": [{
-                 "type": i[1],
-                 "id": i[0],
-                 "is_available": int2b(i[2])
-             }],
-             "price": i[3],
-             "orig_price": i[4]}
+        items = []
+        c.execute(
+            '''select a.* from item a, purchase_item b where a.item_id=b.item_id and a.type=b.type and b.purchase_name=:name''', {'name': i[0]})
+        y = c.fetchall()
+        if y:
+            for j in y:
+                items.append({
+                    "type": j[1],
+                    "id": j[0],
+                    "is_available": int2b(j[2])
+                })
 
-        if i[5] > 0:
-            r['discount_from'] = i[5]
-        if i[6] > 0:
-            r['discount_to'] = i[6]
+        r = {"name": i[0],
+             "items": items,
+             "price": i[1],
+             "orig_price": i[2]}
+
+        if i[3] > 0:
+            r['discount_from'] = i[3]
+        if i[4] > 0:
+            r['discount_to'] = i[4]
 
         re.append(r)
 
@@ -44,7 +54,7 @@ def get_single_purchase():
     # main里面没开数据库，这里写一下代替
     re = []
     with Connect() as c:
-        re = get_item(c, type='single')
+        re = get_purchase(c, type='single')
 
     return re
 
@@ -68,7 +78,7 @@ def buy_item(c, user_id, price):
     return True, ticket - price
 
 
-def buy_thing(user_id, item_id, item_type):
+def buy_thing(user_id, purchase_id):
     # 购买物品接口，返回字典
     success_flag = False
     ticket = 0
@@ -77,36 +87,46 @@ def buy_thing(user_id, item_id, item_type):
     characters = []
 
     with Connect() as c:
-        c.execute('''select is_available, price, orig_price, discount_from, discount_to from item where item_id=:a and type=:b''',
-                  {'a': item_id, 'b': item_type})
+        c.execute('''select price, orig_price, discount_from, discount_to from purchase where purchase_name=:a''',
+                  {'a': purchase_id})
         x = c.fetchone()
         price = 0
         flag = False
         if x:
-            is_available = x[0]
-            price = x[1]
-            orig_price = x[2]
-            discount_from = x[3]
-            discount_to = x[4]
+            price = x[0]
+            orig_price = x[1]
+            discount_from = x[2]
+            discount_to = x[3]
+        else:
+            return {
+                "success": False,
+                "error_code": 501
+            }
 
-            if not is_available:
-                return False
-
+        c.execute(
+            '''select item_id, type from purchase_item where purchase_name=:a''', {'a': purchase_id})
+        x = c.fetchall()
+        if x:
             now = int(time.time() * 1000)
             if not(discount_from <= now <= discount_to):
                 price = orig_price
 
             flag, ticket = buy_item(c, user_id, price)
 
-        if flag:
-            c.execute('''insert into user_item values(:a,:b,:c)''',
-                      {'a': user_id, 'b': item_id, 'c': item_type})
+            if flag:
+                for i in x:
+                    server.item.claim_user_item(c, user_id, i[0], i[1])
 
-            success_flag = True
+                success_flag = True
+        else:
+            return {
+                "success": False,
+                "error_code": 501
+            }
 
-        packs = server.info.get_user_packs(c, user_id)
-        singles = server.info.get_user_singles(c, user_id)
-        characters = server.info.get_user_characters(c, user_id)
+        packs = server.item.get_user_items(c, user_id, 'pack')
+        singles = server.item.get_user_items(c, user_id, 'single')
+        characters = server.character.get_user_characters(c, user_id)
 
     return {
         "success": success_flag,

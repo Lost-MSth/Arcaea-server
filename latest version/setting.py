@@ -30,8 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.5.3', '3.5.3c',
-                        '3.6.0', '3.6.0c', '3.6.1', '3.6.1c']
+    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.6.2', '3.6.2c']
     '''
     --------------------
     '''
@@ -55,6 +54,16 @@ class Config():
     Switch of April Fool's Day
     '''
     IS_APRILFOOLS = True
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
+    世界排名的最大显示数量
+    The largest number of global rank
+    '''
+    WORLD_RANK_MAX = 200
     '''
     --------------------
     '''
@@ -149,6 +158,36 @@ class Config():
     The default amount of memories at the time of user registration
     '''
     DEFAULT_MEMORIES = 0
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
+    是否全解锁搭档
+    If unlocking all partners is enabled
+    '''
+    CHARACTER_FULL_UNLOCK = True
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
+    是否全解锁世界歌曲
+    If unlocking all world songs is enabled
+    '''
+    WORLD_SONG_FULL_UNLOCK = True
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
+    是否全解锁世界场景
+    If unlocking all world scenerys is enabled
+    '''
+    WORLD_SCENERY_FULL_UNLOCK = True
     '''
     --------------------
     '''

@@ -91,13 +91,18 @@ def arc_register(name: str, password: str, device_id: str, email: str, ip: str):
             return 2000001
 
     def insert_user_char(c, user_id):
-        # 为用户添加所有可用角色
-        c.execute('''select * from character''')
+        # 为用户添加初始角色
+        c.execute('''insert into user_char values(?,?,?,?,?,?)''',
+                  (user_id, 0, 1, 0, 0, 0))
+        c.execute('''insert into user_char values(?,?,?,?,?,?)''',
+                  (user_id, 1, 1, 0, 0, 0))
+        c.execute('''select character_id, max_level, is_uncapped from character''')
         x = c.fetchall()
-        if x != []:
+        if x:
             for i in x:
-                c.execute('''insert into user_char values(:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o)''', {
-                          'a': user_id, 'b': i[0], 'c': i[2], 'd': i[3], 'e': i[4], 'f': i[5], 'g': i[6], 'h': i[7], 'i': i[8], 'j': i[9], 'k': i[10], 'l': i[11], 'm': i[12], 'n': i[14], 'o': i[15]})
+                exp = 25000 if i[1] == 30 else 10000
+                c.execute('''insert into user_char_full values(?,?,?,?,?,?)''',
+                          (user_id, i[0], i[1], exp, i[2], 0))
 
     user_id = None
     token = None

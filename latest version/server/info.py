@@ -2,6 +2,8 @@ from server.sql import Connect
 import server.arcworld
 import server.arcpurchase
 import server.arcdownload
+import server.character
+import server.item
 import time
 from setting import Config
 
@@ -46,47 +48,6 @@ def get_recent_score(c, user_id):
     return []
 
 
-def get_user_character(c, user_id):
-    # 得到用户拥有的角色列表，返回列表
-    c.execute('''select * from user_char where user_id = :user_id''',
-              {'user_id': user_id})
-    x = c.fetchall()
-    if x != []:
-        s = []
-        for i in x:
-            char_name = ''
-            c.execute(
-                '''select name from character where character_id = :x''', {'x': i[1]})
-            y = c.fetchone()
-            if y is not None:
-                char_name = y[0]
-            char = {
-                "is_uncapped_override": int2b(i[14]),
-                "is_uncapped": int2b(i[13]),
-                "uncap_cores": [],
-                "char_type": i[12],
-                "skill_id_uncap": i[11],
-                "skill_requires_uncap": int2b(i[10]),
-                "skill_unlock_level": i[9],
-                "skill_id": i[8],
-                "overdrive": i[7],
-                "prog": i[6],
-                "frag": i[5],
-                "level_exp": i[4],
-                "exp": i[3],
-                "level": i[2],
-                "name": char_name,
-                "character_id": i[1]
-            }
-            if i[1] == 21:
-                char["voice"] = [0, 1, 2, 3, 100, 1000, 1001]
-            s.append(char)
-
-        return s
-    else:
-        return []
-
-
 def get_user_friend(c, user_id):
     # 得到用户的朋友列表，返回列表
     c.execute('''select user_id_other from friend where user_id_me = :user_id''', {
@@ -111,8 +72,12 @@ def get_user_friend(c, user_id):
                 is_char_uncapped_override = int2b(y[9])
                 if y[23] != -1:
                     character = y[23]
-                    c.execute('''select is_uncapped, is_uncapped_override from user_char where user_id=:a and character_id=:b''', {
-                              'a': i[0], 'b': character})
+                    if not Config.CHARACTER_FULL_UNLOCK:
+                        c.execute('''select is_uncapped, is_uncapped_override from user_char where user_id=:a and character_id=:b''', {
+                            'a': i[0], 'b': character})
+                    else:
+                        c.execute('''select is_uncapped, is_uncapped_override from user_char_full where user_id=:a and character_id=:b''', {
+                            'a': i[0], 'b': character})
                     z = c.fetchone()
                     if z:
                         is_char_uncapped = int2b(z[0])
@@ -138,61 +103,43 @@ def get_user_friend(c, user_id):
     return s
 
 
-def get_user_singles(c, user_id):
-    # 得到用户的单曲，返回列表
-    c.execute('''select * from user_item where user_id = :user_id and type = "single"''',
-              {'user_id': user_id})
-    x = c.fetchall()
-    if not x:
-        return []
-
-    re = []
-    for i in x:
-        re.append(i[1])
-    return re
-
-
-def get_user_packs(c, user_id):
-    # 得到用户的曲包，返回列表
-    c.execute('''select * from user_item where user_id = :user_id and type = "pack"''',
-              {'user_id': user_id})
-    x = c.fetchall()
-    if not x:
-        return []
-
-    re = []
-    for i in x:
-        re.append(i[1])
-    return re
-
-
-def get_user_characters(c, user_id):
-    # 获取用户所拥有角色，返回列表
-
-    c.execute('''select character_id from user_char where user_id = :user_id''',
-              {'user_id': user_id})
-
-    x = c.fetchall()
-    characters = []
-
-    if x:
-        for i in x:
-            characters.append(i[0])
-
-    return characters
-
-
 def get_user_me(c, user_id):
     # 构造user/me的数据，返回字典
     c.execute('''select * from user where user_id = :x''', {'x': user_id})
     x = c.fetchone()
     r = {}
     if x is not None:
-        user_character = get_user_character(c, user_id)
+        user_character = server.character.get_user_character(c, user_id)
         # 下面没有使用get_user_characters函数是为了节省一次查询
         characters = []
         for i in user_character:
             characters.append(i['character_id'])
+
+        character_id = x[6]
+        if character_id not in characters:
+            character_id = 0
+            c.execute(
+                '''update user set character_id=0 where user_id=?''', (user_id,))
+
+        favorite_character_id = x[23]
+        if favorite_character_id not in characters:
+            favorite_character_id = -1
+            c.execute(
+                '''update user set favorite_character=-1 where user_id=?''', (user_id,))
+
+        c.execute(
+            '''select world_rank_score from user where user_id=?''', (user_id,))
+        y = c.fetchone()
+        if y and y[0]:
+            c.execute(
+                '''select count(*) from user where world_rank_score > ?''', (y[0],))
+            y = c.fetchone()
+            if y and y[0] + 1 <= Config.WORLD_RANK_MAX:
+                world_rank = y[0] + 1
+            else:
+                world_rank = 0
+        else:
+            world_rank = 0
 
         prog_boost = 0
         if x[27] and x[27] != 0:
@@ -203,7 +150,7 @@ def get_user_me(c, user_id):
              "character_stats": user_character,
              "friends": get_user_friend(c, user_id),
              "settings": {
-                 "favorite_character": x[23],
+                 "favorite_character": favorite_character_id,
                  "is_hide_rating": int2b(x[10]),
                  "max_stamina_notification_enabled": int2b(x[24])
              },
@@ -212,7 +159,7 @@ def get_user_me(c, user_id):
              "user_code": x[4],
              "display_name": x[1],
              "ticket": x[26],
-             "character": x[6],
+             "character": character_id,
              "is_locked_name_duplicate": False,
              "is_skill_sealed": int2b(x[7]),
              "current_map": x[25],
@@ -220,17 +167,17 @@ def get_user_me(c, user_id):
              "next_fragstam_ts": -1,
              "max_stamina_ts": 1586274871917,
              "stamina": 12,
-             "world_unlocks": ["scenery_chap1", "scenery_chap2", "scenery_chap3", "scenery_chap4", "scenery_chap5"],
-             "world_songs": ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster", "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano", "vandalism", "nexttoyou3", "lostcivilization3"],
-             "singles": get_user_singles(c, user_id),
-             "packs": get_user_packs(c, user_id),
+             "world_unlocks": server.item.get_user_items(c, user_id, 'world_unlock'),
+             "world_songs": server.item.get_user_items(c, user_id, 'world_song'),
+             "singles": server.item.get_user_items(c, user_id, 'single'),
+             "packs": server.item.get_user_items(c, user_id, 'pack'),
              "characters": characters,
-             "cores": [],
+             "cores": server.item.get_user_cores(c, user_id),
              "recent_score": get_recent_score(c, user_id),
              "max_friend": 50,
              "rating": x[5],
              "join_date": int(x[3]),
-             "global_rank": 114514
+             "global_rank": world_rank
              }
 
     return r
@@ -253,16 +200,23 @@ def arc_aggregate_big(user_id):
     # 返回比较全的用户数据
     r = {"success": False}
     with Connect() as c:
+        # 防止数据库锁
+        id_2 = server.arcdownload.get_all_songs(user_id, url_flag=False)
+        id_5 = {
+            "current_map": server.arcworld.get_current_map(user_id),
+            "user_id": user_id,
+            "maps": server.arcworld.get_world_all(user_id)
+        }
         r = {"success": True,
              "value": [{
                  "id": 0,
                  "value": get_user_me(c, user_id)
              }, {
                  "id": 1,
-                 "value": server.arcpurchase.get_item(c, 'pack')
+                 "value": server.arcpurchase.get_purchase(c, 'pack')
              }, {
                  "id": 2,
-                 "value": server.arcdownload.get_all_songs(user_id, url_flag=False)
+                 "value": id_2
              }, {
                  "id": 3,
                  "value": {
@@ -270,97 +224,7 @@ def arc_aggregate_big(user_id):
                      "stamina_recover_tick": 1800000,
                      "core_exp": 250,
                      "curr_ts": int(time.time())*1000,
-                     "level_steps": [{
-                         "level": 1,
-                         "level_exp": 0
-                     }, {
-                         "level": 2,
-                         "level_exp": 50
-                     }, {
-                         "level": 3,
-                         "level_exp": 100
-                     }, {
-                         "level": 4,
-                         "level_exp": 150
-                     }, {
-                         "level": 5,
-                         "level_exp": 200
-                     }, {
-                         "level": 6,
-                         "level_exp": 300
-                     }, {
-                         "level": 7,
-                         "level_exp": 450
-                     }, {
-                         "level": 8,
-                         "level_exp": 650
-                     }, {
-                         "level": 9,
-                         "level_exp": 900
-                     }, {
-                         "level": 10,
-                         "level_exp": 1200
-                     }, {
-                         "level": 11,
-                         "level_exp": 1600
-                     }, {
-                         "level": 12,
-                         "level_exp": 2100
-                     }, {
-                         "level": 13,
-                         "level_exp": 2700
-                     }, {
-                         "level": 14,
-                         "level_exp": 3400
-                     }, {
-                         "level": 15,
-                         "level_exp": 4200
-                     }, {
-                         "level": 16,
-                         "level_exp": 5100
-                     }, {
-                         "level": 17,
-                         "level_exp": 6100
-                     }, {
-                         "level": 18,
-                         "level_exp": 7200
-                     }, {
-                         "level": 19,
-                         "level_exp": 8500
-                     }, {
-                         "level": 20,
-                         "level_exp": 10000
-                     }, {
-                         "level": 21,
-                         "level_exp": 11500
-                     }, {
-                         "level": 22,
-                         "level_exp": 13000
-                     }, {
-                         "level": 23,
-                         "level_exp": 14500
-                     }, {
-                         "level": 24,
-                         "level_exp": 16000
-                     }, {
-                         "level": 25,
-                         "level_exp": 17500
-                     }, {
-                         "level": 26,
-                         "level_exp": 19000
-                     }, {
-                         "level": 27,
-                         "level_exp": 20500
-                     }, {
-                         "level": 28,
-                         "level_exp": 22000
-                     }, {
-                         "level": 29,
-                         "level_exp": 23500
-                     }, {
-                         "level": 30,
-                         "level_exp": 25000
-                     }],
+                     "level_steps": server.character.get_level_steps(),
                      "world_ranking_enabled": False,
                      "is_byd_chapter_unlocked": True
                  }
@@ -369,11 +233,7 @@ def arc_aggregate_big(user_id):
                  "value": server.arcpurchase.get_user_present(c, user_id)
              }, {
                  "id": 5,
-                 "value": {
-                     "current_map": server.arcworld.get_current_map(user_id),
-                     "user_id": user_id,
-                     "maps": server.arcworld.get_world_all(user_id)
-                 }
+                 "value": id_5
              }
              ]}
 

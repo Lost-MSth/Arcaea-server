@@ -161,17 +161,18 @@ def update_one_table(c1, c2, table_name):
 
 def update_user_char(c):
     # 用character数据更新user_char
-    c.execute('''select * from character''')
+    c.execute('''select character_id, max_level, is_uncapped from character''')
     x = c.fetchall()
     c.execute('''select user_id from user''')
     y = c.fetchall()
     if x and y:
         for j in y:
             for i in x:
-                c.execute('''delete from user_char where user_id=:a and character_id=:b''', {
+                c.execute('''delete from user_char_full where user_id=:a and character_id=:b''', {
                           'a': j[0], 'b': i[0]})
-                c.execute('''insert into user_char values(:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n,:o)''', {
-                    'a': j[0], 'b': i[0], 'c': i[2], 'd': i[3], 'e': i[4], 'f': i[5], 'g': i[6], 'h': i[7], 'i': i[8], 'j': i[9], 'k': i[10], 'l': i[11], 'm': i[12], 'n': i[14], 'o': i[15]})
+                exp = 25000 if i[1] == 30 else 10000
+                c.execute('''insert into user_char_full values(?,?,?,?,?,?)''',
+                          (j[0], i[0], i[1], exp, i[2], 0))
 
 
 def update_database():
@@ -189,6 +190,8 @@ def update_database():
                 update_one_table(c1, c2, 'user_world')
                 update_one_table(c1, c2, 'item')
                 update_one_table(c1, c2, 'user_item')
+                update_one_table(c1, c2, 'purchase')
+                update_one_table(c1, c2, 'purchase_item')
                 update_one_table(c1, c2, 'user_save')
                 update_one_table(c1, c2, 'login')
                 update_one_table(c1, c2, 'present')
@@ -201,7 +204,8 @@ def update_database():
                 update_one_table(c1, c2, 'role_power')
                 update_one_table(c1, c2, 'api_auth')
 
-                update_user_char(c2)
+                update_one_table(c1, c2, 'user_char')
+                update_user_char(c2)  # 更新user_char_full
 
         os.remove('database/old_arcaea_database.db')
 
@@ -249,30 +253,54 @@ def unlock_user_item(c, user_id):
 
 
 def get_all_item():
-    # 所有购买数据查询
+    # 所有物品数据查询
     with Connect() as c:
         c.execute('''select * from item''')
         x = c.fetchall()
         re = []
         if x:
             for i in x:
+                re.append({'item_id': i[0],
+                           'type': i[1],
+                           'is_available': int2b(i[2])
+                           })
+
+    return re
+
+
+def get_all_purchase():
+    # 所有购买数据查询
+    with Connect() as c:
+        c.execute('''select * from purchase''')
+        x = c.fetchall()
+        re = []
+        if x:
+            for i in x:
+
                 discount_from = None
                 discount_to = None
 
-                if i[5] and i[5] >= 0:
+                if i[3] and i[3] >= 0:
                     discount_from = time.strftime(
-                        "%Y-%m-%d %H:%M:%S", time.localtime(int(i[5])/1000))
-                if i[6] and i[6] >= 0:
+                        "%Y-%m-%d %H:%M:%S", time.localtime(int(i[3])/1000))
+                if i[4] and i[4] >= 0:
                     discount_to = time.strftime(
-                        "%Y-%m-%d %H:%M:%S", time.localtime(int(i[6])//1000))
+                        "%Y-%m-%d %H:%M:%S", time.localtime(int(i[4])//1000))
 
-                re.append({'item_id': i[0],
-                           'type': i[1],
-                           'is_available': int2b(i[2]),
-                           'price': i[3],
-                           'orig_price': i[4],
+                c.execute(
+                    '''select * from purchase_item where purchase_name=?''', (i[0],))
+                y = c.fetchall()
+                items = []
+                if y:
+                    for j in y:
+                        items.append({'item_id': j[1], 'type': j[2]})
+
+                re.append({'purchase_name': i[0],
+                           'price': i[1],
+                           'orig_price': i[2],
                            'discount_from': discount_from,
-                           'discount_to': discount_to
+                           'discount_to': discount_to,
+                           'items': items
                            })
 
     return re
@@ -476,7 +504,7 @@ def ban_one_user(c, user_id):
 
 def clear_user_score(c, user_id):
     # 清除用户所有成绩，包括best_score和recent30，以及recent数据，但不包括云端存档
-    c.execute('''update user set rating_ptt=0, song_id='', difficulty=0, score=0, shiny_perfect_count=0, perfect_count=0, near_count=0, miss_count=0, health=0, time_played=0, rating=0 where user_id=:a''',
+    c.execute('''update user set rating_ptt=0, song_id='', difficulty=0, score=0, shiny_perfect_count=0, perfect_count=0, near_count=0, miss_count=0, health=0, time_played=0, rating=0, world_rank_score=0 where user_id=:a''',
               {'a': user_id})
     c.execute('''delete from best_score where user_id=:a''', {'a': user_id})
     c.execute('''delete from recent30 where user_id=:a''', {'a': user_id})

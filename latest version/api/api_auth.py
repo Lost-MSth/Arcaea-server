@@ -89,11 +89,10 @@ def role_required(request, power=[]):
                 return jsonify({'status': 401, 'code': -1, 'data': {}, 'msg': 'No Token'})
 
             user = User()
-            if power == []:
-                if Config.API_TOKEN == request.headers['Token'] and Config.API_TOKEN != '':
-                    user.user_id = 0
-                else:
-                    return jsonify({'status': 403, 'code': -1, 'data': {}, 'msg': 'No permission'})
+            if Config.API_TOKEN == request.headers['Token'] and Config.API_TOKEN != '':
+                user.user_id = 0
+            elif power == []:
+                return jsonify({'status': 403, 'code': -1, 'data': {}, 'msg': 'No permission'})
             else:
                 with Connect() as c:
                     user.user_id = api_token_get_id(

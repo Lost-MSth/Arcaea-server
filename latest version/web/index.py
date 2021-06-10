@@ -192,10 +192,10 @@ def all_song():
             for i in x:
                 posts.append({'song_id': i[0],
                               'name_en': i[1],
-                              'rating_pst': defnum(i[12]),
-                              'rating_prs': defnum(i[13]),
-                              'rating_ftr': defnum(i[14]),
-                              'rating_byn': defnum(i[15])
+                              'rating_pst': defnum(i[13]),
+                              'rating_prs': defnum(i[14]),
+                              'rating_ftr': defnum(i[15]),
+                              'rating_byn': defnum(i[16])
                               })
         else:
             error = '没有铺面数据 No song data.'
@@ -387,14 +387,21 @@ def all_character():
             for i in x:
                 posts.append({'character_id': i[0],
                               'name': i[1],
-                              'level': i[2],
-                              'frag': i[5],
-                              'prog': i[6],
-                              'overdrive': i[7],
-                              'skill_id': i[8],
-                              'skill_id_uncap': i[11],
-                              'char_type': i[12],
-                              'is_uncapped': i[14] == 1
+                              'max_level': i[2],
+                              'frag1': i[3],
+                              'prog1': i[4],
+                              'overdrive1': i[5],
+                              'frag20': i[6],
+                              'prog20': i[7],
+                              'overdrive20': i[8],
+                              'frag30': i[9],
+                              'prog30': i[10],
+                              'overdrive30': i[11],
+                              'skill_id': i[12],
+                              'skill_unlock_level': i[13],
+                              'skill_id_uncap': i[15],
+                              'char_type': i[16],
+                              'is_uncapped': i[17] == 1
                               })
         else:
             error = '没有角色数据 No character data.'
@@ -425,27 +432,12 @@ def edit_char():
     try:
         character_id = int(request.form['id'])
         level = request.form['level']
-        frag = request.form['frag']
-        prog = request.form['prog']
-        overdrive = request.form['overdrive']
         skill_id = request.form['skill_id']
         skill_id_uncap = request.form['skill_id_uncap']
         if level:
             level = int(level)
         else:
             level = None
-        if frag:
-            frag = float(frag)
-        else:
-            frag = None
-        if prog:
-            prog = float(prog)
-        else:
-            prog = None
-        if overdrive:
-            overdrive = float(overdrive)
-        else:
-            overdrive = None
     except:
         error = '数据错误 Wrong data.'
         flash(error)
@@ -455,36 +447,28 @@ def edit_char():
         c.execute(
             '''select exists(select * from character where character_id=:a)''', {'a': character_id})
         if c.fetchone() == (1,):
-            if level is None and frag is None and prog is None and overdrive is None and skill_id is None and skill_id_uncap is None:
+            if level is None and skill_id is None and skill_id_uncap is None:
                 error = '无修改 No change.'
             else:
-
-                sql = '''update character set level_exp=25000'''
+                sql = '''update character set '''
                 sql_dict = {'character_id': character_id}
                 if level is not None:
-                    sql += ', level = :level'
+                    sql += 'max_level = :level, '
                     sql_dict['level'] = level
-                if frag is not None:
-                    sql += ', frag = :frag'
-                    sql_dict['frag'] = frag
-                if prog is not None:
-                    sql += ', prog = :prog'
-                    sql_dict['prog'] = prog
-                if overdrive is not None:
-                    sql += ', overdrive = :overdrive'
-                    sql_dict['overdrive'] = overdrive
                 if skill_id is not None:
-                    sql += ', skill_id = :skill_id'
+                    sql += 'skill_id = :skill_id, '
                     if skill_id == 'No_skill':
                         sql_dict['skill_id'] = ''
                     else:
                         sql_dict['skill_id'] = skill_id
                 if skill_id_uncap is not None:
-                    sql += ', skill_id_uncap = :skill_id_uncap'
+                    sql += 'skill_id_uncap = :skill_id_uncap, '
                     if skill_id_uncap == 'No_skill':
                         sql_dict['skill_id_uncap'] = ''
                     else:
                         sql_dict['skill_id_uncap'] = skill_id_uncap
+
+                sql = sql[:-2]
                 sql += ' where character_id = :character_id'
                 c.execute(sql, sql_dict)
                 flash('角色修改成功 Successfully edit the character.')
@@ -665,16 +649,16 @@ def edit_user_purchase():
 @bp.route('/allitem', methods=['GET'])
 @login_required
 def all_item():
-    # 所有购买数据
+    # 所有物品数据
 
     error = None
     posts = web.system.get_all_item()
     if not posts:
-        error = '没有购买数据 No item data.'
+        error = '没有物品数据 No item data.'
 
     if error:
         flash(error)
-        return redirect(url_for('index.all_item'))
+        return render_template('web/allitem.html')
     else:
         return render_template('web/allitem.html', posts=posts)
 
@@ -682,25 +666,103 @@ def all_item():
 @bp.route('/changeitem', methods=['GET', 'POST'])
 @login_required
 def change_item():
-    # 修改购买信息
+    # 添加物品信息
 
     error = None
     if request.method == 'POST':
         try:
             item_id = request.form['item_id']
             item_type = request.form['type']
-            price = request.form['price']
-            orig_price = request.form['orig_price']
-            discount_from = request.form['discount_from']
-            discount_to = request.form['discount_to']
             try:
                 is_available = request.form['is_available']
                 if is_available:
                     is_available = int(is_available)
                 else:
-                    is_available = None
+                    is_available = 0
             except:
-                is_available = None
+                is_available = 0
+
+        except:
+            error = '数据错误 Wrong data.'
+            flash(error)
+            return redirect(url_for('index.change_item'))
+
+        with Connect() as c:
+            c.execute(
+                '''select exists(select * from item where item_id=:a and type=:b)''', {'a': item_id, 'b': item_type})
+            if c.fetchone() == (0,):
+                c.execute('''insert into item values(?,?,?,'')''',
+                          (item_id, item_type, is_available))
+                flash('物品添加成功 Successfully add the item.')
+            else:
+                error = '物品已存在 The item exists.'
+
+        if error:
+            flash(error)
+
+    return render_template('web/changeitem.html')
+
+
+@bp.route('/changeitem/delete', methods=['POST'])
+@login_required
+def change_item_delete():
+    # 删除物品信息
+
+    error = None
+    try:
+        item_id = request.form['item_id']
+        item_type = request.form['type']
+    except:
+        error = '数据错误 Wrong data.'
+        flash(error)
+        return redirect(url_for('index.change_item'))
+
+    with Connect() as c:
+        c.execute(
+            '''select exists(select * from item where item_id=:a and type=:b)''', {'a': item_id, 'b': item_type})
+        if c.fetchone() == (1,):
+            c.execute('''delete from item where item_id=? and type=?''',
+                      (item_id, item_type))
+            flash('物品删除成功 Successfully delete the item.')
+        else:
+            error = '物品不存在 The item does not exist.'
+
+    if error:
+        flash(error)
+
+    return render_template('web/changeitem.html')
+
+
+@bp.route('/allpurchase', methods=['GET'])
+@login_required
+def all_purchase():
+    # 所有购买数据
+
+    error = None
+    posts = web.system.get_all_purchase()
+    if not posts:
+        error = '没有购买数据 No purchase data.'
+
+    if error:
+        flash(error)
+        return render_template('web/allpurchase.html')
+    else:
+        return render_template('web/allpurchase.html', posts=posts)
+
+
+@bp.route('/changepurchase', methods=['GET', 'POST'])
+@login_required
+def change_purchase():
+    # 添加购买信息
+
+    error = None
+    if request.method == 'POST':
+        try:
+            purchase_name = request.form['purchase_name']
+            price = request.form['price']
+            orig_price = request.form['orig_price']
+            discount_from = request.form['discount_from']
+            discount_to = request.form['discount_to']
 
             if price:
                 price = int(price)
@@ -723,43 +785,128 @@ def change_item():
         except:
             error = '数据错误 Wrong data.'
             flash(error)
-            return redirect(url_for('index.change_item'))
+            return redirect(url_for('index.change_purchase'))
 
         with Connect() as c:
             c.execute(
-                '''select exists(select * from item where item_id=:a and type=:b)''', {'a': item_id, 'b': item_type})
-            if c.fetchone() == (1,):
-                if is_available is None and price is None and orig_price is None and not discount_from and not discount_to:
-                    error = '无修改 No change.'
-                else:
-                    sql = '''update item set type=:type'''
-                    sql_dict = {'item_id': item_id, 'type': item_type}
-                    if price is not None:
-                        sql += ', price = :price'
-                        sql_dict['price'] = price
-                    if orig_price is not None:
-                        sql += ', orig_price = :orig_price'
-                        sql_dict['orig_price'] = orig_price
-                    if discount_from is not None:
-                        sql += ', discount_from = :discount_from'
-                        sql_dict['discount_from'] = discount_from
-                    if discount_to is not None:
-                        sql += ', discount_to = :discount_to'
-                        sql_dict['discount_to'] = discount_to
-                    if is_available is not None:
-                        sql += ', is_available = :is_available'
-                        sql_dict['is_available'] = is_available
+                '''select exists(select * from purchase where purchase_name=:a)''', {'a': purchase_name})
+            if c.fetchone() == (0,):
+                c.execute('''insert into purchase values(?,?,?,?,?)''',
+                          (purchase_name, price, orig_price, discount_from, discount_to))
 
-                    sql += ' where item_id = :item_id and type = :type'
-                    c.execute(sql, sql_dict)
-                    flash('购买项目修改成功 Successfully edit the item.')
+                flash('购买项目添加成功 Successfully add the purchase.')
             else:
-                error = '购买项目不存在 The item does not exist.'
+                error = '购买项目已存在 The purchase exists.'
 
         if error:
             flash(error)
 
-    return render_template('web/changeitem.html')
+    return render_template('web/changepurchase.html')
+
+
+@bp.route('/changepurchase/delete', methods=['POST'])
+@login_required
+def change_purchase_delete():
+    # 删除购买信息
+
+    error = None
+    try:
+        purchase_name = request.form['purchase_name']
+    except:
+        error = '数据错误 Wrong data.'
+        flash(error)
+        return redirect(url_for('index.change_purchase'))
+
+    with Connect() as c:
+        c.execute(
+            '''select exists(select * from purchase where purchase_name=:a)''', {'a': purchase_name})
+        if c.fetchone() == (1,):
+            c.execute('''delete from purchase where purchase_name=?''',
+                      (purchase_name,))
+            c.execute('''delete from purchase_item where purchase_name=?''',
+                      (purchase_name,))
+            flash('购买信息删除成功 Successfully delete the purchase.')
+        else:
+            error = '购买信息不存在 The purchase does not exist.'
+
+    if error:
+        flash(error)
+
+    return render_template('web/changepurchase.html')
+
+
+@bp.route('/changepurchaseitem', methods=['GET', 'POST'])
+@login_required
+def change_purchase_item():
+    # 添加购买的物品信息
+
+    error = None
+    if request.method == 'POST':
+        try:
+            purchase_name = request.form['purchase_name']
+            item_id = request.form['item_id']
+            item_type = request.form['type']
+        except:
+            error = '数据错误 Wrong data.'
+            flash(error)
+            return redirect(url_for('index.change_purchase_item'))
+
+        with Connect() as c:
+            c.execute(
+                '''select exists(select * from purchase_item where purchase_name=? and item_id=? and type=?)''', (purchase_name, item_id, item_type))
+            if c.fetchone() == (0,):
+                c.execute(
+                    '''select exists(select * from purchase where purchase_name=?)''', (purchase_name,))
+                if c.fetchone() == (1,):
+                    c.execute(
+                        '''select exists(select * from item where item_id=? and type=?)''', (item_id, item_type))
+                    if c.fetchone() == (1,):
+                        c.execute('''insert into purchase_item values(?,?,?)''',
+                                  (purchase_name, item_id, item_type))
+                        flash('''购买项目的物品添加成功 Successfully add the purchase's item.''')
+                    else:
+                        error = '''物品不存在 The item does not exist.'''
+                else:
+                    error = '''购买项目不存在 The purchase does not exist.'''
+            else:
+                error = '''购买项目的物品已存在 The purchase's item exists.'''
+
+        if error:
+            flash(error)
+
+    return render_template('web/changepurchaseitem.html')
+
+
+@bp.route('/changepurchaseitem/delete', methods=['POST'])
+@login_required
+def change_purchase_item_delete():
+    # 删除购买的物品信息
+
+    error = None
+    try:
+        purchase_name = request.form['purchase_name']
+        item_id = request.form['item_id']
+        item_type = request.form['type']
+    except:
+        error = '数据错误 Wrong data.'
+        flash(error)
+        return redirect(url_for('index.change_purchase_item'))
+
+    with Connect() as c:
+        c.execute(
+            '''select exists(select * from purchase_item where purchase_name=? and item_id=? and type=?)''', (purchase_name, item_id, item_type))
+        if c.fetchone() == (1,):
+            c.execute('''delete from purchase_item where purchase_name=? and item_id=? and type=?''',
+                      (purchase_name, item_id, item_type))
+
+            flash('''购买项目的物品删除成功 Successfully delete the purchase's item.''')
+        else:
+            error = '''购买项目的物品不存在 The purchase's item does not exist.'''
+
+    if error:
+        flash(error)
+
+    return render_template('web/changepurchaseitem.html')
 
 
 @bp.route('/updateusersave', methods=['POST', 'GET'])
@@ -1228,3 +1375,73 @@ def delete_user_score():
         flash(error)
 
     return redirect(url_for('index.ban_user'))
+
+
+@bp.route('/changescore', methods=['GET'])
+@login_required
+def change_score():
+    # 修改成绩页面
+    return render_template('web/changescore.html')
+
+
+@bp.route('/changescore/delete', methods=['POST'])
+@login_required
+def delete_score():
+    # 删除成绩
+
+    song_id = request.form['sid']
+    difficulty = request.form['difficulty']
+    if difficulty.isdigit() or difficulty == '-1':
+        difficulty = int(difficulty)
+
+    name = request.form['name']
+    user_code = request.form['user_code']
+
+    error = 'Unknown error.'
+    flag = [False, False, False]
+    if song_id:
+        flag[0] = True
+    if difficulty != -1:
+        flag[1] = True
+
+    with Connect() as c:
+        if name or user_code:
+            if user_code:
+                c.execute('''select user_id from user where user_code=:a''', {
+                    'a': user_code})
+            else:
+                c.execute(
+                    '''select user_id from user where name=:a''', {'a': name})
+
+            user_id = c.fetchone()
+            if user_id:
+                user_id = user_id[0]
+                flag[2] = True
+            else:
+                error = '玩家不存在 The player does not exist.'
+
+        if flag[0] or flag[1] or flag[2]:
+            sql = '''delete from best_score where '''
+            sql_dict = {}
+            if flag[0]:
+                sql += 'song_id=:song_id and '
+                sql_dict['song_id'] = song_id
+            if flag[1]:
+                sql += 'difficulty=:difficulty and '
+                sql_dict['difficulty'] = difficulty
+            if flag[2]:
+                sql += 'user_id=:user_id '
+                sql_dict['user_id'] = user_id
+            if sql[-4:-1] == 'and':
+                sql = sql[:-4]
+
+            c.execute(sql, sql_dict)
+            flash('成功删除成绩 Successfully delete the scores.')
+            error = None
+        else:
+            error = '输入为空 Null Input.'
+
+    if error:
+        flash(error)
+
+    return redirect(url_for('index.change_score'))

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Change the scores{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<form action="/web/changescore/delete" method="post">
+    <div class="title">Delete the scores</div>
+    <label for="sid">SID of the song</label>
+    <input name="sid" id="sid">
+
+    <label for="difficulty">Difficulty</label>
+    <select name='difficulty' id='difficulty'>
+        <option value="-1" selected>All</option>
+        <option value="0">Past</option>
+        <option value="1">Present</option>
+        <option value="2">Future</option>
+        <option value="3">Beyond</option>
+    </select>
+    <br />
+
+    <label for="name">Arcaea Username</label>
+    <input name="name" id="name">
+    or<br />
+    <label for="user_code">Arcaea User Code</label>
+    <input name="user_code" id="user_code">
+
+    <br />
+    <br />
+    <div class="content">上述三项是查询参数，如果留空，则被认为是全部，都不填则认为是错误的。</div>
+    <div class="content">The above three are query parameters. If they are left blank, they are considered all. However,
+        if you don't fill in all of them, it's wrong.</div>
+    <br />
+    <br />
+
+    <input type="submit" value="Delete">
+</form>
+{% endblock %}

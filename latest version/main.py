@@ -15,6 +15,7 @@ import server.arcworld
 import server.arcdownload
 import server.arcpurchase
 import server.init
+import server.character
 import os
 import sys
 
@@ -278,6 +279,41 @@ def character_uncap(user_id, path):
         return error_return(108)
 
 
+# 角色觉醒
+@app.route(add_url_prefix('/<path:path>/uncap', True), methods=['POST'])
+@server.auth.auth_required(request)
+def character_first_uncap(user_id, path):
+    while '//' in path:
+        path = path.replace('//', '/')
+    character_id = int(path[21:])
+    r = server.character.char_uncap(user_id, character_id)
+    if r is not None:
+        return jsonify({
+            "success": True,
+            "value": r
+        })
+    else:
+        return error_return(108)
+
+
+# 角色使用以太之滴
+@app.route(add_url_prefix('/<path:path>/exp', True), methods=['POST'])
+@server.auth.auth_required(request)
+def character_exp(user_id, path):
+    while '//' in path:
+        path = path.replace('//', '/')
+    character_id = int(path[21:])
+    amount = int(request.form['amount'])
+    r = server.character.char_use_core(user_id, character_id, amount)
+    if r is not None:
+        return jsonify({
+            "success": True,
+            "value": r
+        })
+    else:
+        return error_return(108)
+
+
 @app.route(add_url_prefix('/friend/me/add'), methods=['POST'])  # 加好友
 @server.auth.auth_required(request)
 def add_friend(user_id):
@@ -396,17 +432,11 @@ def song_score_post(user_id):
 
     r, re = server.arcscore.arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count,
                                            perfect_count, near_count, miss_count, health, modifier, beyond_gauge, clear_type)
-    if r is not None:
-        if re:
-            return jsonify({
-                "success": True,
-                "value": re
-            })
-        else:
-            return jsonify({
-                "success": True,
-                "value": {"user_rating": r}
-            })
+    if re:
+        return jsonify({
+            "success": True,
+            "value": re
+        })
     else:
         return error_return(108)
 
@@ -528,9 +558,9 @@ def prog_boost(user_id):
 @server.auth.auth_required(request)
 def pack(user_id):
     if 'pack_id' in request.form:
-        return jsonify(server.arcpurchase.buy_thing(user_id, request.form['pack_id'], 'pack'))
+        return jsonify(server.arcpurchase.buy_thing(user_id, request.form['pack_id']))
     if 'single_id' in request.form:
-        return jsonify(server.arcpurchase.buy_thing(user_id, request.form['single_id'], 'single'))
+        return jsonify(server.arcpurchase.buy_thing(user_id, request.form['single_id']))
 
     return jsonify({"success": True})
 

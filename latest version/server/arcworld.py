@@ -1,5 +1,8 @@
 import json
 from server.sql import Connect
+from setting import Config
+import server.item
+import server.character
 import os
 
 
@@ -152,6 +155,7 @@ def play_world_song(user_id, args):
 
 def climb_step(user_id, map_id, step, prev_capture, prev_position):
     # 爬梯子，返回奖励列表，台阶列表，当前的位置和坐标，图信息
+
     info = get_world_info(map_id)
     step_count = int(info['step_count'])
 
@@ -245,3 +249,155 @@ def climb_step(user_id, map_id, step, prev_capture, prev_position):
         steps.append(x)
 
     return rewards, steps, curr_position, curr_capture, info
+
+
+def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gauge, stamina_multiply=1, fragment_multiply=100, prog_boost_multiply=0):
+    # 成绩上传后世界模式更新，返回字典
+
+    step_times = stamina_multiply * fragment_multiply / \
+        100 * (prog_boost_multiply+100)/100
+    exp_times = stamina_multiply * (prog_boost_multiply+100)/100
+    if prog_boost_multiply != 0:
+        c.execute('''update user set prog_boost = 0 where user_id = :a''', {
+            'a': user_id})
+    c.execute('''delete from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
+        'a': user_id, 'b': song_id, 'c': difficulty})
+
+    c.execute('''select character_id from user where user_id=?''', (user_id,))
+    x = c.fetchone()
+    character_id = x[0] if x else 0
+    c.execute('''select frag1,prog1,overdrive1,frag20,prog20,overdrive20,frag30,prog30,overdrive30 from character where character_id=?''', (character_id,))
+    x = c.fetchone()
+
+    if Config.CHARACTER_FULL_UNLOCK:
+        c.execute('''select level, exp from user_char_full where user_id = :a and character_id = :b''', {
+                  'a': user_id, 'b': character_id})
+    else:
+        c.execute('''select level, exp from user_char where user_id = :a and character_id = :b''', {
+                  'a': user_id, 'b': character_id})
+    y = c.fetchone()
+    if y:
+        level = y[0]
+        exp = y[1]
+    else:
+        level = 1
+        exp = 0
+
+    if x:
+        flag = server.character.calc_char_value(level, x[0], x[3], x[6])
+        prog = server.character.calc_char_value(level, x[1], x[4], x[7])
+        overdrive = server.character.calc_char_value(level, x[2], x[5], x[8])
+    else:
+        flag = 0
+        prog = 0
+        overdrive = 0
+
+    c.execute('''select current_map from user where user_id = :a''', {
+        'a': user_id})
+    map_id = c.fetchone()[0]
+
+    if beyond_gauge == 0:  # 是否是beyond挑战
+        base_step = 2.5 + 2.45*rating**0.5
+        step = base_step * (prog/50) * step_times
+    else:
+        info = get_world_info(map_id)
+        if clear_type == 0:
+            base_step = 8/9 + (rating/1.3)**0.5
+        else:
+            base_step = 8/3 + (rating/1.3)**0.5
+
+        if character_id in info['character_affinity']:
+            affinity_multiplier = info['affinity_multiplier'][info['character_affinity'].index(
+                character_id)]
+        else:
+            affinity_multiplier = 1
+
+        step = base_step * (prog/50) * step_times * affinity_multiplier
+
+    c.execute('''select * from user_world where user_id = :a and map_id =:b''',
+              {'a': user_id, 'b': map_id})
+    y = c.fetchone()
+    rewards, steps, curr_position, curr_capture, info = climb_step(
+        user_id, map_id, step, y[3], y[2])
+    for i in rewards:  # 物品分发
+        for j in i['items']:
+            amount = j['amount'] if 'amount' in j else 1
+            item_id = j['id'] if 'id' in j else ''
+            server.item.claim_user_item(c, user_id, item_id, j['type'], amount)
+    # 角色升级
+    if not Config.CHARACTER_FULL_UNLOCK:
+        exp, level = server.character.calc_level_up(
+            c, user_id, character_id, exp, exp_times*rating*6)
+        c.execute('''update user_char set level=?, exp=? where user_id=? and character_id=?''',
+                  (level, exp, user_id, character_id))
+    else:
+        exp = server.character.LEVEL_STEPS[level]
+
+    if beyond_gauge == 0:
+        re = {
+            "rewards": rewards,
+            "exp": exp,
+            "level": level,
+            "base_progress": base_step,
+            "progress": step,
+            "user_map": {
+                "user_id": user_id,
+                "curr_position": curr_position,
+                "curr_capture": curr_capture,
+                "is_locked": int2b(y[4]),
+                "map_id": map_id,
+                "prev_capture": y[3],
+                "prev_position": y[2],
+                "beyond_health": info['beyond_health'],
+                "steps": steps
+            },
+            "char_stats": {
+                "character_id": character_id,
+                "frag": flag,
+                "prog": prog,
+                "overdrive": overdrive
+            },
+            "current_stamina": 12,
+            "max_stamina_ts": 1586274871917
+        }
+    else:
+        re = {
+            "rewards": rewards,
+            "exp": exp,
+            "level": level,
+            "base_progress": base_step,
+            "progress": step,
+            "user_map": {
+                "user_id": user_id,
+                "curr_position": curr_position,
+                "curr_capture": curr_capture,
+                "is_locked": int2b(y[4]),
+                "map_id": map_id,
+                "prev_capture": y[3],
+                "prev_position": y[2],
+                "beyond_health": info['beyond_health'],
+                "step_count": len(steps)
+            },
+            "char_stats": {
+                "character_id": character_id,
+                "frag": flag,
+                "prog": prog,
+                "overdrive": overdrive
+            },
+            "current_stamina": 12,
+            "max_stamina_ts": 1586274871917
+        }
+
+    if stamina_multiply != 1:
+        re['stamina_multiply'] = stamina_multiply
+    if fragment_multiply != 100:
+        re['fragment_multiply'] = fragment_multiply
+    if prog_boost_multiply != 0:
+        re['prog_boost_multiply'] = prog_boost_multiply
+
+    if curr_position == info['step_count']-1 and info['is_repeatable']:  # 循环图判断
+        curr_position = 0
+    c.execute('''update user_world set curr_position=:a, curr_capture=:b where user_id=:c and map_id=:d''', {
+        'a': curr_position, 'b': curr_capture, 'c': user_id, 'd': map_id})
+
+    return re

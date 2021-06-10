@@ -87,7 +87,7 @@ def users_get(user):
     # 查询全用户信息
 
     limit, offset, query, sort, code = get_query_parameter(request, ['user_id', 'name', 'user_code'], [
-        'user_id', 'name', 'user_code', 'join_date', 'rating_ptt', 'time_played', 'ticket'])
+        'user_id', 'name', 'user_code', 'join_date', 'rating_ptt', 'time_played', 'ticket', 'world_rank_score'])
     if code < 0:
         return jsonify({'status': 200, 'code': code, 'data': {}, 'msg': code_get_msg(code)})
 

@@ -17,14 +17,14 @@ def get_song_info(song_id):
                  'pakset': x[5],
                  'artist': x[6],
                  'date': x[9],
-                 'rating_pst': x[12]/10,
-                 'rating_prs': x[13]/10,
-                 'rating_ftr': x[14]/10,
-                 'rating_byn': x[15]/10,
-                 'difficultly_pst': x[16]/2,
-                 'difficultly_prs': x[17]/2,
-                 'difficultly_ftr': x[18]/2,
-                 'difficultly_byn': x[19]/2
+                 'rating_pst': x[13]/10,
+                 'rating_prs': x[14]/10,
+                 'rating_ftr': x[15]/10,
+                 'rating_byn': x[16]/10,
+                 'difficultly_pst': x[17]/2,
+                 'difficultly_prs': x[18]/2,
+                 'difficultly_ftr': x[19]/2,
+                 'difficultly_byn': x[20]/2
                  }
 
     return r
@@ -45,14 +45,14 @@ def get_songs(limit=-1, offset=0, query={}, sort=[]):
                           'pakset': i[5],
                           'artist': i[6],
                           'date': i[9],
-                          'rating_pst': i[12]/10,
-                          'rating_prs': i[13]/10,
-                          'rating_ftr': i[14]/10,
-                          'rating_byn': i[15]/10,
-                          'difficultly_pst': i[16]/2,
-                          'difficultly_prs': i[17]/2,
-                          'difficultly_ftr': i[18]/2,
-                          'difficultly_byn': i[19]/2
+                          'rating_pst': i[13]/10,
+                          'rating_prs': i[14]/10,
+                          'rating_ftr': i[15]/10,
+                          'rating_byn': i[16]/10,
+                          'difficultly_pst': i[17]/2,
+                          'difficultly_prs': i[18]/2,
+                          'difficultly_ftr': i[19]/2,
+                          'difficultly_byn': i[20]/2
                           })
 
     return r

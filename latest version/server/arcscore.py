@@ -46,14 +46,19 @@ def get_score(c, user_id, song_id, difficulty):
             is_char_uncapped = int2b(y[3])
             if y[4] != -1:
                 character = y[4]
-                c.execute('''select is_uncapped, is_uncapped_override from user_char where user_id=:a and character_id=:b''', {
-                    'a': user_id, 'b': character})
+                if not Config.CHARACTER_FULL_UNLOCK:
+                    c.execute('''select is_uncapped, is_uncapped_override from user_char where user_id=:a and character_id=:b''', {
+                        'a': user_id, 'b': character})
+                else:
+                    c.execute('''select is_uncapped, is_uncapped_override from user_char_full where user_id=:a and character_id=:b''', {
+                        'a': user_id, 'b': character})
                 z = c.fetchone()
                 if z:
                     if z[1] == 0:
                         is_char_uncapped = int2b(z[0])
                     else:
                         is_char_uncapped = False
+
             return {
                 "user_id": x[0],
                 "song_id": x[1],
@@ -273,7 +278,6 @@ def get_user_ptt_float(c, user_id) -> float:
               'a': user_id})
     x = c.fetchall()
     if x != []:
-        n = len(x)
         for i in x:
             sumr += float(i[0])
     c.execute('''select * from recent30 where user_id = :a''', {'a': user_id})
@@ -303,6 +307,54 @@ def get_user_ptt(c, user_id) -> int:
     # 总ptt计算，返回4位整数，向下取整
 
     return int(get_user_ptt_float(c, user_id)*100)
+
+
+def get_user_world_rank(c, user_id) -> int:
+    # 用户世界排名计算，同时返回排名值，如果超过设定最大值，返回0
+
+    with Connect('./database/arcsong.db') as c2:
+        c2.execute(
+            '''select sid, rating_ftr, rating_byn from songs''')
+        x = c2.fetchall()
+    if x:
+        song_list_ftr = [user_id]
+        song_list_byn = [user_id]
+        for i in x:
+            if i[1] > 0:
+                song_list_ftr.append(i[0])
+            if i[2] > 0:
+                song_list_byn.append(i[0])
+
+    if len(song_list_ftr) >= 2:
+        c.execute('''select sum(score) from best_score where user_id=? and difficulty=2 and song_id in ({0})'''.format(
+            ','.join(['?']*(len(song_list_ftr)-1))), tuple(song_list_ftr))
+
+        x = c.fetchone()
+        if x[0] is not None:
+            score_sum = x[0]
+        else:
+            score_sum = 0
+
+    if len(song_list_byn) >= 2:
+        c.execute('''select sum(score) from best_score where user_id=? and difficulty=3 and song_id in ({0})'''.format(
+            ','.join(['?']*(len(song_list_byn)-1))), tuple(song_list_byn))
+
+        x = c.fetchone()
+        if x[0] is not None:
+            score_sum += x[0]
+        else:
+            score_sum += 0
+
+    c.execute('''update user set world_rank_score = :b where user_id = :a''', {
+              'a': user_id, 'b': score_sum})
+
+    c.execute(
+        '''select count(*) from user where world_rank_score > ?''', (score_sum,))
+    x = c.fetchone()
+    if x and x[0] + 1 <= Config.WORLD_RANK_MAX:
+        return x[0] + 1
+    else:
+        return 0
 
 
 def update_recent30(c, user_id, song_id, rating, is_protected):
@@ -433,133 +485,20 @@ def arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count, per
         ptt = get_user_ptt(c, user_id)
         c.execute('''update user set rating_ptt = :a where user_id = :b''', {
             'a': ptt, 'b': user_id})
+
         # 世界模式判断
         c.execute('''select stamina_multiply,fragment_multiply,prog_boost_multiply from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
             'a': user_id, 'b': song_id, 'c': difficulty})
         x = c.fetchone()
-        re = None
         if x:
-            stamina_multiply = x[0]
-            fragment_multiply = x[1]
-            prog_boost_multiply = x[2]
-            step_times = stamina_multiply * fragment_multiply / \
-                100 * (prog_boost_multiply+100)/100
-            exp_times = stamina_multiply * (prog_boost_multiply+100)/100
-            if prog_boost_multiply != 0:
-                c.execute('''update user set prog_boost = 0 where user_id = :a''', {
-                    'a': user_id})
-            c.execute('''delete from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
-                'a': user_id, 'b': song_id, 'c': difficulty})
-            c.execute('''select character_id,frag,prog,overdrive from user_char where user_id = :a and character_id = (select character_id from user where user_id=:a)''', {
-                'a': user_id})
-            y = c.fetchone()
-            if y:
-                character_id = y[0]
-                flag = float(y[1])
-                prog = float(y[2])
-                overdrive = float(y[3])
-            else:
-                character_id = 0
-                flag = 0
-                prog = 0
-                overdrive = 0
+            re = server.arcworld.world_update(
+                c, user_id, song_id, difficulty, rating, clear_type, beyond_gauge, x[0], x[1], x[2])
+            re['global_rank'] = get_user_world_rank(c, user_id)  # 更新世界排名
+            re["user_rating"] = ptt
+        else:
+            re = {'global_rank': get_user_world_rank(
+                c, user_id), 'user_rating': ptt}
 
-            c.execute('''select current_map from user where user_id = :a''', {
-                'a': user_id})
-            map_id = c.fetchone()[0]
-
-            if beyond_gauge == 0:  # 是否是beyond挑战
-                base_step = 2.5 + 2.45*rating**0.5
-                step = base_step * (prog/50) * step_times
-            else:
-                info = server.arcworld.get_world_info(map_id)
-                if clear_type == 0:
-                    base_step = 8/9 + (rating/1.3)**0.5
-                else:
-                    base_step = 8/3 + (rating/1.3)**0.5
-
-                if character_id in info['character_affinity']:
-                    affinity_multiplier = info['affinity_multiplier'][info['character_affinity'].index(
-                        character_id)]
-                else:
-                    affinity_multiplier = 1
-
-                step = base_step * (prog/50) * step_times * affinity_multiplier
-
-            c.execute('''select * from user_world where user_id = :a and map_id =:b''',
-                      {'a': user_id, 'b': map_id})
-            y = c.fetchone()
-            rewards, steps, curr_position, curr_capture, info = server.arcworld.climb_step(
-                user_id, map_id, step, y[3], y[2])
-
-            if beyond_gauge == 0:
-                re = {
-                    "rewards": rewards,
-                    "exp": 25000,
-                    "level": 30,
-                    "base_progress": base_step,
-                    "progress": step,
-                    "user_map": {
-                        "user_id": user_id,
-                        "curr_position": curr_position,
-                        "curr_capture": curr_capture,
-                        "is_locked": int2b(y[4]),
-                        "map_id": map_id,
-                        "prev_capture": y[3],
-                        "prev_position": y[2],
-                        "beyond_health": info['beyond_health'],
-                        "steps": steps
-                    },
-                    "char_stats": {
-                        "character_id": character_id,
-                        "frag": flag,
-                        "prog": prog,
-                        "overdrive": overdrive
-                    },
-                    "current_stamina": 12,
-                    "max_stamina_ts": 1586274871917,
-                    "user_rating": ptt
-                }
-            else:
-                re = {
-                    "rewards": rewards,
-                    "exp": 25000,
-                    "level": 30,
-                    "base_progress": base_step,
-                    "progress": step,
-                    "user_map": {
-                        "user_id": user_id,
-                        "curr_position": curr_position,
-                        "curr_capture": curr_capture,
-                        "is_locked": int2b(y[4]),
-                        "map_id": map_id,
-                        "prev_capture": y[3],
-                        "prev_position": y[2],
-                        "beyond_health": info['beyond_health'],
-                        "step_count": len(steps)
-                    },
-                    "char_stats": {
-                        "character_id": character_id,
-                        "frag": flag,
-                        "prog": prog,
-                        "overdrive": overdrive
-                    },
-                    "current_stamina": 12,
-                    "max_stamina_ts": 1586274871917,
-                    "user_rating": ptt
-                }
-
-            if stamina_multiply != 1:
-                re['stamina_multiply'] = stamina_multiply
-            if fragment_multiply != 100:
-                re['fragment_multiply'] = fragment_multiply
-            if prog_boost_multiply != 0:
-                re['prog_boost_multiply'] = prog_boost_multiply
-
-            if curr_position == info['step_count']-1 and info['is_repeatable']:  # 循环图判断
-                curr_position = 0
-            c.execute('''update user_world set curr_position=:a, curr_capture=:b where user_id=:c and map_id=:d''', {
-                'a': curr_position, 'b': curr_capture, 'c': user_id, 'd': map_id})
     return ptt, re
 
 
@@ -597,16 +536,14 @@ def arc_score_check(user_id, song_id, difficulty, score, shiny_perfect_count, pe
 def refresh_all_score_rating():
     # 刷新所有best成绩的rating
     error = 'Unknown error.'
-    song_data = []
 
     with Connect('./database/arcsong.db') as c:
-        with Connect() as c2:
-            c.execute(
-                '''select sid, rating_pst, rating_prs, rating_ftr, rating_byn from songs''')
-            x = c.fetchall()
+        c.execute(
+            '''select sid, rating_pst, rating_prs, rating_ftr, rating_byn from songs''')
+        x = c.fetchall()
 
     if x:
-        song_list = [i[0] for i in song_data]
+        song_list = [i[0] for i in x]
         with Connect() as c:
             c.execute('''update best_score set rating=0 where song_id not in ({0})'''.format(
                 ','.join(['?']*len(song_list))), tuple(song_list))
@@ -1532,7 +1469,7 @@ def arc_all_get(user_id):
             "complete": 1
         }, {
             "unlock_key": "aegleseeker|1|103",
-            "complete": 103
+            "complete": 1
         }, {
             "unlock_key": "amazingmightyyyy|2|0",
             "complete": 1
@@ -1586,7 +1523,7 @@ def arc_all_get(user_id):
             "complete": 1
         }, {
             "unlock_key": "aegleseeker|2|103",
-            "complete": 103
+            "complete": 1
         }, {
             "unlock_key": "tiferet|2|0",
             "complete": 1
@@ -1635,7 +1572,12 @@ def arc_all_get(user_id):
         }, {
             "unlock_key": "nirvluce|2|0",
             "complete": 1
-        }]
+        },
+            {
+            "unlock_key": "aegleseeker_challenge|0|102",
+            "complete": 1
+        }
+        ]
 
     return {
         "user_id": user_id,
