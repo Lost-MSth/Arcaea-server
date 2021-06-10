@@ -19,6 +19,7 @@ This procedure is mainly used for study and research, and shall not be used for 
 - 多设备登录 Multi device login
 - 成绩上传 Score upload
 - PTT
+- 世界排名 Global rank
 - 排名 Rank
 - 好友系统 Friends
 - 数据同步 Data synchronization
@@ -28,9 +29,7 @@ This procedure is mainly used for study and research, and shall not be used for 
 - 单曲和曲包购买（没啥用） Single songs and song packs purchase(useless)
 - 奖励系统 Present system
 - 兑换码系统 Redeem code system
-- 全角色立绘 All character drawings
-- 角色技能 Character skills
-- 自定义角色属性 Customizable characters attributes
+- 角色系统 Character system
 - 全剧情解锁 Unlock all the stories
 - 后台查询 Background search
 - 后台自定义信息 Customize some things in the background
@@ -40,8 +39,6 @@ This procedure is mainly used for study and research, and shall not be used for 
 
 没有以下 We don't have：
 - 服务器安全性保证 Server security assurance
-- 世界模式下的搭档升级、觉醒，以及某些奖励的获取 Partner upgrading, uncapping, and receiving some rewards in the world mode
-- 世界排名 Global rank
 
 可能有问题 There may be problems：
 - Recent 30
@@ -65,17 +62,26 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss. 
 
-### Version 2.4
-- 适用于Arcaea 3.6.0版本 For Arcaea 3.6.0
+### Version 2.5
+- 适用于Arcaea 3.6.2版本 For Arcaea 3.6.2
 - 更新了歌曲数据库 Update the song database.
-- 新搭档 **拉格兰（拉格朗日！）** 已解锁 Unlock the new character **Lagrange**.
-- 新增游戏版本校验 Add game version verification.
-- 新增注册时邮箱记录 Add email recording while registering.
-- 新增登录时IP地址记录 Add IP address recording at login time.
+- 新增世界排名 Add global rank.
+- 新增世界模式的奖励获取 Add reward acquisition of new world mode.
+- 完善角色系统，包括： Improve the character system, including
+  - 角色升级 Level up
+  - 角色觉醒 Upcapping
+  - 角色核心 Character cores
+  - 世界模式下的数值计算 Numerical calculation in world mode
+  - 某些场景下的角色解锁 Character unlocking in some cases
+
 - 新增了一些设置选项和后台功能 Add some setting options and background functions.
-- 新增数据库自动更新功能 Add database automatic update function.
 - 正在构建API接口 Building API interface.
+- 打算重新写后台界面 Plan to rewrite the background interface.
 - 修复了一些Bug Fix some bugs.
+  - 登录时获取信息的并行计算导致的数据库锁错误 Database lock error caused by parallel computing of getting information during login
+
+> 提醒：由于时间仓促，本版本可能存在较多问题与漏洞，请谨慎使用  
+> Tips: Due to lack of time, this version may have many bugs, please use it with caution.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows/Linux/Mac OS/Android
