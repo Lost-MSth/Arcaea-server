@@ -38,14 +38,14 @@ def get_score(c, user_id, song_id, difficulty):
               {'a': user_id, 'b': song_id, 'c': difficulty})
     x = c.fetchone()
     if x is not None:
-        c.execute('''select name, character_id, is_skill_sealed, is_char_uncapped, favorite_character from user where user_id = :a''', {
+        c.execute('''select name, character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, favorite_character from user where user_id = :a''', {
                   'a': user_id})
         y = c.fetchone()
         if y is not None:
             character = y[1]
             is_char_uncapped = int2b(y[3])
-            if y[4] != -1:
-                character = y[4]
+            if y[5] != -1:
+                character = y[5]
                 if not Config.CHARACTER_FULL_UNLOCK:
                     c.execute('''select is_uncapped, is_uncapped_override from user_char where user_id=:a and character_id=:b''', {
                         'a': user_id, 'b': character})
@@ -58,6 +58,9 @@ def get_score(c, user_id, song_id, difficulty):
                         is_char_uncapped = int2b(z[0])
                     else:
                         is_char_uncapped = False
+            else:
+                if y[4] == 1:
+                    is_char_uncapped = False
 
             return {
                 "user_id": x[0],
@@ -173,6 +176,8 @@ def arc_score_me(user_id, song_id, difficulty, limit=20):
                 x = c.fetchall()
                 if x != []:
                     rank = amount - limit
+                    if rank < 0:
+                        rank = 0
                     for i in x:
                         rank += 1
                         y = get_score(c, i[0], song_id, difficulty)
