@@ -263,9 +263,7 @@ def character_change(user_id):
 @app.route(add_url_prefix('/<path:path>/toggle_uncap', True), methods=['POST'])
 @server.auth.auth_required(request)
 def character_uncap(user_id, path):
-    while '//' in path:
-        path = path.replace('//', '/')
-    character_id = int(path[21:])
+    character_id = int(path[path.find('character')+10:])
     r = server.setme.change_char_uncap(user_id, character_id)
     if r is not None:
         return jsonify({
@@ -283,9 +281,7 @@ def character_uncap(user_id, path):
 @app.route(add_url_prefix('/<path:path>/uncap', True), methods=['POST'])
 @server.auth.auth_required(request)
 def character_first_uncap(user_id, path):
-    while '//' in path:
-        path = path.replace('//', '/')
-    character_id = int(path[21:])
+    character_id = int(path[path.find('character')+10:])
     r = server.character.char_uncap(user_id, character_id)
     if r is not None:
         return jsonify({
@@ -300,9 +296,7 @@ def character_first_uncap(user_id, path):
 @app.route(add_url_prefix('/<path:path>/exp', True), methods=['POST'])
 @server.auth.auth_required(request)
 def character_exp(user_id, path):
-    while '//' in path:
-        path = path.replace('//', '/')
-    character_id = int(path[21:])
+    character_id = int(path[path.find('character')+10:])
     amount = int(request.form['amount'])
     r = server.character.char_use_core(user_id, character_id, amount)
     if r is not None:
@@ -652,7 +646,7 @@ def download(file_path):
 @app.route(add_url_prefix('/<path:path>', True), methods=['POST'])
 @server.auth.auth_required(request)
 def sys_set(user_id, path):
-    set_arg = path[10:]
+    set_arg = path[5:]
     value = request.form['value']
     server.setme.arc_sys_set(user_id, value, set_arg)
     r = server.info.arc_aggregate_small(user_id)
