@@ -282,29 +282,37 @@ def get_user_ptt_float(c, user_id) -> float:
     c.execute('''select rating from best_score where user_id = :a order by rating DESC limit 30''', {
               'a': user_id})
     x = c.fetchall()
-    if x != []:
-        for i in x:
-            sumr += float(i[0])
-    c.execute('''select * from recent30 where user_id = :a''', {'a': user_id})
-    x = c.fetchone()
-    if x is not None:
-        r30 = []
-        s30 = []
-        for i in range(1, 61, 2):
-            if x[i] is not None:
-                r30.append(float(x[i]))
-                s30.append(x[i+1])
-            else:
-                r30.append(0)
-                s30.append('')
-        r30, s30 = (list(t) for t in zip(*sorted(zip(r30, s30), reverse=True)))
-        songs = []
-        i = 0
-        while len(songs) < 10 and i <= 29 and s30[i] != '' and s30[i] is not None:
-            if s30[i] not in songs:
-                sumr += r30[i]
-                songs.append(s30[i])
-            i += 1
+    if not Config.USE_B10_AS_R10:
+        if x != []:
+            for i in x:
+                sumr += float(i[0])
+        c.execute('''select * from recent30 where user_id = :a''', {'a': user_id})
+        x = c.fetchone()
+        if x is not None:
+            r30 = []
+            s30 = []
+            for i in range(1, 61, 2):
+                if x[i] is not None:
+                    r30.append(float(x[i]))
+                    s30.append(x[i+1])
+                else:
+                    r30.append(0)
+                    s30.append('')
+            r30, s30 = (list(t) for t in zip(*sorted(zip(r30, s30), reverse=True)))
+            songs = []
+            i = 0
+            while len(songs) < 10 and i <= 29 and s30[i] != '' and s30[i] is not None:
+                if s30[i] not in songs:
+                    sumr += r30[i]
+                    songs.append(s30[i])
+                i += 1
+    else:
+        if x != []:
+            for i in range(len(x)):
+                t = float(x[i][0])
+                sumr += t
+                if i < 10:
+                    sumr += t
     return sumr/40
 
 
