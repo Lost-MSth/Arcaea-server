@@ -100,6 +100,7 @@ def get_user_friend(c, user_id):
                     "user_id": i[0]
                 })
 
+    s.sort(key=lambda item: item["recent_score"][0]["time_played"] if len(item["recent_score"]) > 0 else 0, reverse=True)
     return s
 
 
