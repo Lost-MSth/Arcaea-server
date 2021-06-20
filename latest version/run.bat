@@ -1,2 +1,2 @@
-cd %~dp0
+cd /d %~dp0
 python -B main.py
