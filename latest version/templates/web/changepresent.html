@@ -14,15 +14,25 @@
     <label for="expire_ts">Expire time</label>
     <input type="datetime-local" name="expire_ts" id="expire_ts" required>
     <br />
-    <div>Items:</div>
-    <label for="fragment">Fragments</label>
-    <input name="fragment" id="fragment">
-    <label for="ticket">Memories</label>
-    <input name="ticket" id="ticket">
 
-    <div class="content">两种奖励只能有一个，另一个请留空。如果都填写，以记忆源点优先。</div>
-    <div class="content">There can only be one of the two kinds of present. Please leave the other one blank. If you
-        fill both, the memories will be given priority.</div>
+    <label for="item_id">ID of the item</label>
+    <input name="item_id" id="item_id" required>
+    <label for="type">Type</label>
+    <div>
+        <select name="type">
+            <option value='single' selected>Single song</option>
+            <option value='world_song'>World song</option>
+            <option value='world_unlock'>World unlock scene</option>
+            <option value='character'>Character</option>
+            <option value='core'>Character core</option>
+            <option value='fragment'>Fragment</option>
+            <option value='memory'>Memory</option>
+        </select>
+    </div>
+    <label for="amount">Amount</label>
+    <input name="amount" id="amount" value="1" required>
+    <br />
+
     <div class="content">时间填写是一个HTML5控件</div>
     <div class="content">Time filling is an HTML5 control.</div>
     <input type="submit" value="Add">

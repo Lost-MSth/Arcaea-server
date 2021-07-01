@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block header %}
-<h1>{% block title %}All items{% endblock %}</h1>
+<h1>{% block title %}All purchases{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
@@ -29,21 +29,21 @@
     <br />
     {% if item['items'] %}<br />
     {% for x in item['items'] %}
-        <span>Item id: </span>
-        <span class="char-num">{{x['item_id']}}</span>
-        <br />
+    <span>Item id: </span>
+    <span class="char-num">{{x['item_id']}}</span>
+    <br />
 
-        <span>Item type: </span>
-        <span class="char-num">{{x['type']}}</span>
-        <br />
+    <span>Item type: </span>
+    <span class="char-num">{{x['type']}}</span>
+    <br />
 
 
 
-        {% if not loop.last %}
-        <br />
-        {% endif %}
-        {% endfor %}
-        {% endif %}
+    {% if not loop.last %}
+    <br />
+    {% endif %}
+    {% endfor %}
+    {% endif %}
 
 </div>
 {% if not loop.last %}

@@ -20,9 +20,27 @@
     <span class="char-num">{{present['description']}}</span>
     <br />
 
-    <span>Items: </span>
-    <span class="char-num" style='white-space:pre'>{{present['items']}}</span>
+    {% if present['items'] %}<br />
+    {% for x in present['items'] %}
+    <span>Item id: </span>
+    <span class="char-num">{{x['item_id']}}</span>
     <br />
+
+    <span>Item type: </span>
+    <span class="char-num">{{x['type']}}</span>
+    <br />
+
+    <span>Amount: </span>
+    <span class="char-num">{{x['amount']}}</span>
+    <br />
+
+
+
+    {% if not loop.last %}
+    <br />
+    {% endif %}
+    {% endfor %}
+    {% endif %}
 
 
 </div>

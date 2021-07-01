@@ -1,5 +1,6 @@
 from setting import Config
 from server.sql import Connect
+import server.info
 import server.item
 import server.setme
 
@@ -212,10 +213,10 @@ def char_use_core(user_id, character_id, amount):
             x = c.fetchone()
             if x:
                 exp, level = calc_level_up(
-                    c, user_id, character_id, x[0], amount*250)
-            c.execute('''update user_char set level=?, exp=? where user_id=? and character_id=?''',
+                    c, user_id, character_id, x[0], amount*server.info.CORE_EXP)
+                c.execute('''update user_char set level=?, exp=? where user_id=? and character_id=?''',
                       (level, exp, user_id, character_id))
-            server.item.claim_user_item(
+                server.item.claim_user_item(
                 c, user_id, 'core_generic', 'core', -amount)
 
         r = {'character': [get_one_character(c, user_id, character_id)]}
@@ -244,10 +245,10 @@ def char_uncap(user_id, character_id):
                 break
 
         if success:
-            for i in x:
-                server.item.claim_user_item(c, user_id, i[1], i[2], -i[3])
             c.execute('''update user_char set is_uncapped=1, is_uncapped_override=0 where user_id=? and character_id=?''',
                       (user_id, character_id))
+            for i in x:
+                server.item.claim_user_item(c, user_id, i[1], i[2], -i[3])
 
         r = {'character': [get_one_character(c, user_id, character_id)]}
         r['cores'] = server.item.get_user_cores(c, user_id)

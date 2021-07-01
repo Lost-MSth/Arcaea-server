@@ -19,7 +19,7 @@ class Config():
     游戏API地址前缀
     Game API's URL prefix
     '''
-    GAME_API_PREFIX = '/blockchain/14'
+    GAME_API_PREFIX = '/kusoatui/15'
     '''
     --------------------
     '''
@@ -30,7 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.6.2', '3.6.2c']
+    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.6.4', '3.6.4c']
     '''
     --------------------
     '''
@@ -96,7 +96,7 @@ class Config():
     API interface full control permission Token
     If you don't want to use it, leave it blank.
     '''
-    API_TOKEN = ''
+    API_TOKEN = '123'
     '''
     --------------------
     '''
@@ -135,9 +135,16 @@ class Config():
     LOGIN_DEVICE_NUMBER_LIMIT = 1
     '''
     是否允许同设备多应用共存登录
+    请注意，这个选项设置为True时，下一个选项将自动变为False
     If logging in from multiple applications on the same device is allowed
+    Note that when this option is set to True, the next option automatically becomes False
     '''
     ALLOW_LOGIN_SAME_DEVICE = False
+    '''
+    24小时内登陆设备数超过最大允许设备数量时，是否自动封号（1天、3天、7天、15天、31天）
+    When the number of login devices exceeds the maximum number of devices allowed to log in Arcaea within 24 hours, whether the account will be automatically banned (1 day, 3 days, 7 days, 15 days, 31 days)
+    '''
+    ALLOW_BAN_MULTIDEVICE_USER_AUTO = True
     '''
     --------------------
     '''

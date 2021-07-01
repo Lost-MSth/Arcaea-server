@@ -22,9 +22,28 @@
     </span>
     <br />
 
-    <span>Items: </span>
-    <span class="char-num" style='white-space:pre'>{{redeem['items']}}</span>
+    {% if redeem['items'] %}<br />
+    {% for x in redeem['items'] %}
+    <span>Item id: </span>
+    <span class="char-num">{{x['item_id']}}</span>
     <br />
+
+    <span>Item type: </span>
+    <span class="char-num">{{x['type']}}</span>
+    <br />
+
+    <span>Amount: </span>
+    <span class="char-num">{{x['amount']}}</span>
+    <br />
+
+
+
+    {% if not loop.last %}
+    <br />
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+
     <div><a href="/web/redeem/{{redeem['code']}}">使用者 Players who have used it.</a></div>
 
 </div>

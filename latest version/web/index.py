@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, url_for
+    Blueprint, flash, redirect, render_template, request, url_for
 )
 from web.login import login_required
 from werkzeug.utils import secure_filename
@@ -418,7 +418,7 @@ def all_character():
 def change_character():
     # 修改角色数据
     skill_ids = ['No_skill', 'gauge_easy', 'note_mirror', 'gauge_hard', 'frag_plus_10_pack_stellights', 'gauge_easy|frag_plus_15_pst&prs', 'gauge_hard|fail_frag_minus_100', 'frag_plus_5_side_light', 'visual_hide_hp', 'frag_plus_5_side_conflict', 'challenge_fullcombo_0gauge', 'gauge_overflow', 'gauge_easy|note_mirror', 'note_mirror', 'visual_tomato_pack_tonesphere',
-                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange']
+                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami']
     return render_template('web/changechar.html', skill_ids=skill_ids)
 
 
@@ -604,7 +604,8 @@ def edit_user_purchase():
             if method == '0':
                 web.system.unlock_all_user_item(c)
             else:
-                c.execute('''delete from user_item''')
+                c.execute(
+                    '''delete from user_item where type in ('pack', 'single')''')
 
             flash("全部用户购买信息修改成功 Successfully edit all the users' purchase information.")
 
@@ -629,8 +630,8 @@ def edit_user_purchase():
                 if method == '0':
                     web.system.unlock_user_item(c, user_id)
                 else:
-                    c.execute('''delete from user_item where user_id=:a''', {
-                        'a': user_id})
+                    c.execute('''delete from user_item where type in ('pack', 'single') and user_id = :user_id''', {
+                        'user_id': user_id})
                 flash('用户购买信息修改成功 Successfully edit the user purchase information.')
 
             else:
@@ -975,16 +976,19 @@ def all_present():
         if x:
             posts = []
             for i in x:
-                items = json.loads(i[2])
-                items_string = ''
-                for j in items:
-                    items_string = items_string + '\n' + \
-                        str(j['id']) + ': ' + str(j['amount'])
+                items = []
+                c.execute(
+                    '''select * from present_item where present_id=?''', (i[0],))
+                y = c.fetchall()
+                for j in y:
+                    if j is not None:
+                        items.append(
+                            {'item_id': j[1], 'type': j[2], 'amount': j[3]})
 
                 posts.append({'present_id': i[0],
                               'expire_ts': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(int(i[1])//1000)),
-                              'items': items_string,
-                              'description': i[3]
+                              'items': items,
+                              'description': i[2]
                               })
         else:
             error = '没有奖励数据 No present data.'
@@ -1010,13 +1014,15 @@ def add_present():
     present_id = request.form['present_id']
     expire_ts = request.form['expire_ts']
     description = request.form['description']
-    fragment = request.form['fragment']
-    ticket = request.form['ticket']
+    item_id = request.form['item_id']
+    item_type = request.form['type']
+    item_amount = request.form['amount']
+
     try:
-        if ticket:
-            ticket = int(ticket)
-        if fragment:
-            fragment = int(fragment)
+        if item_amount:
+            item_amount = int(item_amount)
+        else:
+            item_amount = 1
         expire_ts = int(time.mktime(time.strptime(
             expire_ts, "%Y-%m-%dT%H:%M"))) * 1000
     except:
@@ -1028,18 +1034,8 @@ def add_present():
     if len(description) >= 256:
         description = description[:200]
 
-    items = []
-    if ticket:
-        items.append({'type': 'memory', 'id': 'memory', 'amount': ticket})
-    if fragment:
-        items.append(
-            {'type': 'fragment', 'id': 'fragment', 'amount': fragment})
-    if items == []:
-        flash('奖励为空 No items.')
-        return redirect(url_for('index.change_present'))
-
     message = web.system.add_one_present(
-        present_id, expire_ts, description, json.dumps(items))
+        present_id, expire_ts, description, item_id, item_type, item_amount)
 
     if message:
         flash(message)
@@ -1128,15 +1124,18 @@ def all_redeem():
         if x:
             posts = []
             for i in x:
-                items = json.loads(i[1])
-                items_string = ''
-                for j in items:
-                    items_string = items_string + '\n' + \
-                        str(j['id']) + ': ' + str(j['amount'])
+                items = []
+                c.execute(
+                    '''select * from redeem_item where code=?''', (i[0],))
+                y = c.fetchall()
+                for j in y:
+                    if j is not None:
+                        items.append(
+                            {'item_id': j[1], 'type': j[2], 'amount': j[3]})
 
                 posts.append({'code': i[0],
-                              'items': items_string,
-                              'type': i[2]
+                              'items': items,
+                              'type': i[1]
                               })
         else:
             error = '没有兑换码数据 No redeem code data.'
@@ -1159,48 +1158,39 @@ def change_redeem():
 @login_required
 def add_redeem():
     # 添加兑换码数据
-    print(request.form)
     code = request.form['code']
-    amount = request.form['amount']
-    redeem_type = request.form['type']
-    fragment = request.form['fragment']
-    ticket = request.form['ticket']
+    redeem_amount = request.form['redeem_amount']
+    redeem_type = request.form['redeem_type']
+    item_id = request.form['item_id']
+    item_type = request.form['type']
+    item_amount = request.form['amount']
+
     try:
-        if amount:
-            amount = int(amount)
-        if ticket:
-            ticket = int(ticket)
-        if fragment:
-            fragment = int(fragment)
+        if item_amount:
+            item_amount = int(item_amount)
+        else:
+            item_amount = 1
+        if redeem_amount:
+            redeem_amount = int(redeem_amount)
     except:
         flash('数据错误 Wrong data.')
         return redirect(url_for('index.change_redeem'))
 
-    items = []
-    if ticket:
-        items.append({'type': 'memory', 'id': 'memory', 'amount': ticket})
-    if fragment:
-        items.append(
-            {'type': 'fragment', 'id': 'fragment', 'amount': fragment})
-    if items == []:
-        flash('奖励为空 No items.')
-        return redirect(url_for('index.change_redeem'))
-
-    if code and not amount:
+    if code and not redeem_amount:
         if len(code) > 20 or len(code) < 10:
             flash('兑换码长度不合适 Inappropriate length of redeem code.')
             return redirect(url_for('index.change_redeem'))
 
         message = web.system.add_one_redeem(
-            code, redeem_type, json.dumps(items))
-    elif amount and not code:
-        if amount <= 0 or amount > 1000:
+            code, redeem_type, item_id, item_type, item_amount)
+    elif redeem_amount and not code:
+        if redeem_amount <= 0 or redeem_amount > 1000:
             flash('数量错误 Wrong amount.')
             return redirect(url_for('index.change_redeem'))
 
         message = web.system.add_some_random_redeem(
-            amount, redeem_type, json.dumps(items))
-    elif amount and code:
+            redeem_amount, redeem_type, item_id, item_type, item_amount)
+    elif redeem_amount and code:
         flash('只能使用一种添加方式 Only one add method can be used.')
         return redirect(url_for('index.change_redeem'))
     else:

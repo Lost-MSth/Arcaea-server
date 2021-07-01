@@ -177,7 +177,7 @@ def update_user_char(c):
 
 def update_database():
     # 将old数据库不存在数据加入到新数据库上，并删除old数据库
-    # 对于arcaea_datebase.db，更新一些表，并用character数据更新user_char
+    # 对于arcaea_datebase.db，更新一些表，并用character数据更新user_char_full
     # 对于arcsong.db，更新songs
     if os.path.isfile("database/old_arcaea_database.db") and os.path.isfile("database/arcaea_database.db"):
         with Connect('./database/old_arcaea_database.db') as c1:
@@ -196,8 +196,10 @@ def update_database():
                 update_one_table(c1, c2, 'login')
                 update_one_table(c1, c2, 'present')
                 update_one_table(c1, c2, 'user_present')
+                update_one_table(c1, c2, 'present_item')
                 update_one_table(c1, c2, 'redeem')
                 update_one_table(c1, c2, 'user_redeem')
+                update_one_table(c1, c2, 'redeem_item')
                 update_one_table(c1, c2, 'role')
                 update_one_table(c1, c2, 'user_role')
                 update_one_table(c1, c2, 'power')
@@ -205,6 +207,10 @@ def update_database():
                 update_one_table(c1, c2, 'api_auth')
 
                 update_one_table(c1, c2, 'user_char')
+
+                # ---You can comment this line by yourself, if you want to only keep newest official character data.
+                update_one_table(c1, c2, 'character')
+                # ---
                 update_user_char(c2)  # 更新user_char_full
 
         os.remove('database/old_arcaea_database.db')
@@ -224,14 +230,16 @@ def unlock_all_user_item(c):
 
     c.execute('''select user_id from user''')
     x = c.fetchall()
-    c.execute('''select item_id, type from item''')
+    c.execute('''select item_id, type from purchase_item''')
     y = c.fetchall()
-    c.execute('''delete from user_item''')
     if x and y:
         for i in x:
             for j in y:
-                c.execute('''insert into user_item values(:a,:b,:c)''', {
+                c.execute('''select exists(select * from user_item where user_id=:a and item_id=:b and type=:c)''', {
                     'a': i[0], 'b': j[0], 'c': j[1]})
+                if c.fetchone() == (0,) and j[1] != 'character':
+                    c.execute('''insert into user_item values(:a,:b,:c,1)''', {
+                        'a': i[0], 'b': j[0], 'c': j[1]})
 
     return
 
@@ -239,14 +247,14 @@ def unlock_all_user_item(c):
 def unlock_user_item(c, user_id):
     # 解锁用户购买
 
-    c.execute('''select item_id, type from item''')
+    c.execute('''select item_id, type from purchase_item''')
     y = c.fetchall()
 
     for j in y:
         c.execute('''select exists(select * from user_item where user_id=:a and item_id=:b and type=:c)''', {
             'a': user_id, 'b': j[0], 'c': j[1]})
-        if c.fetchone() == (0,):
-            c.execute('''insert into user_item values(:a,:b,:c)''', {
+        if c.fetchone() == (0,) and j[1] != 'character':
+            c.execute('''insert into user_item values(:a,:b,:c,1)''', {
                 'a': user_id, 'b': j[0], 'c': j[1]})
 
     return
@@ -360,7 +368,7 @@ def update_all_save(c):
     return
 
 
-def add_one_present(present_id, expire_ts, description, items):
+def add_one_present(present_id, expire_ts, description, item_id, item_type, item_amount):
     # 添加一个奖励
 
     message = None
@@ -368,9 +376,16 @@ def add_one_present(present_id, expire_ts, description, items):
         c.execute(
             '''select exists(select * from present where present_id=:a)''', {'a': present_id})
         if c.fetchone() == (0,):
-            c.execute('''insert into present values(:a,:b,:c,:d)''', {
-                'a': present_id, 'b': expire_ts, 'c': items, 'd': description})
-            message = '添加成功 Successfully add it.'
+            c.execute(
+                '''select exists(select * from item where item_id=? and type=?)''', (item_id, item_type))
+            if c.fetchone() == (1,):
+                c.execute('''insert into present values(:a,:b,:c)''', {
+                    'a': present_id, 'b': expire_ts, 'c': description})
+                c.execute('''insert into present_item values(?,?,?,?)''',
+                          (present_id, item_id, item_type, item_amount))
+                message = '添加成功 Successfully add it.'
+            else:
+                message = '物品不存在 The item does not exist.'
         else:
             message = '奖励已存在 The present exists.'
 
@@ -388,6 +403,8 @@ def delete_one_present(present_id):
             c.execute('''delete from present where present_id = :a''',
                       {'a': present_id})
             c.execute('''delete from user_present where present_id =:a''', {
+                'a': present_id})
+            c.execute('''delete from present_item where present_id =:a''', {
                 'a': present_id})
             message = '删除成功 Successfully delete it.'
         else:
@@ -431,7 +448,7 @@ def deliver_all_user_present(c, present_id):
     return
 
 
-def add_one_redeem(code, redeem_type, items):
+def add_one_redeem(code, redeem_type, item_id, item_type, item_amount):
     # 添加一个兑换码
 
     message = None
@@ -439,28 +456,41 @@ def add_one_redeem(code, redeem_type, items):
         c.execute(
             '''select exists(select * from redeem where code=:a)''', {'a': code})
         if c.fetchone() == (0,):
-            c.execute('''insert into redeem values(:a,:b,:c)''', {
-                'a': code, 'b': items, 'c': redeem_type})
-            message = '添加成功 Successfully add it.'
+            c.execute(
+                '''select exists(select * from item where item_id=? and type=?)''', (item_id, item_type))
+            if c.fetchone() == (1,):
+                c.execute('''insert into redeem values(:a,:c)''', {
+                    'a': code, 'c': redeem_type})
+                c.execute('''insert into redeem_item values(?,?,?,?)''',
+                          (code, item_id, item_type, item_amount))
+                message = '添加成功 Successfully add it.'
+            else:
+                message = '物品不存在 The item does not exist.'
         else:
             message = '兑换码已存在 The redeem code exists.'
 
     return message
 
 
-def add_some_random_redeem(amount, redeem_type, items):
+def add_some_random_redeem(amount, redeem_type, item_id, item_type, item_amount):
     # 随机生成一堆10位的兑换码
 
     message = None
     with Connect() as c:
+        c.execute(
+            '''select exists(select * from item where item_id=? and type=?)''', (item_id, item_type))
+        if c.fetchone() == (0,):
+            return '物品不存在 The item does not exist.'
         i = 1
         while i <= amount:
             code = random_str()
             c.execute(
                 '''select exists(select * from redeem where code=:a)''', {'a': code})
             if c.fetchone() == (0,):
-                c.execute('''insert into redeem values(:a,:b,:c)''',
-                          {'a': code, 'b': items, 'c': redeem_type})
+                c.execute('''insert into redeem values(:a,:c)''',
+                          {'a': code, 'c': redeem_type})
+                c.execute('''insert into redeem_item values(?,?,?,?)''',
+                          (code, item_id, item_type, item_amount))
                 i += 1
 
         message = '添加成功 Successfully add it.'
@@ -479,6 +509,8 @@ def delete_one_redeem(code):
             c.execute('''delete from redeem where code = :a''', {'a': code})
             c.execute(
                 '''delete from user_redeem where code =:a''', {'a': code})
+            c.execute(
+                '''delete from redeem_item where code =:a''', {'a': code})
             message = '删除成功 Successfully delete it.'
         else:
             message = '兑换码不存在 The redeem code does not exist.'

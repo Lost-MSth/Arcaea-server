@@ -11,27 +11,40 @@
     <input name="code" id="code">
     <div>Or</div>
     <div>随机批量生成 Batch generation at random</div>
-    <label for="amount">Amount</label>
-    <input name="amount" id="amount">
+    <label for="redeem_amount">Redeem code amount</label>
+    <input name="redeem_amount" id="redeem_amount">
     <br />
-    <div>Type:
+    <div>Redeem code type:
         <br />
         <br />
-        <label><input type="radio" name="type" value="0" checked>仅可使用一次 It can only be used once.</label>
+        <label><input type="radio" name="redeem_type" value="0" checked>仅可使用一次 It can only be used once.</label>
         <br />
-        <label><input type="radio" name="type" value="1">每个用户仅可以使用一次 Each user can only use it once.</label>
+        <label><input type="radio" name="redeem_type" value="1">每个用户仅可以使用一次 Each user can only use it once.</label>
     </div>
 
 
     <br />
-    <div>Items:</div>
-    <label for="fragment">Fragments</label>
-    <input name="fragment" id="fragment">
-    <label for="ticket">Memories</label>
-    <input name="ticket" id="ticket">
 
-    <div class="content">两种奖励可以都有，不需要请留空。</div>
-    <div class="content">You can have both kinds of items. Please leave it blank if you don't need it.</div>
+    <label for="item_id">ID of the item</label>
+    <input name="item_id" id="item_id" required>
+    <label for="type">Type</label>
+    <div>
+        <select name="type">
+            <option value='single' selected>Single song</option>
+            <option value='pack'>Song pack</option>
+            <option value='world_song'>World song</option>
+            <option value='world_unlock'>World unlock scene</option>
+            <option value='character'>Character</option>
+            <option value='core'>Character core</option>
+            <option value='fragment'>Fragment</option>
+            <option value='memory'>Memory</option>
+        </select>
+    </div>
+    <label for="amount">Amount</label>
+    <input name="amount" id="amount" value="1" required>
+    <br />
+
+
     <div class="content">兑换码长度为10~20。</div>
     <div class="content">The length of redeem code is 10 ~ 20.</div>
     <div class="content">随机生成数量不得超过1000。</div>

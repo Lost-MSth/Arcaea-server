@@ -62,26 +62,19 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss. 
 
-### Version 2.5
-- 适用于Arcaea 3.6.2版本 For Arcaea 3.6.2
+### Version 2.6
+- 适用于Arcaea 3.6.4版本 For Arcaea 3.6.4
 - 更新了歌曲数据库 Update the song database.
-- 新增世界排名 Add global rank.
-- 新增世界模式的奖励获取 Add reward acquisition of new world mode.
-- 完善角色系统，包括： Improve the character system, including
-  - 角色升级 Level up
-  - 角色觉醒 Upcapping
-  - 角色核心 Character cores
-  - 世界模式下的数值计算 Numerical calculation in world mode
-  - 某些场景下的角色解锁 Character unlocking in some cases
-
-- 新增了一些设置选项和后台功能 Add some setting options and background functions.
-- 正在构建API接口 Building API interface.
-- 打算重新写后台界面 Plan to rewrite the background interface.
+- 新增体力系统 Add stamina system.
+- 完善了登陆奖励系统 Improve the login present system.
+- 完善了兑换码系统 Improve the redeem code system.
+- 新增了多设备自动封号机制 Add multi device auto ban mechanism.
 - 修复了一些Bug Fix some bugs.
-  - 登录时获取信息的并行计算导致的数据库锁错误 Database lock error caused by parallel computing of getting information during login
+  - 修复好友列表没有按照最近成绩日期排序的问题(Menci) Fix the friend list not sorted by last score date. (From Menci)
+  - 修复某些情况下跨目录运行失败的问题(MBRjun) Fix cross directory running problem in some cases. (From MBRjun)
 
-> 提醒：由于时间仓促，本版本可能存在较多问题与漏洞，请谨慎使用  
-> Tips: Due to lack of time, this version may have many bugs, please use it with caution.
+> 提醒：使用新版本前，可能需要清空redeem，user_redeem，present，user_present表  
+> Tips: Before using the new version, you may need to clear the redeem, user_redeem, present, user_present table.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows/Linux/Mac OS/Android
@@ -93,11 +86,11 @@ It is just so interesting. What it can do is under exploration.
 ## 环境搭建 Environment construction
 [中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA)  
 [English](https://github.com/Lost-MSth/Arcaea-server/wiki/Environment-construction)
+-->
 
 ## 使用说明 Instruction for use
 [中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E)  
 [English](https://github.com/Lost-MSth/Arcaea-server/wiki/Instruction-for-use)
--->
 
 ## 注意 Attentions
 [中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E6%B3%A8%E6%84%8F)  

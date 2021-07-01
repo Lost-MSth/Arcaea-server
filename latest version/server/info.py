@@ -7,6 +7,10 @@ import server.item
 import time
 from setting import Config
 
+MAX_STAMINA = 12
+STAMINA_RECOVER_TICK = 1800000
+CORE_EXP = 250
+
 
 def int2b(x):
     # int与布尔值转换
@@ -100,7 +104,8 @@ def get_user_friend(c, user_id):
                     "user_id": i[0]
                 })
 
-    s.sort(key=lambda item: item["recent_score"][0]["time_played"] if len(item["recent_score"]) > 0 else 0, reverse=True)
+    s.sort(key=lambda item: item["recent_score"][0]["time_played"] if len(
+        item["recent_score"]) > 0 else 0, reverse=True)
     return s
 
 
@@ -123,11 +128,12 @@ def get_user_me(c, user_id):
                 '''update user set character_id=0 where user_id=?''', (user_id,))
 
         favorite_character_id = x[23]
-        if favorite_character_id not in characters:
+        if favorite_character_id not in characters:  # 这是考虑有可能favourite_character设置了用户未拥有的角色
             favorite_character_id = -1
             c.execute(
                 '''update user set favorite_character=-1 where user_id=?''', (user_id,))
 
+        # 计算世界排名
         c.execute(
             '''select world_rank_score from user where user_id=?''', (user_id,))
         y = c.fetchone()
@@ -142,9 +148,21 @@ def get_user_me(c, user_id):
         else:
             world_rank = 0
 
+        # 源点强化
         prog_boost = 0
         if x[27] and x[27] != 0:
             prog_boost = 300
+
+        # 体力计算
+        next_fragstam_ts = -1
+        max_stamina_ts = 1586274871917
+        stamina = 12
+        if x[31]:
+            next_fragstam_ts = x[31]
+        if x[32]:
+            max_stamina_ts = x[32]
+        if x[33]:
+            stamina = x[33]
 
         r = {"is_aprilfools": Config.IS_APRILFOOLS,
              "curr_available_maps": [],
@@ -165,9 +183,9 @@ def get_user_me(c, user_id):
              "is_skill_sealed": int2b(x[7]),
              "current_map": x[25],
              "prog_boost": prog_boost,
-             "next_fragstam_ts": -1,
-             "max_stamina_ts": 1586274871917,
-             "stamina": 12,
+             "next_fragstam_ts": next_fragstam_ts,
+             "max_stamina_ts": max_stamina_ts,
+             "stamina": server.arcworld.calc_stamina(max_stamina_ts, stamina),
              "world_unlocks": server.item.get_user_items(c, user_id, 'world_unlock'),
              "world_songs": server.item.get_user_items(c, user_id, 'world_song'),
              "singles": server.item.get_user_items(c, user_id, 'single'),
@@ -221,12 +239,12 @@ def arc_aggregate_big(user_id):
              }, {
                  "id": 3,
                  "value": {
-                     "max_stamina": 12,
-                     "stamina_recover_tick": 1800000,
-                     "core_exp": 250,
-                     "curr_ts": int(time.time())*1000,
+                     "max_stamina": MAX_STAMINA,
+                     "stamina_recover_tick": STAMINA_RECOVER_TICK,
+                     "core_exp": CORE_EXP,
+                     "curr_ts": int(time.time()*1000),
                      "level_steps": server.character.get_level_steps(),
-                     "world_ranking_enabled": False,
+                     "world_ranking_enabled": True,
                      "is_byd_chapter_unlocked": True
                  }
              }, {

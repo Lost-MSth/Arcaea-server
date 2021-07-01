@@ -113,13 +113,14 @@ def add_url_prefix(url, strange_flag=False):
     return prefix + r
 
 
-def error_return(error_code):  # 错误返回
+def error_return(error_code, extra={}):  # 错误返回
     # -7 处理交易时发生了错误
     # -5 所有的曲目都已经下载完毕
     # -4 您的账号已在别处登录
     # -3 无法连接至服务器
     # 2 Arcaea服务器正在维护
     # 5 请更新Arcaea到最新版本
+    # 9 新版本请等待几分钟
     # 100 无法在此ip地址下登录游戏
     # 101 用户名占用
     # 102 电子邮箱已注册
@@ -156,10 +157,17 @@ def error_return(error_code):  # 错误返回
     # 9907 更新数据时发生了问题
     # 9908 服务器只支持最新的版本，请更新Arcaea
     # 其它 发生未知错误
-    return jsonify({
-        "success": False,
-        "error_code": error_code
-    })
+    if extra:
+        return jsonify({
+            "success": False,
+            "error_code": error_code,
+            "extra": extra
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "error_code": error_code
+        })
 
 
 @app.route('/')
@@ -182,7 +190,7 @@ def login():
     if 'AppVersion' in request.headers:  # 版本检查
         if Config.ALLOW_APPVERSION:
             if request.headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-                return jsonify({"success": False, "error_code": 5})
+                return error_return(5)
 
     headers = request.headers
     id_pwd = headers['Authorization']
@@ -193,14 +201,17 @@ def login():
     else:
         device_id = 'low_version'
 
-    token, error_code = server.auth.arc_login(
+    token, error_code, extra = server.auth.arc_login(
         name, password, device_id, request.remote_addr)
     if not error_code:
         r = {"success": True, "token_type": "Bearer"}
         r['access_token'] = token
         return jsonify(r)
     else:
-        return error_return(error_code)
+        if extra:
+            return error_return(error_code, extra)
+        else:
+            return error_return(error_code)
 
 
 @app.route(add_url_prefix('/user/'), methods=['POST'])  # 注册接口
@@ -208,7 +219,7 @@ def register():
     if 'AppVersion' in request.headers:  # 版本检查
         if Config.ALLOW_APPVERSION:
             if request.headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-                return jsonify({"success": False, "error_code": 5})
+                return error_return(5)
 
     name = request.form['name']
     password = request.form['password']
@@ -451,15 +462,14 @@ def score_token():
 @server.auth.auth_required(request)
 def score_token_world(user_id):
     args = request.args
-    server.arcworld.play_world_song(user_id, args)
-    return jsonify({
-        "success": True,
-        "value": {
-            "stamina": 12,
-            "max_stamina_ts": 1599547603825,
-            "token": "13145201919810"
-        }
-    })
+    r = server.arcworld.play_world_song(user_id, args)
+    if r:
+        return jsonify({
+            "success": True,
+            "value": r
+        })
+    else:
+        return error_return(108)
 
 
 @app.route(add_url_prefix('/user/me/save'), methods=['GET'])  # 从云端同步
@@ -530,6 +540,28 @@ def claim_present(user_id, present_id):
         return error_return(108)
 
 
+# 购买体力
+@app.route(add_url_prefix('/purchase/me/stamina/<buy_stamina_type>'), methods=['POST'])
+@server.auth.auth_required(request)
+def purchase_stamina(user_id, buy_stamina_type):
+
+    if buy_stamina_type == 'fragment':
+        r, error_code = server.arcworld.buy_stamina_by_fragment(user_id)
+    else:
+        return error_return(108)
+
+    if error_code:
+        return error_return(error_code)
+    else:
+        if r:
+            return jsonify({
+                "success": True,
+                "value": r
+            })
+        else:
+            return error_return(108)
+
+
 # 购买，world模式boost
 @app.route(add_url_prefix('/purchase/me/item'), methods=['POST'])
 @server.auth.auth_required(request)
@@ -544,6 +576,16 @@ def prog_boost(user_id):
             re = {
                 "success": True,
                 "value": {'ticket': ticket}
+            }
+
+        elif request.form['item_id'] == 'stamina6':
+            r, error_code = server.arcworld.buy_stamina_by_ticket(user_id)
+            if error_code:
+                return error_return(error_code)
+
+            re = {
+                "success": True,
+                "value": r
             }
     return jsonify(re)
 
@@ -585,8 +627,9 @@ def world_all(user_id):
 @server.auth.auth_required(request)
 def world_in(user_id):
     map_id = request.form['map_id']
+    flag = server.arcworld.unlock_user_world(user_id, map_id)
     return jsonify({
-        "success": True,
+        "success": flag,
         "value": server.arcworld.get_user_world(user_id, map_id)
     })
 

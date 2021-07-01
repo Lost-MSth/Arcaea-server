@@ -3,7 +3,10 @@ from server.sql import Connect
 from setting import Config
 import server.item
 import server.character
+import server.info
+import server.arcpurchase
 import os
+import time
 
 
 def int2b(x):
@@ -12,6 +15,23 @@ def int2b(x):
         return False
     else:
         return True
+
+
+def calc_stamina(max_stamina_ts, curr_stamina):
+    # 计算体力，返回剩余体力数值
+
+    stamina = int(server.info.MAX_STAMINA - (max_stamina_ts -
+                                             int(time.time()*1000)) / server.info.STAMINA_RECOVER_TICK)
+
+    if stamina >= server.info.MAX_STAMINA:
+        if curr_stamina >= server.info.MAX_STAMINA:
+            stamina = curr_stamina
+        else:
+            stamina = server.info.MAX_STAMINA
+    if stamina < 0:
+        stamina = 0
+
+    return stamina
 
 
 def get_world_name(file_dir='./database/map'):
@@ -45,7 +65,10 @@ def get_user_world_info(user_id, map_id):
             info['curr_capture'] = x[3]
             info['is_locked'] = int2b(x[4])
         else:
-            c.execute('''insert into user_world values(:a,:b,0,0,0)''', {
+            info['curr_position'] = 0
+            info['curr_capture'] = 0
+            info['is_locked'] = True
+            c.execute('''insert into user_world values(:a,:b,0,0,1)''', {
                 'a': user_id, 'b': map_id})
 
     return info
@@ -87,7 +110,10 @@ def get_world_all(user_id):
                 info['curr_capture'] = x[3]
                 info['is_locked'] = int2b(x[4])
             else:
-                c.execute('''insert into user_world values(:a,:b,0,0,0)''', {
+                info['curr_position'] = 0
+                info['curr_capture'] = 0
+                info['is_locked'] = True
+                c.execute('''insert into user_world values(:a,:b,0,0,1)''', {
                     'a': user_id, 'b': map_id})
 
             re.append(info)
@@ -106,7 +132,7 @@ def get_user_world(user_id, map_id):
             "user_id": user_id,
             "curr_position": 0,
             "curr_capture": 0,
-            "is_locked": False,
+            "is_locked": True,
             "map_id": map_id
         }
         if x:
@@ -114,10 +140,38 @@ def get_user_world(user_id, map_id):
             re['curr_capture'] = x[3]
             re['is_locked'] = int2b(x[4])
         else:
-            c.execute('''insert into user_world values(:a,:b,0,0,0)''', {
+            c.execute('''insert into user_world values(:a,:b,0,0,1)''', {
                 'a': user_id, 'b': map_id})
 
     return re
+
+
+def unlock_user_world(user_id, map_id):
+    # 解锁用户的图，返回成功与否布尔值
+
+    with Connect() as c:
+        c.execute(
+            '''select is_locked from user_world where map_id=? and user_id=?''', (map_id, user_id))
+        x = c.fetchone()
+        if x:
+            is_locked = x[0]
+        else:
+            is_locked = 1
+            c.execute('''insert into user_world values(:a,:b,0,0,1)''', {
+                'a': user_id, 'b': map_id})
+        if is_locked == 1:
+            map_info = get_world_info(map_id)
+            if 'require_type' in map_info and map_info['require_type'] != '':
+                if map_info['require_type'] in ['pack', 'single']:
+                    c.execute('''select exists(select * from user_item where user_id=? and item_id=? and type=?)''',
+                              (user_id, map_info['require_id'], map_info['require_type']))
+                    if c.fetchone() == (0,):
+                        return False
+
+            c.execute(
+                '''update user_world set is_locked=0 where user_id=? and map_id=?''', (user_id, map_id))
+
+    return True
 
 
 def change_user_current_map(user_id, map_id):
@@ -129,7 +183,8 @@ def change_user_current_map(user_id, map_id):
 
 
 def play_world_song(user_id, args):
-    # 声明是世界模式的打歌，并且记录加成信息
+    # 声明是世界模式的打歌，并且记录加成信息，返回字典
+    r = {}
     with Connect() as c:
         stamina_multiply = 1
         fragment_multiply = 100
@@ -150,7 +205,34 @@ def play_world_song(user_id, args):
         c.execute('''insert into world_songplay values(:a,:b,:c,:d,:e,:f)''', {
             'a': user_id, 'b': args['song_id'], 'c': args['difficulty'], 'd': stamina_multiply, 'e': fragment_multiply, 'f': prog_boost_multiply})
 
-    return None
+        c.execute('''select current_map from user where user_id = :a''', {
+                  'a': user_id})
+        map_id = c.fetchone()[0]
+        info = get_world_info(map_id)
+        # 体力计算
+        c.execute(
+            '''select max_stamina_ts, stamina from user where user_id=?''', (user_id,))
+        x = c.fetchone()
+        max_stamina_ts = x[0] if x and x[0] is not None else 0
+        stamina = x[1] if x and x[1] is not None else 12
+        now = int(time.time() * 1000)
+
+        # 体力不足
+        if calc_stamina(max_stamina_ts, stamina) < info['stamina_cost']:
+            return {}
+        stamina = calc_stamina(max_stamina_ts, stamina) - \
+            info['stamina_cost'] * stamina_multiply
+        max_stamina_ts = now + server.info.STAMINA_RECOVER_TICK * \
+            (server.info.MAX_STAMINA - stamina)
+        c.execute('''update user set max_stamina_ts=?, stamina=? where user_id=?''',
+                  (max_stamina_ts, stamina, user_id))
+        r = {
+            "stamina": stamina,
+            "max_stamina_ts": max_stamina_ts,
+            "token": "13145201919810"
+        }
+
+    return r
 
 
 def climb_step(user_id, map_id, step, prev_capture, prev_position):
@@ -263,9 +345,12 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
     c.execute('''delete from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
         'a': user_id, 'b': song_id, 'c': difficulty})
 
-    c.execute('''select character_id from user where user_id=?''', (user_id,))
+    c.execute(
+        '''select character_id, max_stamina_ts, stamina from user where user_id=?''', (user_id,))
     x = c.fetchone()
-    character_id = x[0] if x else 0
+    character_id = x[0] if x and x[0] is not None else 0
+    max_stamina_ts = x[1] if x and x[1] is not None else 0
+    stamina = x[2] if x and x[2] is not None else 12
     c.execute('''select frag1,prog1,overdrive1,frag20,prog20,overdrive20,frag30,prog30,overdrive30 from character where character_id=?''', (character_id,))
     x = c.fetchone()
 
@@ -317,6 +402,9 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
     c.execute('''select * from user_world where user_id = :a and map_id =:b''',
               {'a': user_id, 'b': map_id})
     y = c.fetchone()
+    if y[4] == 1:  # 图不可用
+        return {}
+
     rewards, steps, curr_position, curr_capture, info = climb_step(
         user_id, map_id, step, y[3], y[2])
     for i in rewards:  # 物品分发
@@ -324,6 +412,12 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
             amount = j['amount'] if 'amount' in j else 1
             item_id = j['id'] if 'id' in j else ''
             server.item.claim_user_item(c, user_id, item_id, j['type'], amount)
+
+    if 'step_type' in steps[-1]:
+        if 'plusstamina' in steps[-1]['step_type'] and 'plus_stamina_value' in steps[-1]:
+            # 体力格子
+            max_stamina_ts, stamina = add_stamina(
+                c, user_id, int(steps[-1]['plus_stamina_value']))
     # 角色升级
     if not Config.CHARACTER_FULL_UNLOCK:
         exp, level = server.character.calc_level_up(
@@ -357,8 +451,8 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
                 "prog": prog,
                 "overdrive": overdrive
             },
-            "current_stamina": 12,
-            "max_stamina_ts": 1586274871917
+            "current_stamina": calc_stamina(max_stamina_ts, stamina),
+            "max_stamina_ts": max_stamina_ts
         }
     else:
         re = {
@@ -384,8 +478,8 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
                 "prog": prog,
                 "overdrive": overdrive
             },
-            "current_stamina": 12,
-            "max_stamina_ts": 1586274871917
+            "current_stamina": calc_stamina(max_stamina_ts, stamina),
+            "max_stamina_ts": max_stamina_ts
         }
 
     if stamina_multiply != 1:
@@ -401,3 +495,77 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
         'a': curr_position, 'b': curr_capture, 'c': user_id, 'd': map_id})
 
     return re
+
+
+def add_stamina(c, user_id, add_stamina):
+    # 增添体力，返回max_stamina_ts和stamina
+
+    now = int(time.time() * 1000)
+    c.execute(
+        '''select max_stamina_ts, stamina from user where user_id=?''', (user_id,))
+    x = c.fetchone()
+    if x and x[0] is not None and x[1] is not None:
+        stamina = calc_stamina(x[0], x[1]) + add_stamina
+        max_stamina_ts = now - \
+            (stamina-server.info.MAX_STAMINA) * \
+            server.info.STAMINA_RECOVER_TICK
+    else:
+        max_stamina_ts = now
+        stamina = server.info.MAX_STAMINA
+
+    c.execute('''update user set max_stamina_ts=?, stamina=? where user_id=?''',
+              (max_stamina_ts, stamina, user_id))
+
+    return max_stamina_ts, stamina
+
+
+def buy_stamina_by_fragment(user_id):
+    # 残片买体力，返回字典和错误码
+    r = {}
+
+    with Connect() as c:
+        c.execute(
+            '''select next_fragstam_ts from user where user_id=?''', (user_id,))
+        x = c.fetchone()
+        if x:
+            now = int(time.time() * 1000)
+            next_fragstam_ts = x[0] if x[0] else 0
+
+            if now < next_fragstam_ts:
+                return {}, 905
+
+            next_fragstam_ts = now + 24*3600*1000
+            max_stamina_ts, stamina = add_stamina(c, user_id, 6)
+            c.execute('''update user set next_fragstam_ts=?, max_stamina_ts=?, stamina=? where user_id=?''',
+                      (next_fragstam_ts, max_stamina_ts, stamina, user_id))
+
+            r = {
+                "user_id": user_id,
+                "stamina": stamina,
+                "max_stamina_ts": max_stamina_ts,
+                "next_fragstam_ts": next_fragstam_ts
+            }
+
+    return r, None
+
+
+def buy_stamina_by_ticket(user_id):
+    # 源点买体力，返回字典和错误码
+    r = {}
+
+    with Connect() as c:
+        flag, ticket = server.arcpurchase.buy_item(c, user_id, 50)
+        if flag:
+            max_stamina_ts, stamina = add_stamina(c, user_id, 6)
+            c.execute('''update user set max_stamina_ts=?, stamina=? where user_id=?''',
+                      (max_stamina_ts, stamina, user_id))
+            r = {
+                "user_id": user_id,
+                "stamina": stamina,
+                "max_stamina_ts": max_stamina_ts,
+                "ticket": ticket
+            }
+        else:
+            return None, 501
+
+    return r, None

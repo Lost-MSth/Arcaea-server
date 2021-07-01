@@ -165,10 +165,22 @@ def get_user_present(c, user_id):
     if x:
         for i in x:
             if now <= int(i[1]):
+                c.execute(
+                    '''select * from present_item where present_id=?''', (i[0],))
+                y = c.fetchall()
+                items = []
+                if y:
+                    for j in y:
+                        if j is not None:
+                            items.append({
+                                "type": j[2],
+                                "id": j[1],
+                                "amount": j[3]
+                            })
                 re.append({'expire_ts': i[1],
-                           'description': i[3],
+                           'description': i[2],
                            'present_id': i[0],
-                           'items': json.loads(i[2])
+                           'items': items
                            })
 
     return re
@@ -189,16 +201,16 @@ def claim_user_present(user_id, present_id):
             now = int(time.time() * 1000)
             if now <= int(x[1]):
                 # 处理memory
-                items = json.loads(x[2])
-                for i in items:
-                    if i['id'] == 'memory':
-                        c.execute('''select ticket from user where user_id=:a''', {
-                            'a': user_id})
-                        ticket = int(c.fetchone()[0])
-                        ticket += int(i['amount'])
-                        c.execute('''update user set ticket=:b where user_id=:a''', {
-                            'a': user_id, 'b': ticket})
+                c.execute(
+                    '''select * from present_item where present_id=?''', (x[0],))
+                y = c.fetchall()
                 flag = True
+                if y:
+                    for j in y:
+                        if j is not None:
+                            flag = flag and server.item.claim_user_item(
+                                c, user_id, j[1], j[2], j[3])
+
             else:
                 # 过期
                 flag = False
@@ -216,12 +228,12 @@ def claim_user_redeem(user_id, code):
         if not x:
             return 0, 504
 
-        if x[2] == 0:  # 一次性
+        if x[1] == 0:  # 一次性
             c.execute(
                 '''select exists(select * from user_redeem where code=:a)''', {'a': code})
             if c.fetchone() == (1,):
                 return 0, 505
-        elif x[2] == 1:  # 每个玩家一次
+        elif x[1] == 1:  # 每个玩家一次
             c.execute('''select exists(select * from user_redeem where code=:a and user_id=:b)''',
                       {'a': code, 'b': user_id})
             if c.fetchone() == (1,):
@@ -230,17 +242,17 @@ def claim_user_redeem(user_id, code):
         c.execute('''insert into user_redeem values(:b,:a)''',
                   {'a': code, 'b': user_id})
 
-        items = json.loads(x[1])
-        for i in items:
-            if i['type'] == 'fragment':
-                fragment = i['amount']
-            if i['type'] == 'memory':
-                c.execute('''select ticket from user where user_id=:a''', {
-                    'a': user_id})
-                ticket = int(c.fetchone()[0])
-                ticket += int(i['amount'])
-                c.execute('''update user set ticket=:b where user_id=:a''', {
-                    'a': user_id, 'b': ticket})
-        error_code = None
+        c.execute('''select * from redeem_item where code=?''', (code,))
+        x = c.fetchall()
+        flag = True
+        if x:
+            for i in x:
+                if i[2] == 'fragment':
+                    fragment += i[3]
+                else:
+                    flag = flag and server.item.claim_user_item(
+                        c, user_id, i[1], i[2], i[3])
+        if flag:
+            error_code = None
 
     return fragment, error_code

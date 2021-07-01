@@ -5,9 +5,11 @@ import functools
 from setting import Config
 from flask import jsonify
 
+BAN_TIME = [1, 3, 7, 15, 31]
+
 
 def arc_login(name: str, password: str, device_id: str, ip: str):  # 登录判断
-    # 查询数据库中的user表，验证账号密码，返回并记录token，多返回个error code
+    # 查询数据库中的user表，验证账号密码，返回并记录token，多返回个error code和extra
     # token采用user_id和时间戳连接后hash生成（真的是瞎想的，没用bear）
     # 密码和token的加密方式为 SHA-256
 
@@ -15,16 +17,21 @@ def arc_login(name: str, password: str, device_id: str, ip: str):  # 登录判�
     token = None
     with Connect() as c:
         hash_pwd = hashlib.sha256(password.encode("utf8")).hexdigest()
-        c.execute('''select user_id, password from user where name = :name''', {
+        c.execute('''select user_id, password, ban_flag from user where name = :name''', {
             'name': name})
         x = c.fetchone()
         if x is not None:
+            now = int(time.time() * 1000)
+            if x[2] is not None and x[2] != '':
+                # 自动封号检查
+                ban_timestamp = int(x[2].split(':', 1)[1])
+                if ban_timestamp > now:
+                    return None, 105, {'remaining_ts': ban_timestamp-now}
             if x[1] == '':
                 # 账号封禁
                 error_code = 106
             elif x[1] == hash_pwd:
                 user_id = str(x[0])
-                now = int(time.time() * 1000)
                 token = hashlib.sha256(
                     (user_id + str(now)).encode("utf8")).hexdigest()
                 c.execute(
@@ -49,6 +56,13 @@ def arc_login(name: str, password: str, device_id: str, ip: str):  # 登录判�
                                 device_list) + 1 - device_list.count(device_id) - Config.LOGIN_DEVICE_NUMBER_LIMIT
 
                     if should_delete_num >= 1:  # 删掉多余token
+                        if not Config.ALLOW_LOGIN_SAME_DEVICE and Config.ALLOW_BAN_MULTIDEVICE_USER_AUTO:  # 自动封号检查
+                            c.execute(
+                                '''select count(*) from login where user_id=? and login_time>?''', (user_id, now-86400000))
+                            if c.fetchone()[0] >= Config.LOGIN_DEVICE_NUMBER_LIMIT:
+                                remaining_ts = arc_auto_ban(c, user_id, now)
+                                return None, 105, {'remaining_ts': remaining_ts}
+
                         c.execute('''delete from login where rowid in (select rowid from login where user_id=:user_id limit :a);''',
                                   {'user_id': user_id, 'a': int(should_delete_num)})
 
@@ -62,7 +76,7 @@ def arc_login(name: str, password: str, device_id: str, ip: str):  # 登录判�
             # 用户名错误
             error_code = 104
 
-    return token, error_code
+    return token, error_code, None
 
 
 def arc_register(name: str, password: str, device_id: str, email: str, ip: str):  # 注册
@@ -195,3 +209,24 @@ def auth_required(request):
 
         return wrapped_view
     return decorator
+
+
+def arc_auto_ban(c, user_id, now):
+    # 多设备自动封号机制，返回封号时长
+    c.execute('''delete from login where user_id=?''', (user_id, ))
+    c.execute('''select ban_flag from user where user_id=?''', (user_id,))
+    x = c.fetchone()
+    if x and x[0] != '' and x[0] is not None:
+        last_ban_time = int(x[0].split(':', 1)[0])
+        i = 0
+        while i < len(BAN_TIME) - 1 and BAN_TIME[i] <= last_ban_time:
+            i += 1
+        ban_time = BAN_TIME[i]
+    else:
+        ban_time = BAN_TIME[0]
+
+    ban_flag = ':'.join((str(ban_time), str(now + ban_time*24*60*60*1000)))
+    c.execute('''update user set ban_flag=? where user_id=?''',
+              (ban_flag, user_id))
+
+    return ban_time*24*60*60*1000
