@@ -62,19 +62,13 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss. 
 
-### Version 2.6
-- 适用于Arcaea 3.6.4版本 For Arcaea 3.6.4
+### Version 2.6.1
+- 适用于Arcaea 3.7.0版本 For Arcaea 3.7.0
 - 更新了歌曲数据库 Update the song database.
-- 新增体力系统 Add stamina system.
-- 完善了登陆奖励系统 Improve the login present system.
-- 完善了兑换码系统 Improve the redeem code system.
-- 新增了多设备自动封号机制 Add multi device auto ban mechanism.
-- 修复了一些Bug Fix some bugs.
-  - 修复好友列表没有按照最近成绩日期排序的问题(Menci) Fix the friend list not sorted by last score date. (From Menci)
-  - 修复某些情况下跨目录运行失败的问题(MBRjun) Fix cross directory running problem in some cases. (From MBRjun)
+- 新增活动图设置 Add available event maps setting.
+- 修复了一个Bug Fix a bug.
+  - 添加了`user/me`接口 Add `user/me` interface.
 
-> 提醒：使用新版本前，可能需要清空redeem，user_redeem，present，user_present表  
-> Tips: Before using the new version, you may need to clear the redeem, user_redeem, present, user_present table.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows/Linux/Mac OS/Android

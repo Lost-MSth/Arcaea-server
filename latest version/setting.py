@@ -30,7 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.6.4', '3.6.4c']
+    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.7.0', '3.7.0c']
     '''
     --------------------
     '''
@@ -64,6 +64,16 @@ class Config():
     The largest number of global rank
     '''
     WORLD_RANK_MAX = 200
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
+    世界模式当前活动图设置
+    Current available maps in world mode
+    '''
+    AVAILABLE_MAP = []  # Ex. ['test', 'test2']
     '''
     --------------------
     '''

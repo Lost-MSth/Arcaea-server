@@ -165,7 +165,7 @@ def get_user_me(c, user_id):
             stamina = x[33]
 
         r = {"is_aprilfools": Config.IS_APRILFOOLS,
-             "curr_available_maps": [],
+             "curr_available_maps": server.arcworld.get_available_maps(),
              "character_stats": user_character,
              "friends": get_user_friend(c, user_id),
              "settings": {

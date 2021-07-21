@@ -247,4 +247,13 @@
 	}],
 	"orig_price": 500,
 	"price": 500
+}, {
+	"name": "observer_append_2",
+	"items": [{
+		"type": "pack",
+		"id": "observer_append_2",
+		"is_available": true
+	}],
+	"orig_price": 300,
+	"price": 300
 }]

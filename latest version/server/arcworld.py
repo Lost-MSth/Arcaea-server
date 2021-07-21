@@ -90,8 +90,8 @@ def get_current_map(user_id):
 def get_world_all(user_id):
     # 读取所有地图信息并处理，返回字典列表
     re = []
+    worlds = get_world_name()
     with Connect() as c:
-        worlds = get_world_name()
         for map_id in worlds:
             info = get_world_info(map_id)
             steps = info['steps']
@@ -117,6 +117,20 @@ def get_world_all(user_id):
                     'a': user_id, 'b': map_id})
 
             re.append(info)
+
+    return re
+
+
+def get_available_maps():
+    # 获取当前可用图（用户设定的），返回字典列表
+    re = []
+    for i in Config.AVAILABLE_MAP:
+        info = get_world_info(i)
+        del info['steps']
+        del info['is_locked']
+        del info['curr_position']
+        del info['curr_capture']
+        re.append(info)
 
     return re
 

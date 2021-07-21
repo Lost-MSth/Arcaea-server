@@ -251,6 +251,15 @@ def aggregate(user_id):
     return jsonify(r)
 
 
+@app.route(add_url_prefix('/user/me'), methods=['GET'])  # 用户信息，给baa查分器用的
+@server.auth.auth_required(request)
+def user_me(user_id):
+    r = server.info.arc_aggregate_small(user_id)
+    if r['success']:
+        r['value'] = r['value'][0]['value']
+    return jsonify(r)
+
+
 @app.route(add_url_prefix('/user/me/character'), methods=['POST'])  # 角色切换
 @server.auth.auth_required(request)
 def character_change(user_id):
