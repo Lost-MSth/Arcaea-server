@@ -8,7 +8,7 @@ class Config():
     主机的地址和端口号
     Host and port of your server
     '''
-    HOST = '192.168.1.101'
+    HOST = '0.0.0.0'
     PORT = '80'
     '''
     --------------------
@@ -30,7 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.7.0', '3.7.0c']
+    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.8.0', '3.8.0c']
     '''
     --------------------
     '''
@@ -106,7 +106,7 @@ class Config():
     API interface full control permission Token
     If you don't want to use it, leave it blank.
     '''
-    API_TOKEN = '123'
+    API_TOKEN = ''
     '''
     --------------------
     '''

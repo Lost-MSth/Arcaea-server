@@ -1,5 +1,7 @@
 import hashlib
+import base64
 import time
+import random
 from server.sql import Connect
 import functools
 from setting import Config
@@ -14,9 +16,40 @@ class User():
         self.power = power
 
 
-def login():
-    # 登录接口
-    return {'token': 1}, 0
+def login(auth: str, ip: str):
+    # 登录接口，返回字典和错误码
+
+    try:
+        auth_decode = bytes.decode(base64.b64decode(auth))
+    except:
+        return {}, -100
+
+    if not ':' in auth_decode:
+        return {}, -100
+
+    name, password = auth_decode.split(':', 1)
+
+    with Connect() as c:
+        hash_pwd = hashlib.sha256(password.encode("utf8")).hexdigest()
+        c.execute('''select user_id, password from user where name = :name''', {
+            'name': name})
+        x = c.fetchone()
+        if x is None:
+            return {}, -201
+        if x[1] == '':
+            return {}, -202
+        if hash_pwd != x[1]:
+            return {}, -201
+
+        user_id = str(x[0])
+        now = int(time.time() * 1000)
+        token = hashlib.sha256(
+            (user_id + str(random.randint(10000, 99999)) + str(now)).encode("utf8")).hexdigest()
+        c.execute('''delete from api_login where user_id=?''', (user_id,))
+        c.execute('''insert into api_login values(?,?,?,?)''',
+                  (user_id, token, now, ip))
+
+    return {'token': token, 'user_id': user_id}, 0
 
 
 def logout():

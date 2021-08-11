@@ -6,10 +6,13 @@ def code_get_msg(code):
         '-2': 'No data',
         '-3': 'No data or user',
         '-4': 'No user_id',
+        '-100': 'Wrong post data',
         '-101': 'Wrong data type',
         '-102': 'Wrong query parameter',
         '-103': 'Wrong sort parameter',
-        '-104': 'Wrong sort order parameter'
+        '-104': 'Wrong sort order parameter',
+        '-201': 'Wrong username or password',
+        '-202': 'User is banned'
     }
 
     return msg[str(code)]

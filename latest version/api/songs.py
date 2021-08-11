@@ -30,12 +30,12 @@ def get_song_info(song_id):
     return r
 
 
-def get_songs(limit=-1, offset=0, query={}, sort=[]):
+def get_songs(query=None):
     # 查询全部歌曲信息，返回字典列表
     r = []
 
     with Connect('./database/arcsong.db') as c:
-        x = Sql.select(c, 'songs', [], limit, offset, query, sort)
+        x = Sql.select(c, 'songs', [], query)
 
         if x:
             for i in x:

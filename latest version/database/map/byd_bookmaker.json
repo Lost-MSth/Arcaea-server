@@ -1,0 +1,376 @@
+{
+	"map_id": "byd_bookmaker",
+	"is_legacy": false,
+	"chapter": 1001,
+	"available_from": -1,
+	"available_to": 9999999999999,
+	"is_repeatable": false,
+	"require_id": "bookmaker2",
+	"require_type": "chart_unlock",
+	"coordinate": "-650,-650",
+	"is_beyond": true,
+	"stamina_cost": 3,
+	"beyond_health": 300,
+	"character_affinity": [
+		23,
+		34,
+		47
+	],
+	"affinity_multiplier": [
+		1.3,
+		5,
+		3.8
+	],
+	"step_count": 31,
+	"custom_bg": "",
+	"curr_position": 3,
+	"curr_capture": 35.81730523472207,
+	"is_locked": false,
+	"steps": [
+		{
+			"map_id": "byd_bookmaker",
+			"position": 0,
+			"capture": 10
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 1,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 2,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 3,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			],
+			"restrict_ids": [
+				"bookmaker",
+				"viciousheroism",
+				"battlenoone",
+				"galaxyfriends",
+				"rekkaresonance"
+			],
+			"restrict_type": "song_id"
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 4,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 5,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 6,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 7,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 8,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 9,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 10,
+			"capture": 10,
+			"items": [
+				{
+					"type": "core",
+					"id": "core_generic",
+					"amount": 1
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 11,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 12,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 13,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 14,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 15,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 16,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 17,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 18,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 19,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 20,
+			"capture": 10,
+			"items": [
+				{
+					"type": "core",
+					"id": "core_generic",
+					"amount": 1
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 21,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 22,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 23,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 24,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 25,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 26,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 27,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 28,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 29,
+			"capture": 10,
+			"items": [
+				{
+					"type": "fragment",
+					"amount": 30
+				}
+			]
+		},
+		{
+			"map_id": "byd_bookmaker",
+			"position": 30,
+			"capture": 0,
+			"items": [
+				{
+					"id": "bookmaker3",
+					"type": "world_song"
+				}
+			]
+		}
+	]
+}

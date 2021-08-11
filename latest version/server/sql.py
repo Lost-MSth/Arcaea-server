@@ -30,10 +30,11 @@ class Connect():
 
         return True
 
+
 class Sql():
 
     @staticmethod
-    def select(c, table_name, target_column=[], limit=-1, offset=0, query={}, sort=[]):
+    def select(c, table_name, target_column=[], query=None):
         # 执行查询单句sql语句，返回fetchall数据
         # 使用准确查询，且在单表内
 
@@ -51,9 +52,10 @@ class Sql():
 
         where_field = []
         where_value = []
-        for i in query:
-            where_field.append(i)
-            where_value.append(query[i])
+        if query:
+            for i in query.query:
+                where_field.append(i)
+                where_value.append(query.query[i])
 
         if where_field and where_value:
             sql += ' where '
@@ -64,16 +66,17 @@ class Sql():
                     sql_dict[where_field[i]] = where_value[i]
                     sql += ' and ' + where_field[i] + '=:' + where_field[i]
 
-        if sort:
-            sql += ' order by ' + sort[0]['column'] + ' ' + sort[0]['order']
-            if len(sort) >= 2:
-                for i in range(1, len(sort)):
-                    sql += ', ' + sort[i]['column'] + ' ' + sort[i]['order']
+        if query and query.sort:
+            sql += ' order by ' + \
+                query.sort[0]['column'] + ' ' + query.sort[0]['order']
+            for i in range(1, len(query.sort)):
+                sql += ', ' + query.sort[i]['column'] + \
+                    ' ' + query.sort[i]['order']
 
-        if limit >= 0:
+        if query and query.limit >= 0:
             sql += ' limit :limit offset :offset'
-            sql_dict['limit'] = limit
-            sql_dict['offset'] = offset
+            sql_dict['limit'] = query.limit
+            sql_dict['offset'] = query.offset
 
         c.execute(sql, sql_dict)
 

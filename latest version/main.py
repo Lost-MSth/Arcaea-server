@@ -632,7 +632,7 @@ def world_all(user_id):
     })
 
 
-@app.route(add_url_prefix('/world/map/me/'), methods=['POST'])  # 进入地图
+@app.route(add_url_prefix('/world/map/me'), methods=['POST'])  # 进入地图
 @server.auth.auth_required(request)
 def world_in(user_id):
     map_id = request.form['map_id']

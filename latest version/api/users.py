@@ -5,12 +5,12 @@ import web.webscore
 import server.info
 
 
-def get_users(limit=-1, offset=0, query={}, sort=[]):
+def get_users(query=None):
     # 获取全用户信息，返回字典列表
 
     r = []
     with Connect() as c:
-        x = Sql.select(c, 'user', [], limit, offset, query, sort)
+        x = Sql.select(c, 'user', [], query)
 
         if x:
             for i in x:
@@ -62,12 +62,12 @@ def get_user_b30(user_id):
     return {'user_id': user_id, 'b30_ptt': bestptt / 30, 'data': r}
 
 
-def get_user_best(user_id, limit=-1, offset=0, query={}, sort=[]):
+def get_user_best(user_id, query=None):
     # 获取用户b30信息，返回字典
 
     r = []
     with Connect() as c:
-        x = Sql.select(c, 'best_score', [], limit, offset, query, sort)
+        x = Sql.select(c, 'best_score', [], query)
         if x:
             for i in x:
                 r.append({

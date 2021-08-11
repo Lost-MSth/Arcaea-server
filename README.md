@@ -62,12 +62,13 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss. 
 
-### Version 2.6.1
-- 适用于Arcaea 3.7.0版本 For Arcaea 3.7.0
+### Version 2.6.2
+- 适用于Arcaea 3.8.0版本 For Arcaea 3.8.0
 - 更新了歌曲数据库 Update the song database.
-- 新增活动图设置 Add available event maps setting.
+- 新搭档 **咲弥 & 伊丽莎白** 已解锁 Unlock the new character **Saya & Elizabeth**.
+- 新搭档 **莉莉** 已解锁 Unlock the new character **Lily**.
 - 修复了一个Bug Fix a bug.
-  - 添加了`user/me`接口 Add `user/me` interface.
+  - 链接重定向导致无法切换地图的问题 Link redirection caused the problem that players are unable to switch maps.
 
 
 ## 运行环境与依赖 Running environment and requirements

@@ -1005,12 +1005,12 @@ def arc_all_get(user_id):
                 "complete": 1
             },
             {
-                "unlock_key": "ouroboros|2|0",
+                "unlock_key": "tiemedowngently|2|0",
                 "complete": 1
             },
             {
-                "unlock_key": "tiemedowngently|1|0",
-                "complete": 1
+                "unlock_key": "tempestissimo|2|101",
+                "complete": 100
             },
             {
                 "unlock_key": "aegleseeker|2|3|crystalgravity|2",
@@ -1165,7 +1165,11 @@ def arc_all_get(user_id):
                 "complete": 1
             },
             {
-                "unlock_key": "pragmatism|2|0",
+                "unlock_key": "tiemedowngently|1|0",
+                "complete": 1
+            },
+            {
+                "unlock_key": "ouroboros|2|0",
                 "complete": 1
             },
             {
@@ -1233,6 +1237,10 @@ def arc_all_get(user_id):
                 "complete": 1
             },
             {
+                "unlock_key": "mazymetroplex|2|0",
+                "complete": 1
+            },
+            {
                 "unlock_key": "seclusion|2|0",
                 "complete": 1
             },
@@ -1254,10 +1262,6 @@ def arc_all_get(user_id):
             },
             {
                 "unlock_key": "lostdesire|2|0",
-                "complete": 1
-            },
-            {
-                "unlock_key": "tiemedowngently|2|0",
                 "complete": 1
             },
             {
@@ -1297,14 +1301,6 @@ def arc_all_get(user_id):
                 "complete": 1
             },
             {
-                "unlock_key": "dandelion|2|0",
-                "complete": 1
-            },
-            {
-                "unlock_key": "infinityheaven|2|0",
-                "complete": 1
-            },
-            {
                 "unlock_key": "grievouslady|1|101",
                 "complete": 100
             },
@@ -1325,6 +1321,10 @@ def arc_all_get(user_id):
                 "complete": 1
             },
             {
+                "unlock_key": "ignotus|1|0",
+                "complete": 1
+            },
+            {
                 "unlock_key": "nhelv|1|0",
                 "complete": 1
             },
@@ -1334,10 +1334,6 @@ def arc_all_get(user_id):
             },
             {
                 "unlock_key": "guardina|2|0",
-                "complete": 1
-            },
-            {
-                "unlock_key": "guardina|1|0",
                 "complete": 1
             },
             {
@@ -1405,6 +1401,22 @@ def arc_all_get(user_id):
                 "complete": 1
             },
             {
+                "unlock_key": "guardina|1|0",
+                "complete": 1
+            },
+            {
+                "unlock_key": "pragmatism|2|0",
+                "complete": 1
+            },
+            {
+                "unlock_key": "oracle|2|0",
+                "complete": 1
+            },
+            {
+                "unlock_key": "genocider|2|0",
+                "complete": 1
+            },
+            {
                 "unlock_key": "buchigireberserker|2|3|gothiveofra|2",
                 "complete": 1
             },
@@ -1442,10 +1454,6 @@ def arc_all_get(user_id):
             },
             {
                 "unlock_key": "flyburg|2|0",
-                "complete": 1
-            },
-            {
-                "unlock_key": "oracle|2|0",
                 "complete": 1
             },
             {
@@ -1502,15 +1510,7 @@ def arc_all_get(user_id):
             },
             {
                 "unlock_key": "equilibrium_challenge|2|102",
-                "complete": -1
-            },
-            {
-                "unlock_key": "cyanine|1|0",
                 "complete": 1
-            },
-            {
-                "unlock_key": "tempestissimo|3|101",
-                "complete": 100
             },
             {
                 "unlock_key": "overwhelm|2|0",
@@ -1526,7 +1526,7 @@ def arc_all_get(user_id):
             },
             {
                 "unlock_key": "equilibrium_challenge|1|102",
-                "complete": -1
+                "complete": 1
             },
             {
                 "unlock_key": "aterlbus|2|0",
@@ -1546,6 +1546,14 @@ def arc_all_get(user_id):
             },
             {
                 "unlock_key": "goodtek|2|0",
+                "complete": 1
+            },
+            {
+                "unlock_key": "infinityheaven|2|0",
+                "complete": 1
+            },
+            {
+                "unlock_key": "dandelion|2|0",
                 "complete": 1
             },
             {
@@ -1578,10 +1586,6 @@ def arc_all_get(user_id):
             },
             {
                 "unlock_key": "conflict|2|0",
-                "complete": 1
-            },
-            {
-                "unlock_key": "ignotus|1|0",
                 "complete": 1
             },
             {
@@ -1653,16 +1657,24 @@ def arc_all_get(user_id):
                 "complete": 1
             },
             {
+                "unlock_key": "genocider|1|0",
+                "complete": 1
+            },
+            {
                 "unlock_key": "rise|1|0",
+                "complete": 1
+            },
+            {
+                "unlock_key": "tempestissimo|3|101",
+                "complete": 100
+            },
+            {
+                "unlock_key": "cyanine|1|0",
                 "complete": 1
             },
             {
                 "unlock_key": "axiumcrisis|2|0",
                 "complete": 1
-            },
-            {
-                "unlock_key": "tempestissimo|2|101",
-                "complete": 100
             },
             {
                 "unlock_key": "solitarydream|2|0",
@@ -1693,6 +1705,30 @@ def arc_all_get(user_id):
                 "complete": 1
             },
             {
+                "unlock_key": "tempestissimo|1|101",
+                "complete": 100
+            },
+            {
+                "unlock_key": "conflict|1|0",
+                "complete": 1
+            },
+            {
+                "unlock_key": "mazymetroplex|1|0",
+                "complete": 1
+            },
+            {
+                "unlock_key": "viyellastears|2|0",
+                "complete": 1
+            },
+            {
+                "unlock_key": "equilibrium_challenge|0|102",
+                "complete": 1
+            },
+            {
+                "unlock_key": "grievouslady|0|101",
+                "complete": 100
+            },
+            {
                 "unlock_key": "snowwhite|1|0",
                 "complete": 1
             },
@@ -1703,26 +1739,6 @@ def arc_all_get(user_id):
             {
                 "unlock_key": "jump|2|0",
                 "complete": 1
-            },
-            {
-                "unlock_key": "tempestissimo|1|101",
-                "complete": 100
-            },
-            {
-                "unlock_key": "conflict|1|0",
-                "complete": 1
-            },
-            {
-                "unlock_key": "viyellastears|2|0",
-                "complete": 1
-            },
-            {
-                "unlock_key": "equilibrium_challenge|0|102",
-                "complete": -1
-            },
-            {
-                "unlock_key": "grievouslady|0|101",
-                "complete": 100
             },
             {
                 "unlock_key": "saikyostronger|2|3|izana|2",
