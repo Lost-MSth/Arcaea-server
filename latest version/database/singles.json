@@ -508,4 +508,13 @@
     }],
     "orig_price": 100,
     "price": 100
+}, {
+    "name": "eveninginscarlet",
+    "items": [{
+        "type": "single",
+        "id": "eveninginscarlet",
+        "is_available": true
+    }],
+    "orig_price": 100,
+    "price": 100
 }]
