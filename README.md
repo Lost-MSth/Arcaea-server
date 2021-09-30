@@ -55,7 +55,7 @@ It is just so interesting. What it can do is under exploration.
 
 [Arcaea](https://lowi.ro)
 > Konmai下载站因不可抗力关闭，我们找到了另一个下载站
-> Konmai download site was closed due to force majeure, we found another download site.
+> Konmai download website was closed due to force majeure, we found another download website.
 
 ## 更新日志 Update log
 只保留最新版本 Only keep the latest version.
