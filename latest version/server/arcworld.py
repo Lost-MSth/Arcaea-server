@@ -127,9 +127,12 @@ def get_available_maps():
     for i in Config.AVAILABLE_MAP:
         info = get_world_info(i)
         del info['steps']
-        del info['is_locked']
-        del info['curr_position']
-        del info['curr_capture']
+        try:
+            del info['is_locked']
+            del info['curr_position']
+            del info['curr_capture']
+        except:
+            pass
         re.append(info)
 
     return re

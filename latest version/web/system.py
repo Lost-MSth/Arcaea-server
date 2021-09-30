@@ -301,7 +301,7 @@ def get_all_purchase():
                 items = []
                 if y:
                     for j in y:
-                        items.append({'item_id': j[1], 'type': j[2]})
+                        items.append({'item_id': j[1], 'type': j[2], 'amount':j[3]})
 
                 re.append({'purchase_name': i[0],
                            'price': i[1],

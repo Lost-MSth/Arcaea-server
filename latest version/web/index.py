@@ -847,6 +847,7 @@ def change_purchase_item():
             purchase_name = request.form['purchase_name']
             item_id = request.form['item_id']
             item_type = request.form['type']
+            amount = int(request.form['amount'])
         except:
             error = '数据错误 Wrong data.'
             flash(error)
@@ -862,8 +863,8 @@ def change_purchase_item():
                     c.execute(
                         '''select exists(select * from item where item_id=? and type=?)''', (item_id, item_type))
                     if c.fetchone() == (1,):
-                        c.execute('''insert into purchase_item values(?,?,?)''',
-                                  (purchase_name, item_id, item_type))
+                        c.execute('''insert into purchase_item values(?,?,?,?)''',
+                                  (purchase_name, item_id, item_type, amount))
                         flash('''购买项目的物品添加成功 Successfully add the purchase's item.''')
                     else:
                         error = '''物品不存在 The item does not exist.'''

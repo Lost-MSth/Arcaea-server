@@ -4,7 +4,7 @@ import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
-ARCAEA_SERVER_VERSION = 'v2.6.4'
+ARCAEA_SERVER_VERSION = 'v2.6.5'
 
 
 def main(path='./'):
@@ -228,6 +228,7 @@ def main(path='./'):
     c.execute('''create table if not exists purchase_item(purchase_name text,
     item_id text,
     type text,
+    amount int,
     primary key(purchase_name, item_id, type)
     );''')
     c.execute('''create table if not exists user_save(user_id int primary key,
@@ -379,7 +380,7 @@ def main(path='./'):
         c.execute('''insert into item values(?,"core",1,'')''', (i,))
 
     world_songs = ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster",
-                   "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano", "vandalism", "nexttoyou3", "lostcivilization3", "turbocharger", "bookmaker3", "laqryma3", "kyogenkigo", "hivemind", "seclusion", "quonwacca3", "bluecomet", "energysynergymatrix"]
+                   "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano", "vandalism", "nexttoyou3", "lostcivilization3", "turbocharger", "bookmaker3", "laqryma3", "kyogenkigo", "hivemind", "seclusion", "quonwacca3", "bluecomet", "energysynergymatrix", "gengaozo", "lastendconductor3"]
     for i in world_songs:
         c.execute('''insert into item values(?,"world_song",1,'')''', (i,))
 
@@ -411,10 +412,17 @@ def main(path='./'):
                     _id = ''
                 else:
                     _id = j['_id']
-                c.execute('''insert into item values(?,?,?,?)''',
-                          (j['id'], j['type'], j['is_available'], _id))
-                c.execute('''insert into purchase_item values(?,?,?)''',
-                          (i['name'], j['id'], j['type']))
+                c.execute(
+                    '''select exists(select * from item where item_id=?)''', (j['id'],))
+                if c.fetchone() == (0,):
+                    c.execute('''insert into item values(?,?,?,?)''',
+                              (j['id'], j['type'], j['is_available'], _id))
+                if 'amount' in j:
+                    amount = j['amount']
+                else:
+                    amount = 1
+                c.execute('''insert into purchase_item values(?,?,?,?)''',
+                          (i['name'], j['id'], j['type'], amount))
 
     # item初始化
     f = open(path+'singles.json', 'r')

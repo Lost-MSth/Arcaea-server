@@ -25,15 +25,35 @@ def get_purchase(c, type='pack'):
     for i in x:
         items = []
         c.execute(
-            '''select a.* from item a, purchase_item b where a.item_id=b.item_id and a.type=b.type and b.purchase_name=:name''', {'name': i[0]})
+            '''select a.*, b.amount from item a, purchase_item b where a.item_id=b.item_id and a.type=b.type and b.purchase_name=:name''', {'name': i[0]})
         y = c.fetchall()
+        t = None
         if y:
             for j in y:
-                items.append({
-                    "type": j[1],
-                    "id": j[0],
-                    "is_available": int2b(j[2])
-                })
+                if j[3]:
+                    amount = j[3]
+                else:
+                    amount = 1
+                if i[0] == j[0]:
+                    # 物品排序，否则客户端报错
+                    t = {
+                        "type": j[1],
+                        "id": j[0],
+                        "is_available": int2b(j[2]),
+                        'amount': amount
+                    }
+                else:
+                    items.append({
+                        "type": j[1],
+                        "id": j[0],
+                        "is_available": int2b(j[2]),
+                        "amount": amount
+                    })
+
+
+            if t is not None:
+                # 放到列表头
+                items = [t, items]
 
         r = {"name": i[0],
              "items": items,
@@ -104,7 +124,7 @@ def buy_thing(user_id, purchase_id):
             }
 
         c.execute(
-            '''select item_id, type from purchase_item where purchase_name=:a''', {'a': purchase_id})
+            '''select item_id, type, amount from purchase_item where purchase_name=:a''', {'a': purchase_id})
         x = c.fetchall()
         if x:
             now = int(time.time() * 1000)
@@ -115,7 +135,11 @@ def buy_thing(user_id, purchase_id):
 
             if flag:
                 for i in x:
-                    server.item.claim_user_item(c, user_id, i[0], i[1])
+                    if i[2]:
+                        amount = i[2]
+                    else:
+                        amount = 1
+                    server.item.claim_user_item(c, user_id, i[0], i[1], amount)
 
                 success_flag = True
         else:
