@@ -53,9 +53,9 @@ It is just so interesting. What it can do is under exploration.
 ## 下载 Download
 [这里 Here](https://github.com/Lost-MSth/Arcaea-server/releases)
 
-[Arcaea](https://lowi.ro)
-> Konmai下载站因不可抗力关闭，我们找到了另一个下载站
-> Konmai download website was closed due to force majeure, we found another download website.
+[Arcaea-CN official](https://arcaea.lowiro.com/zh)  
+[Arcaea-lowi.ro](https://lowi.ro)  
+[Arcaea-RhyDown](https://rhydown.com)
 
 ## 更新日志 Update log
 只保留最新版本 Only keep the latest version.
