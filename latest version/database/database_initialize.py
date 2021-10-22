@@ -4,7 +4,7 @@ import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
-ARCAEA_SERVER_VERSION = 'v2.6.5'
+ARCAEA_SERVER_VERSION = 'v2.6.6'
 
 
 def main(path='./'):

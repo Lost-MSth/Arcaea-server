@@ -101,7 +101,7 @@ def token_get(user):
 @api.api_auth.role_required(request, ['change_me', 'select_me', 'select'])
 def token_delete(user):
     # 登出
-    return return_encode()
+    return return_encode(api.api_auth.logout(user))
 
 
 @bp.route('/users', methods=['GET'])

@@ -12,7 +12,8 @@ def code_get_msg(code):
         '-103': 'Wrong sort parameter',
         '-104': 'Wrong sort order parameter',
         '-201': 'Wrong username or password',
-        '-202': 'User is banned'
+        '-202': 'User is banned',
+        '-999': 'Unknown error'
     }
 
     return msg[str(code)]

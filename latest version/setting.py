@@ -19,7 +19,7 @@ class Config():
     游戏API地址前缀
     Game API's URL prefix
     '''
-    GAME_API_PREFIX = '/kusoatui/15'
+    GAME_API_PREFIX = '/earlgrey/16'
     '''
     --------------------
     '''
@@ -30,7 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.8.6', '3.8.6c']
+    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.8.8', '3.8.8c']
     '''
     --------------------
     '''

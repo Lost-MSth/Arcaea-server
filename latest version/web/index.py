@@ -777,12 +777,12 @@ def change_purchase():
                 discount_from = int(time.mktime(time.strptime(
                     discount_from, "%Y-%m-%dT%H:%M"))) * 1000
             else:
-                discount_from = None
+                discount_from = -1
             if discount_to:
                 discount_to = int(time.mktime(time.strptime(
                     discount_to, "%Y-%m-%dT%H:%M"))) * 1000
             else:
-                discount_to = None
+                discount_to = -1
         except:
             error = '数据错误 Wrong data.'
             flash(error)

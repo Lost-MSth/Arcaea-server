@@ -52,9 +52,14 @@ def login(auth: str, ip: str):
     return {'token': token, 'user_id': user_id}, 0
 
 
-def logout():
-    # 登出接口
-    pass
+def logout(user: User):
+    # 登出接口，返回错误码
+    code = 999
+    with Connect() as c:
+        c.execute('''delete from api_login where user_id=?''', (user.user_id,))
+        code = 0
+
+    return code
 
 
 def id_get_role_id(c, user_id):
@@ -119,7 +124,7 @@ def role_required(request, power=[]):
                 return jsonify({'status': 400, 'code': -1, 'data': {}, 'msg': 'Payload must be a valid json'})
 
             if not 'Token' in request.headers:
-                return jsonify({'status': 401, 'code': -1, 'data': {}, 'msg': 'No Token'})
+                return jsonify({'status': 401, 'code': -1, 'data': {}, 'msg': 'No token'})
 
             user = User()
             if Config.API_TOKEN == request.headers['Token'] and Config.API_TOKEN != '':
@@ -131,7 +136,7 @@ def role_required(request, power=[]):
                     user.user_id = api_token_get_id(
                         c, request.headers['Token'])
                     if user.user_id is None:
-                        return jsonify({'status': 404, 'code': -1, 'data': {}, 'msg': ''})
+                        return jsonify({'status': 401, 'code': -1, 'data': {}, 'msg': 'No token'})
 
                     role_id = id_get_role_id(c, user.user_id)
                     user.role = role_id_get_role(c, role_id)
