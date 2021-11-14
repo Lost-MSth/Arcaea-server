@@ -30,7 +30,8 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.8.8', '3.8.8c']
+    ALLOW_APPVERSION = ['3.5.3', '3.5.3c',
+                        '3.9.0', '3.9.0c', '3.9.1', '3.9.1c']
     '''
     --------------------
     '''
@@ -175,6 +176,18 @@ class Config():
     The default amount of memories at the time of user registration
     '''
     DEFAULT_MEMORIES = 0
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
+    数据库更新时，是否采用最新的角色数据，如果你想采用最新的官方角色数据
+    注意：如果是，旧的数据将丢失；如果否，某些角色的数据变动将无法同步
+    If using the latest character data when updating database. If you want to only keep newest official character data, please set it `True`.
+    Note: If `True`, the old data will be lost; If `False`, the data changes of some characters will not be synchronized.
+    '''
+    UPDATE_WITH_NEW_CHARACTER_DATA = True
     '''
     --------------------
     '''

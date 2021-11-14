@@ -9,6 +9,10 @@ import os
 import time
 
 
+ETO_UNCAP_BONUS_PROGRESS = 7
+LUNA_UNCAP_BONUS_PROGRESS = 7
+
+
 def int2b(x):
     # int与布尔值转换
     if x is None or x == 0:
@@ -363,12 +367,23 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
         'a': user_id, 'b': song_id, 'c': difficulty})
 
     c.execute(
-        '''select character_id, max_stamina_ts, stamina from user where user_id=?''', (user_id,))
+        '''select character_id, max_stamina_ts, stamina, is_skill_sealed, is_char_uncapped, is_char_uncapped_override from user where user_id=?''', (user_id,))
     x = c.fetchone()
     character_id = x[0] if x and x[0] is not None else 0
     max_stamina_ts = x[1] if x and x[1] is not None else 0
     stamina = x[2] if x and x[2] is not None else 12
-    c.execute('''select frag1,prog1,overdrive1,frag20,prog20,overdrive20,frag30,prog30,overdrive30 from character where character_id=?''', (character_id,))
+    is_skill_sealed = x[3] if x and x[3] is not None else 1
+    skill = False
+    skill_uncap = False
+    if not is_skill_sealed:
+        if x:
+            skill = True
+            if x[4] is not None and x[4] == 1:
+                skill_uncap = True
+            if x[5] is not None and x[5] == 1:
+                skill_uncap = False
+
+    c.execute('''select frag1,prog1,overdrive1,frag20,prog20,overdrive20,frag30,prog30,overdrive30,skill_id,skill_id_uncap from character where character_id=?''', (character_id,))
     x = c.fetchone()
 
     if Config.CHARACTER_FULL_UNLOCK:
@@ -389,10 +404,20 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
         flag = server.character.calc_char_value(level, x[0], x[3], x[6])
         prog = server.character.calc_char_value(level, x[1], x[4], x[7])
         overdrive = server.character.calc_char_value(level, x[2], x[5], x[8])
+        if x[9] is not None and x[9] != '' and skill:
+            skill = x[9]
+        else:
+            skill = None
+        if x[10] is not None and x[9] != '' and skill_uncap:
+            skill_uncap = x[10]
+        else:
+            skill_uncap = None
     else:
         flag = 0
         prog = 0
         overdrive = 0
+        skill = None
+        skill_uncap = None
 
     c.execute('''select current_map from user where user_id = :a''', {
         'a': user_id})
@@ -424,6 +449,37 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
 
     rewards, steps, curr_position, curr_capture, info = climb_step(
         user_id, map_id, step, y[3], y[2])
+    # Eto和Luna的技能
+    character_bonus_progress = None
+    skill_special = ''
+    if skill_uncap is not None and skill_uncap and skill_uncap in ['eto_uncap', 'luna_uncap']:
+        skill_special = skill_uncap
+    elif skill is not None and skill and skill in ['eto_uncap', 'luna_uncap']:
+        skill_special = skill
+    if skill_special == 'eto_uncap':
+        # eto觉醒技能，获得残片奖励时世界模式进度加7
+        fragment_flag = False
+        for i in rewards:
+            for j in i['items']:
+                if j['type'] == 'fragment':
+                    fragment_flag = True
+                    break
+            if fragment_flag:
+                break
+        if fragment_flag:
+            character_bonus_progress = ETO_UNCAP_BONUS_PROGRESS
+            step += character_bonus_progress * step_times
+        rewards, steps, curr_position, curr_capture, info = climb_step(
+            user_id, map_id, step, y[3], y[2])  # 二次爬梯，重新计算
+
+    elif skill_special == 'luna_uncap':
+        # luna觉醒技能，限制格开始时世界模式进度加7
+        if 'restrict_id' in steps[0] and 'restrict_type' in steps[0] and steps[0]['restrict_type'] != '' and steps[0]['restrict_id'] != '':
+            character_bonus_progress = LUNA_UNCAP_BONUS_PROGRESS
+            step += character_bonus_progress * step_times
+        rewards, steps, curr_position, curr_capture, info = climb_step(
+            user_id, map_id, step, y[3], y[2])  # 二次爬梯，重新计算
+
     for i in rewards:  # 物品分发
         for j in i['items']:
             amount = j['amount'] if 'amount' in j else 1
@@ -498,6 +554,9 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
             "current_stamina": calc_stamina(max_stamina_ts, stamina),
             "max_stamina_ts": max_stamina_ts
         }
+
+    if character_bonus_progress is not None:
+        re['character_bonus_progress'] = character_bonus_progress
 
     if stamina_multiply != 1:
         re['stamina_multiply'] = stamina_multiply

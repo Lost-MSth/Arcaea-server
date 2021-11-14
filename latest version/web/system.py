@@ -5,6 +5,7 @@ import json
 import server.arcscore
 import hashlib
 from random import Random
+from setting import Config
 
 
 def int2b(x):
@@ -208,9 +209,9 @@ def update_database():
 
                 update_one_table(c1, c2, 'user_char')
 
-                # ---You can comment this line by yourself, if you want to only keep newest official character data.
-                update_one_table(c1, c2, 'character')
-                # ---
+                if not Config.UPDATE_WITH_NEW_CHARACTER_DATA:
+                    update_one_table(c1, c2, 'character')
+
                 update_user_char(c2)  # 更新user_char_full
 
         os.remove('database/old_arcaea_database.db')

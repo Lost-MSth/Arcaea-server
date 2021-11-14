@@ -64,10 +64,24 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss. 
 
-### Version 2.6.3
-- 适用于Arcaea 3.8.2版本 For Arcaea 3.8.2
+### Version 2.7.0
+- 适用于Arcaea 3.9.0版本 For Arcaea 3.9.0
 - 更新了歌曲数据库 Update the song database.
-- 新搭档 **群愿（盛夏）** 已解锁 Unlock the new character **Kanae(Midsummer)**.
+- 新搭档 **爱丽丝 & 坦尼尔（小步舞曲）** 已解锁 Unlock the new character **Alice & Tenniel (Minuet)**.
+- 新搭档 **对立（挽歌）** 已解锁 Unlock the new character **Tairitsu (Elegy)**.
+- 搭档 **爱托** 已觉醒 Uncap the character **Eto**.
+- 搭档 **露娜** 已觉醒 Uncap the character **Luna**.
+- 新增爱托和露娜的觉醒技能（可能有问题） Add the uncapped skills of Eto and Luna (There may be bugs.).
+- 新增是否同步角色表的设置选项 Add the setting option of whether updating the character table.
+
+- 以下是累积更新 The following are cumulative updates:
+  - 添加购买物品含有以太之滴的支持 Add support for purchasing items containing generic cores.
+  - 修复关于购买物品打折的问题 Fix a bug about purchase discount.
+  - 修复关于数据库同步的问题，这可能导致api_login表为空 Fix a bug about database synchronization, which may make 'api_login' table empty.
+  - 新增登出API接口 Update a logout API.
+
+> 提示：某些数据可能尚不完整，某个单曲的解锁和某两个角色的数据可能会有问题  
+> Tips: Some data may not be complete, so there may be problems with the unlocking of a single song and the data of two characters.
 
 
 ## 运行环境与依赖 Running environment and requirements
