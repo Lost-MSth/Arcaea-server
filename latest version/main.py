@@ -214,7 +214,7 @@ def login():
             return error_return(error_code)
 
 
-@app.route(add_url_prefix('/user/'), methods=['POST'])  # 注册接口
+@app.route(add_url_prefix('/user'), methods=['POST'])  # 注册接口
 def register():
     if 'AppVersion' in request.headers:  # 版本检查
         if Config.ALLOW_APPVERSION:
