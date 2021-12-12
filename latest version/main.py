@@ -119,7 +119,6 @@ def error_return(error_code, extra={}):  # 错误返回
     # -4 您的账号已在别处登录
     # -3 无法连接至服务器
     # 2 Arcaea服务器正在维护
-    # 5 请更新Arcaea到最新版本
     # 9 新版本请等待几分钟
     # 100 无法在此ip地址下登录游戏
     # 101 用户名占用
@@ -127,12 +126,12 @@ def error_return(error_code, extra={}):  # 错误返回
     # 103 已有一个账号由此设备创建
     # 104 用户名密码错误
     # 105 24小时内登入两台设备
-    # 106 账户冻结
+    # 106 121 账户冻结
     # 107 你没有足够的体力
     # 113 活动已结束
     # 114 该活动已结束，您的成绩不会提交
+    # 115 请输入有效的电子邮箱地址
     # 120 封号警告
-    # 121 账户冻结
     # 122 账户暂时冻结
     # 123 账户被限制
     # 124 你今天不能再使用这个IP地址创建新的账号
@@ -151,8 +150,13 @@ def error_return(error_code, extra={}):  # 错误返回
     # 905 请在再次使用此功能前等待24小时
     # 1001 设备数量达到上限
     # 1002 此设备已使用过此功能
+    # 1201 房间已满
+    # 1202 房间号码无效
+    # 1203 请将Arcaea更新至最新版本
+    # 1205 此房间目前无法加入
     # 9801 下载歌曲时发生问题，请再试一次
     # 9802 保存歌曲时发生问题，请检查设备空间容量
+    # 9803 下载已取消
     # 9905 没有在云端发现任何数据
     # 9907 更新数据时发生了问题
     # 9908 服务器只支持最新的版本，请更新Arcaea
@@ -190,7 +194,7 @@ def login():
     if 'AppVersion' in request.headers:  # 版本检查
         if Config.ALLOW_APPVERSION:
             if request.headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-                return error_return(5)
+                return error_return(1203)
 
     headers = request.headers
     id_pwd = headers['Authorization']
@@ -692,6 +696,26 @@ def download(file_path):
             return error_return(message)
     except:
         return error_return(108)
+
+
+# 创建房间
+@app.route(add_url_prefix('/multiplayer/me/room/create'), methods=['POST'])
+@server.auth.auth_required(request)
+def room_create(user_id):
+    return error_return(151)
+
+
+# 加入房间
+@app.route(add_url_prefix('/multiplayer/me/room/join/<room_code>'), methods=['POST'])
+@server.auth.auth_required(request)
+def room_join(user_id, room_code):
+    return error_return(151)
+
+
+@app.route(add_url_prefix('/multiplayer/me/update'), methods=['POST'])  # ？
+@server.auth.auth_required(request)
+def multiplayer_update(user_id):
+    return error_return(151)
 
 
 # 三个设置，写在最后降低优先级

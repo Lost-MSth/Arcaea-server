@@ -19,7 +19,7 @@ class Config():
     游戏API地址前缀
     Game API's URL prefix
     '''
-    GAME_API_PREFIX = '/earlgrey/16'
+    GAME_API_PREFIX = '/merikuri/17'
     '''
     --------------------
     '''
@@ -31,7 +31,7 @@ class Config():
     If it is blank, all are allowed.
     '''
     ALLOW_APPVERSION = ['3.5.3', '3.5.3c',
-                        '3.9.0', '3.9.0c', '3.9.1', '3.9.1c']
+                        '3.10.0', '3.10.0c', '3.10.1', '3.10.1c']
     '''
     --------------------
     '''

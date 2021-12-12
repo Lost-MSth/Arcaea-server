@@ -855,6 +855,36 @@ def arc_all_get(user_id):
             "c": True,
             "r": True
         }, {
+            "ma": 99,
+            "mi": 1,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 99,
+            "mi": 2,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 99,
+            "mi": 3,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 99,
+            "mi": 4,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 99,
+            "mi": 5,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 99,
+            "mi": 6,
+            "c": True,
+            "r": True
+        }, {
             "ma": 5,
             "mi": 1,
             "c": True,
@@ -1012,9 +1042,6 @@ def arc_all_get(user_id):
             "unlock_key": "worldexecuteme|2|0",
             "complete": 1
         }, {
-            "unlock_key": "viciousheroism|2|0",
-            "complete": 1
-        }, {
             "unlock_key": "vector|1|0",
             "complete": 1
         }, {
@@ -1035,6 +1062,15 @@ def arc_all_get(user_id):
         }, {
             "unlock_key": "tempestissimo|1|101",
             "complete": 100
+        }, {
+            "unlock_key": "syro|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "syro|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "supernova|2|0",
+            "complete": 1
         }, {
             "unlock_key": "ringedgenesis|2|0",
             "complete": 1
@@ -1099,10 +1135,10 @@ def arc_all_get(user_id):
             "unlock_key": "redandblue|1|0",
             "complete": 1
         }, {
-            "unlock_key": "lostcivilization|2|0",
+            "unlock_key": "supernova|1|0",
             "complete": 1
         }, {
-            "unlock_key": "supernova|1|0",
+            "unlock_key": "lostcivilization|2|0",
             "complete": 1
         }, {
             "unlock_key": "rabbitintheblackroom|2|0",
@@ -1121,9 +1157,6 @@ def arc_all_get(user_id):
             "complete": 1
         }, {
             "unlock_key": "purgatorium|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "supernova|2|0",
             "complete": 1
         }, {
             "unlock_key": "halcyon|2|0",
@@ -1228,9 +1261,6 @@ def arc_all_get(user_id):
             "unlock_key": "loschen|1|0",
             "complete": 1
         }, {
-            "unlock_key": "syro|2|0",
-            "complete": 1
-        }, {
             "unlock_key": "aegleseeker|2|3|paperwitch|2",
             "complete": 10
         }, {
@@ -1318,6 +1348,9 @@ def arc_all_get(user_id):
             "unlock_key": "singularity|2|0",
             "complete": 1
         }, {
+            "unlock_key": "lightningscrew|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "viciousheroism|1|0",
             "complete": 1
         }, {
@@ -1402,9 +1435,6 @@ def arc_all_get(user_id):
             "unlock_key": "espebranch|2|0",
             "complete": 1
         }, {
-            "unlock_key": "syro|1|0",
-            "complete": 1
-        }, {
             "unlock_key": "anokumene|2|0",
             "complete": 1
         }, {
@@ -1429,6 +1459,9 @@ def arc_all_get(user_id):
             "unlock_key": "dreaminattraction|2|0",
             "complete": 1
         }, {
+            "unlock_key": "neokosmo|2|0",
+            "complete": 1
+        }, {
             "unlock_key": "dreaminattraction|1|0",
             "complete": 1
         }, {
@@ -1451,6 +1484,9 @@ def arc_all_get(user_id):
             "complete": 1
         }, {
             "unlock_key": "dandelion|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "neokosmo|1|0",
             "complete": 1
         }, {
             "unlock_key": "aegleseeker_challenge|0|102",
@@ -1508,6 +1544,12 @@ def arc_all_get(user_id):
             "complete": 1
         }, {
             "unlock_key": "corpssansorganes|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "viciousheroism|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "lightningscrew|2|0",
             "complete": 1
         }, {
             "unlock_key": "worldexecuteme|1|0",
