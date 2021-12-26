@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-from flask import Flask, request, jsonify, make_response, send_from_directory
+from flask import Flask, json, request, jsonify, make_response, send_from_directory
 from logging.config import dictConfig
 from setting import Config
 import base64
@@ -703,6 +703,20 @@ def download(file_path):
 @server.auth.auth_required(request)
 def room_create(user_id):
     return error_return(151)
+    # return jsonify({
+    #     "success": True,
+    #     "value": {
+    #         "roomCode": "Fuck616",
+    #         "roomId": "16465282253677196096",
+    #         "token": "16465282253677196096",
+    #         "key": "czZNUmivWm6c3SpMaPIXcA==",
+    #         "playerId": "12753",
+    #         "userId": user_id,
+    #         "endPoint": "192.168.1.200",
+    #         "port": 10900,
+    #         "orderedAllowedSongs": "9w93DwcH93AA8HcPAAAHAHcAAHBwAABwcAAAAHB3AAAAcAcAAHAAAHAAAAB3BwD3AAAABwAAAAAAAAAAAAAAAAAAAAAAAAAHAHAHBwcAAAAAcHd3cAAAAAAHBwcAAAAAAAAAAAAHdwAHAAAAcAdwBwAAAAAAdwcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    #     }
+    # })
 
 
 # 加入房间
@@ -715,6 +729,12 @@ def room_join(user_id, room_code):
 @app.route(add_url_prefix('/multiplayer/me/update'), methods=['POST'])  # ？
 @server.auth.auth_required(request)
 def multiplayer_update(user_id):
+    return error_return(151)
+
+
+@app.route(add_url_prefix('/user/me/request_delete'), methods=['POST'])  # 删除账号
+@server.auth.auth_required(request)
+def user_delete(user_id):
     return error_return(151)
 
 

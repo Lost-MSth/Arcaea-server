@@ -1,6 +1,8 @@
-[{
+[
+	{
 		"name": "core",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "core",
 				"is_available": true
@@ -19,7 +21,8 @@
 	},
 	{
 		"name": "shiawase",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "shiawase",
 				"is_available": true
@@ -43,7 +46,8 @@
 	},
 	{
 		"name": "dynamix",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "dynamix",
 				"is_available": true
@@ -67,7 +71,8 @@
 	},
 	{
 		"name": "mirai",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "mirai",
 				"is_available": true
@@ -91,7 +96,8 @@
 	},
 	{
 		"name": "yugamu",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "yugamu",
 				"is_available": true
@@ -110,7 +116,8 @@
 	},
 	{
 		"name": "lanota",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "lanota",
 				"is_available": true
@@ -129,7 +136,8 @@
 	},
 	{
 		"name": "nijuusei",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "nijuusei",
 				"is_available": true
@@ -148,7 +156,8 @@
 	},
 	{
 		"name": "rei",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "rei",
 				"is_available": true
@@ -167,7 +176,8 @@
 	},
 	{
 		"name": "tonesphere",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "tonesphere",
 				"is_available": true
@@ -186,7 +196,8 @@
 	},
 	{
 		"name": "groovecoaster",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "groovecoaster",
 				"is_available": true
@@ -205,7 +216,8 @@
 	},
 	{
 		"name": "zettai",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "zettai",
 				"is_available": true
@@ -224,7 +236,8 @@
 	},
 	{
 		"name": "chunithm",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "chunithm",
 				"is_available": true
@@ -241,7 +254,8 @@
 	},
 	{
 		"name": "prelude",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "prelude",
 				"is_available": true
@@ -260,7 +274,8 @@
 	},
 	{
 		"name": "omatsuri",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "omatsuri",
 				"is_available": true
@@ -279,7 +294,8 @@
 	},
 	{
 		"name": "vs",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "vs",
 				"is_available": true
@@ -298,7 +314,8 @@
 	},
 	{
 		"name": "extend",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "extend",
 				"is_available": true
@@ -317,7 +334,8 @@
 	},
 	{
 		"name": "alice",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "alice",
 				"is_available": true
@@ -334,7 +352,8 @@
 	},
 	{
 		"name": "alice_append_1",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "alice_append_1",
 				"is_available": true
@@ -351,7 +370,8 @@
 	},
 	{
 		"name": "ongeki",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "ongeki",
 				"is_available": true
@@ -368,7 +388,8 @@
 	},
 	{
 		"name": "maimai",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "maimai",
 				"is_available": true
@@ -385,7 +406,8 @@
 	},
 	{
 		"name": "chunithm_append_1",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "chunithm_append_1",
 				"is_available": true
@@ -402,7 +424,8 @@
 	},
 	{
 		"name": "observer_append_1",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "observer_append_1",
 				"is_available": true
@@ -419,7 +442,8 @@
 	},
 	{
 		"name": "observer",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "observer",
 				"is_available": true
@@ -436,7 +460,8 @@
 	},
 	{
 		"name": "observer_append_2",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "observer_append_2",
 				"is_available": true
@@ -453,7 +478,8 @@
 	},
 	{
 		"name": "wacca",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "wacca",
 				"is_available": true
@@ -470,7 +496,8 @@
 	},
 	{
 		"name": "nijuusei_append_1",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "nijuusei_append_1",
 				"is_available": true
@@ -487,7 +514,8 @@
 	},
 	{
 		"name": "dividedheart",
-		"items": [{
+		"items": [
+			{
 				"type": "pack",
 				"id": "dividedheart",
 				"is_available": true
@@ -501,5 +529,28 @@
 		],
 		"orig_price": 500,
 		"price": 500
+	},
+	{
+		"name": "musedash",
+		"items": [
+			{
+				"type": "pack",
+				"id": "musedash",
+				"is_available": true
+			},
+			{
+				"type": "character",
+				"id": "marija",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 5,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"price": 400,
+		"orig_price": 400
 	}
 ]

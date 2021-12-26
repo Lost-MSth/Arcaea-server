@@ -195,7 +195,7 @@ def auth_required(request):
             if 'AppVersion' in headers:  # 版本检查
                 if Config.ALLOW_APPVERSION:
                     if headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-                        return jsonify({"success": False, "error_code": 5})
+                        return jsonify({"success": False, "error_code": 1203})
 
             if 'Authorization' in headers:
                 token = headers['Authorization']

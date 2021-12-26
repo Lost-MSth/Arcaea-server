@@ -1072,10 +1072,7 @@ def arc_all_get(user_id):
             "unlock_key": "supernova|2|0",
             "complete": 1
         }, {
-            "unlock_key": "ringedgenesis|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "suomi|1|0",
+            "unlock_key": "solitarydream|2|0",
             "complete": 1
         }, {
             "unlock_key": "snowwhite|2|0",
@@ -1148,6 +1145,12 @@ def arc_all_get(user_id):
             "complete": 1
         }, {
             "unlock_key": "rabbitintheblackroom|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "suomi|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "ringedgenesis|2|0",
             "complete": 1
         }, {
             "unlock_key": "quon|1|0",
@@ -1228,6 +1231,9 @@ def arc_all_get(user_id):
             "unlock_key": "melodyoflove|1|0",
             "complete": 1
         }, {
+            "unlock_key": "medusa|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "mazymetroplex|2|0",
             "complete": 1
         }, {
@@ -1298,6 +1304,15 @@ def arc_all_get(user_id):
             "complete": 1
         }, {
             "unlock_key": "ignotus|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "sheriruth|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "medusa|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "heavensdoor|2|0",
             "complete": 1
         }, {
             "unlock_key": "nhelv|1|0",
@@ -1450,6 +1465,12 @@ def arc_all_get(user_id):
             "unlock_key": "gloryroad|2|0",
             "complete": 1
         }, {
+            "unlock_key": "neokosmo|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "akinokagerou|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "equilibrium_challenge|1|102",
             "complete": 1
         }, {
@@ -1468,6 +1489,12 @@ def arc_all_get(user_id):
             "unlock_key": "divinelight|2|0",
             "complete": 1
         }, {
+            "unlock_key": "freefall|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "darakunosono|2|0",
+            "complete": 1
+        }, {
             "unlock_key": "goodtek|2|0",
             "complete": 1
         }, {
@@ -1477,25 +1504,7 @@ def arc_all_get(user_id):
             "unlock_key": "dandelion|2|0",
             "complete": 1
         }, {
-            "unlock_key": "blrink|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "suomi|2|0",
-            "complete": 1
-        }, {
             "unlock_key": "dandelion|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "neokosmo|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "aegleseeker_challenge|0|102",
-            "complete": 1
-        }, {
-            "unlock_key": "oblivia|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "cyberneciacatharsis|1|0",
             "complete": 1
         }, {
             "unlock_key": "blrink|1|0",
@@ -1558,13 +1567,13 @@ def arc_all_get(user_id):
             "unlock_key": "bookmaker|1|0",
             "complete": 1
         }, {
-            "unlock_key": "fractureray|0|101",
-            "complete": 100
-        }, {
-            "unlock_key": "singularity|1|0",
+            "unlock_key": "toaliceliddell|2|0",
             "complete": 1
         }, {
-            "unlock_key": "blaster|1|0",
+            "unlock_key": "overwhelm|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "nirvluce|2|0",
             "complete": 1
         }, {
             "unlock_key": "genocider|1|0",
@@ -1588,7 +1597,19 @@ def arc_all_get(user_id):
             "unlock_key": "axiumcrisis|2|0",
             "complete": 1
         }, {
-            "unlock_key": "solitarydream|2|0",
+            "unlock_key": "suomi|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "blrink|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "fractureray|0|101",
+            "complete": 100
+        }, {
+            "unlock_key": "singularity|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "blaster|1|0",
             "complete": 1
         }, {
             "unlock_key": "aegleseeker|1|103",
@@ -1612,6 +1633,15 @@ def arc_all_get(user_id):
             "unlock_key": "conflict|1|0",
             "complete": 1
         }, {
+            "unlock_key": "oblivia|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "cyberneciacatharsis|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "aegleseeker_challenge|0|102",
+            "complete": 1
+        }, {
             "unlock_key": "mazymetroplex|1|0",
             "complete": 1
         }, {
@@ -1633,30 +1663,6 @@ def arc_all_get(user_id):
             "unlock_key": "jump|2|0",
             "complete": 1
         }, {
-            "unlock_key": "saikyostronger|2|3|izana|2",
-            "complete": 1
-        }, {
-            "unlock_key": "memoryforest|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "halcyon|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "heavensdoor|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "genesis|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "vector|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "loschen|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "divinelight|1|0",
-            "complete": 1
-        }, {
             "unlock_key": "viyellastears|1|0",
             "complete": 1
         }, {
@@ -1675,31 +1681,37 @@ def arc_all_get(user_id):
             "unlock_key": "gou|1|0",
             "complete": 1
         }, {
-            "unlock_key": "sheriruth|2|0",
-            "complete": 1
-        }, {
             "unlock_key": "sheriruth|1|0",
             "complete": 1
         }, {
             "unlock_key": "aegleseeker|2|3|loschen|2",
             "complete": 10
         }, {
+            "unlock_key": "akinokagerou|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "saikyostronger|2|3|izana|2",
+            "complete": 1
+        }, {
+            "unlock_key": "memoryforest|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "halcyon|1|0",
+            "complete": 1
+        }, {
+            "unlock_key": "genesis|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "vector|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "loschen|2|0",
+            "complete": 1
+        }, {
+            "unlock_key": "divinelight|1|0",
+            "complete": 1
+        }, {
             "unlock_key": "essenceoftwilight|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "darakunosono|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "freefall|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "toaliceliddell|2|0",
-            "complete": 1
-        }, {
-            "unlock_key": "overwhelm|1|0",
-            "complete": 1
-        }, {
-            "unlock_key": "nirvluce|2|0",
             "complete": 1
         }, {
             "unlock_key": "cyberneciacatharsis|2|0",
