@@ -21,6 +21,7 @@ This procedure is mainly used for study and research, and shall not be used for 
 - PTT
 - 世界排名 Global rank
 - 排名 Rank
+- Link Play
 - 好友系统 Friends
 - 数据同步 Data synchronization
 - 爬梯 Climbing steps
@@ -64,30 +65,26 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss. 
 
-### Version 2.7.0
-- 适用于Arcaea 3.9.0版本 For Arcaea 3.9.0
+<!--
+### Version 2.8
+- 适用于Arcaea 3.12.0版本 For Arcaea 3.12.0
 - 更新了歌曲数据库 Update the song database.
-- 新搭档 **爱丽丝 & 坦尼尔（小步舞曲）** 已解锁 Unlock the new character **Alice & Tenniel (Minuet)**.
-- 新搭档 **对立（挽歌）** 已解锁 Unlock the new character **Tairitsu (Elegy)**.
-- 搭档 **爱托** 已觉醒 Uncap the character **Eto**.
-- 搭档 **露娜** 已觉醒 Uncap the character **Luna**.
-- 新增爱托和露娜的觉醒技能（可能有问题） Add the uncapped skills of Eto and Luna (There may be bugs.).
-- 新增是否同步角色表的设置选项 Add the setting option of whether updating the character table.
+- 新增对Link Play的支持 Add support for Link Play.
 
 - 以下是累积更新 The following are cumulative updates:
-  - 添加购买物品含有以太之滴的支持 Add support for purchasing items containing generic cores.
-  - 修复关于购买物品打折的问题 Fix a bug about purchase discount.
-  - 修复关于数据库同步的问题，这可能导致api_login表为空 Fix a bug about database synchronization, which may make 'api_login' table empty.
-  - 新增登出API接口 Update a logout API.
+  - 修复注册接口端点多了个杠的问题 Fix unexpected slash at the registered interface endpoint.
+  - 新搭档**白姬**已解锁 Unlock the character **shirahime**.
+  - 修正两个角色的数值问题 Fix the values of two characters.
+  - 新搭档**玛莉嘉**已解锁 Unlock the character **marija**.
 
-> 提示：某些数据可能尚不完整，某个单曲的解锁和某两个角色的数据可能会有问题  
-> Tips: Some data may not be complete, so there may be problems with the unlocking of a single song and the data of two characters.
-
+> 提示：Link Play可能存在大量bug  
+> Tips: There may be many bugs in Link Play system.
+-->
 
 ## 运行环境与依赖 Running environment and requirements
-- Windows/Linux/Mac OS/Android
+- Windows/Linux/Mac OS/Android...
 - Python 3
-- Flask module
+- Flask module, Cryptography module
 - Charles, IDA, proxy app... (optional)
 
 <!--
