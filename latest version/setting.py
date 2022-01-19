@@ -37,6 +37,17 @@ class Config():
 
     '''
     --------------------
+    联机功能的端口号，若为空，则默认不开启联机功能
+    Port of your link play server
+    If it is blank, link play will be unavailable.
+    '''
+    UDP_PORT = '10900'
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
     SSL证书路径
     留空则使用HTTP
     SSL certificate path

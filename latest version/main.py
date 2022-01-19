@@ -16,8 +16,11 @@ import server.arcdownload
 import server.arcpurchase
 import server.init
 import server.character
+import server.arclinkplay
+from udpserver.udp_main import link_play
 import os
 import sys
+from multiprocessing import Process, Pipe
 
 
 app = Flask(__name__)
@@ -31,62 +34,7 @@ app.register_blueprint(web.login.bp)
 app.register_blueprint(web.index.bp)
 app.register_blueprint(api.api_main.bp)
 
-log_dict = {
-    'version': 1,
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi', 'error_file']
-    },
-    'handlers': {
-        'wsgi': {
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://flask.logging.wsgi_errors_stream',
-            'formatter': 'default'
-        },
-        "error_file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "maxBytes": 1024 * 1024,
-            "backupCount": 1,
-            "encoding": "utf-8",
-            "level": "ERROR",
-            "formatter": "default",
-            "filename": "./log/error.log"
-        }
-    },
-    'formatters': {
-        'default': {
-            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
-        }
-    }
-}
-if Config.ALLOW_LOG_INFO:
-    log_dict['root']['handlers'] = ['wsgi', 'info_file', 'error_file']
-    log_dict['handlers']['info_file'] = {
-        "class": "logging.handlers.RotatingFileHandler",
-        "maxBytes": 1024 * 1024,
-        "backupCount": 1,
-        "encoding": "utf-8",
-        "level": "INFO",
-        "formatter": "default",
-        "filename": "./log/info.log"
-    }
-
-dictConfig(log_dict)
-
-if not server.init.check_before_run(app):
-    app.logger.error('Something wrong. The server will not run.')
-    input('Press ENTER key to exit.')
-    sys.exit()
-
-app.logger.info("Start to initialize data in 'songfile' table...")
-try:
-    error = server.arcdownload.initialize_songfile()
-except:
-    error = 'Something wrong.'
-if error:
-    app.logger.warning(error)
-else:
-    app.logger.info('Complete!')
+conn1, conn2 = Pipe()
 
 
 def add_url_prefix(url, strange_flag=False):
@@ -702,40 +650,70 @@ def download(file_path):
 @app.route(add_url_prefix('/multiplayer/me/room/create'), methods=['POST'])
 @server.auth.auth_required(request)
 def room_create(user_id):
-    return error_return(151)
-    # return jsonify({
-    #     "success": True,
-    #     "value": {
-    #         "roomCode": "Fuck616",
-    #         "roomId": "16465282253677196096",
-    #         "token": "16465282253677196096",
-    #         "key": "czZNUmivWm6c3SpMaPIXcA==",
-    #         "playerId": "12753",
-    #         "userId": user_id,
-    #         "endPoint": "192.168.1.200",
-    #         "port": 10900,
-    #         "orderedAllowedSongs": "9w93DwcH93AA8HcPAAAHAHcAAHBwAABwcAAAAHB3AAAAcAcAAHAAAHAAAAB3BwD3AAAABwAAAAAAAAAAAAAAAAAAAAAAAAAHAHAHBwcAAAAAcHd3cAAAAAAHBwcAAAAAAAAAAAAHdwAHAAAAcAdwBwAAAAAAdwcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-    #     }
-    # })
+    if not Config.UDP_PORT or Config.UDP_PORT == '':
+        return error_return(151), 404
+
+    client_song_map = request.json['clientSongMap']
+    error_code, value = server.arclinkplay.create_room(
+        conn1, user_id, client_song_map)
+
+    if error_code == 0:
+        value['endPoint'] = request.host.split(':')[0]
+        value['port'] = int(Config.UDP_PORT)
+        return jsonify({
+            "success": True,
+            "value": value
+        })
+    else:
+        return error_return(error_code), 400
 
 
 # 加入房间
 @app.route(add_url_prefix('/multiplayer/me/room/join/<room_code>'), methods=['POST'])
 @server.auth.auth_required(request)
 def room_join(user_id, room_code):
-    return error_return(151)
+    if not Config.UDP_PORT or Config.UDP_PORT == '':
+        return error_return(151), 404
+
+    client_song_map = request.json['clientSongMap']
+    error_code, value = server.arclinkplay.join_room(
+        conn1, user_id, client_song_map, room_code)
+
+    if error_code == 0:
+        value['endPoint'] = request.host.split(':')[0]
+        value['port'] = int(Config.UDP_PORT)
+        return jsonify({
+            "success": True,
+            "value": value
+        })
+    else:
+        return error_return(error_code), 400
 
 
-@app.route(add_url_prefix('/multiplayer/me/update'), methods=['POST'])  # ？
+@app.route(add_url_prefix('/multiplayer/me/update'), methods=['POST'])  # 更新房间
 @server.auth.auth_required(request)
 def multiplayer_update(user_id):
-    return error_return(151)
+    if not Config.UDP_PORT or Config.UDP_PORT == '':
+        return error_return(151), 404
+
+    token = request.json['token']
+    error_code, value = server.arclinkplay.update_room(conn1, user_id, token)
+
+    if error_code == 0:
+        value['endPoint'] = request.host.split(':')[0]
+        value['port'] = int(Config.UDP_PORT)
+        return jsonify({
+            "success": True,
+            "value": value
+        })
+    else:
+        return error_return(error_code), 400
 
 
 @app.route(add_url_prefix('/user/me/request_delete'), methods=['POST'])  # 删除账号
 @server.auth.auth_required(request)
 def user_delete(user_id):
-    return error_return(151)
+    return error_return(151), 404
 
 
 # 三个设置，写在最后降低优先级
@@ -751,11 +729,80 @@ def sys_set(user_id, path):
 
 
 def main():
-    if Config.SSL_CERT and Config.SSL_KEY:
-        app.run(Config.HOST, Config.PORT, ssl_context=(
-            Config.SSL_CERT, Config.SSL_KEY))
+    log_dict = {
+        'version': 1,
+        'root': {
+            'level': 'INFO',
+            'handlers': ['wsgi', 'error_file']
+        },
+        'handlers': {
+            'wsgi': {
+                'class': 'logging.StreamHandler',
+                'stream': 'ext://flask.logging.wsgi_errors_stream',
+                'formatter': 'default'
+            },
+            "error_file": {
+                "class": "logging.handlers.RotatingFileHandler",
+                "maxBytes": 1024 * 1024,
+                "backupCount": 1,
+                "encoding": "utf-8",
+                "level": "ERROR",
+                "formatter": "default",
+                "filename": "./log/error.log"
+            }
+        },
+        'formatters': {
+            'default': {
+                'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s'
+            }
+        }
+    }
+    if Config.ALLOW_LOG_INFO:
+        log_dict['root']['handlers'] = ['wsgi', 'info_file', 'error_file']
+        log_dict['handlers']['info_file'] = {
+            "class": "logging.handlers.RotatingFileHandler",
+            "maxBytes": 1024 * 1024,
+            "backupCount": 1,
+            "encoding": "utf-8",
+            "level": "INFO",
+            "formatter": "default",
+            "filename": "./log/info.log"
+        }
+
+    dictConfig(log_dict)
+
+    if not server.init.check_before_run(app):
+        app.logger.error('Something wrong. The server will not run.')
+        input('Press ENTER key to exit.')
+        sys.exit()
+
+    app.logger.info("Start to initialize data in 'songfile' table...")
+    try:
+        error = server.arcdownload.initialize_songfile()
+    except:
+        error = 'Something wrong.'
+    if error:
+        app.logger.warning(error)
     else:
-        app.run(Config.HOST, Config.PORT)
+        app.logger.info('Complete!')
+
+    if Config.UDP_PORT and Config.UDP_PORT != '':
+        process = [Process(target=link_play, args=(
+            conn2, Config.HOST, int(Config.UDP_PORT)))]
+        [p.start() for p in process]
+        app.logger.info("UDP server is running...")
+        if Config.SSL_CERT and Config.SSL_KEY:
+            app.run(Config.HOST, Config.PORT, ssl_context=(
+                Config.SSL_CERT, Config.SSL_KEY))
+        else:
+            app.run(Config.HOST, Config.PORT)
+        [p.join() for p in process]
+    else:
+        if Config.SSL_CERT and Config.SSL_KEY:
+            app.run(Config.HOST, Config.PORT, ssl_context=(
+                Config.SSL_CERT, Config.SSL_KEY))
+        else:
+            app.run(Config.HOST, Config.PORT)
 
 
 if __name__ == '__main__':
