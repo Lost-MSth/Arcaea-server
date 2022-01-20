@@ -7,10 +7,12 @@ import server.info
 import server.arcpurchase
 import os
 import time
+import random
 
 
 ETO_UNCAP_BONUS_PROGRESS = 7
 LUNA_UNCAP_BONUS_PROGRESS = 7
+AYU_UNCAP_BONUS_PROGRESS = 5
 
 
 def int2b(x):
@@ -452,9 +454,9 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
     # Eto和Luna的技能
     character_bonus_progress = None
     skill_special = ''
-    if skill_uncap is not None and skill_uncap and skill_uncap in ['eto_uncap', 'luna_uncap']:
+    if skill_uncap is not None and skill_uncap and skill_uncap in ['eto_uncap', 'luna_uncap', 'ayu_uncap']:
         skill_special = skill_uncap
-    elif skill is not None and skill and skill in ['eto_uncap', 'luna_uncap']:
+    elif skill is not None and skill and skill in ['eto_uncap', 'luna_uncap', 'ayu_uncap']:
         skill_special = skill
     if skill_special == 'eto_uncap':
         # eto觉醒技能，获得残片奖励时世界模式进度加7
@@ -477,6 +479,21 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
         if 'restrict_id' in steps[0] and 'restrict_type' in steps[0] and steps[0]['restrict_type'] != '' and steps[0]['restrict_id'] != '':
             character_bonus_progress = LUNA_UNCAP_BONUS_PROGRESS
             step += character_bonus_progress * step_times
+        rewards, steps, curr_position, curr_capture, info = climb_step(
+            user_id, map_id, step, y[3], y[2])  # 二次爬梯，重新计算
+
+    elif skill_special == 'ayu_uncap':
+        # ayu觉醒技能，世界模式进度+5或-5，但不会小于0
+        if random.random() >= 0.5:
+            character_bonus_progress = AYU_UNCAP_BONUS_PROGRESS
+        else:
+            character_bonus_progress = -AYU_UNCAP_BONUS_PROGRESS
+
+        step += character_bonus_progress * step_times
+        if step < 0:
+            character_bonus_progress += step / step_times
+            step = 0
+
         rewards, steps, curr_position, curr_capture, info = climb_step(
             user_id, map_id, step, y[3], y[2])  # 二次爬梯，重新计算
 

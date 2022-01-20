@@ -1,16 +1,20 @@
-[{
+[
+	{
 		"name": "testsingle",
-		"items": [{
-			"id": "testsingle",
-			"type": "single",
-			"is_available": false
-		}],
+		"items": [
+			{
+				"id": "testsingle",
+				"type": "single",
+				"is_available": false
+			}
+		],
 		"price": 100,
 		"orig_price": 100
 	},
 	{
 		"name": "dataerror",
-		"items": [{
+		"items": [
+			{
 				"id": "dataerror",
 				"type": "single",
 				"is_available": true
@@ -29,7 +33,8 @@
 	},
 	{
 		"name": "yourvoiceso",
-		"items": [{
+		"items": [
+			{
 				"id": "yourvoiceso",
 				"type": "single",
 				"is_available": true
@@ -48,7 +53,8 @@
 	},
 	{
 		"name": "crosssoul",
-		"items": [{
+		"items": [
+			{
 				"id": "crosssoul",
 				"type": "single",
 				"is_available": true
@@ -67,7 +73,8 @@
 	},
 	{
 		"name": "impurebird",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "impurebird",
 				"is_available": true
@@ -86,7 +93,8 @@
 	},
 	{
 		"name": "auxesia",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "auxesia",
 				"is_available": true
@@ -105,7 +113,8 @@
 	},
 	{
 		"name": "modelista",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "modelista",
 				"is_available": true
@@ -124,7 +133,8 @@
 	},
 	{
 		"name": "yozakurafubuki",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "yozakurafubuki",
 				"is_available": true
@@ -143,7 +153,8 @@
 	},
 	{
 		"name": "surrender",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "surrender",
 				"is_available": true
@@ -162,7 +173,8 @@
 	},
 	{
 		"name": "metallicpunisher",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "metallicpunisher",
 				"is_available": true
@@ -179,7 +191,8 @@
 	},
 	{
 		"name": "carminescythe",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "carminescythe",
 				"is_available": true
@@ -196,7 +209,8 @@
 	},
 	{
 		"name": "bethere",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "bethere",
 				"is_available": true
@@ -215,7 +229,8 @@
 	},
 	{
 		"name": "callmyname",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "callmyname",
 				"is_available": true
@@ -234,7 +249,8 @@
 	},
 	{
 		"name": "fallensquare",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "fallensquare",
 				"is_available": true
@@ -253,7 +269,8 @@
 	},
 	{
 		"name": "dropdead",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "dropdead",
 				"is_available": true
@@ -272,7 +289,8 @@
 	},
 	{
 		"name": "alexandrite",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "alexandrite",
 				"is_available": true
@@ -291,7 +309,8 @@
 	},
 	{
 		"name": "astraltale",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "astraltale",
 				"is_available": true
@@ -310,7 +329,8 @@
 	},
 	{
 		"name": "phantasia",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "phantasia",
 				"is_available": true
@@ -327,7 +347,8 @@
 	},
 	{
 		"name": "empireofwinter",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "empireofwinter",
 				"is_available": true
@@ -344,7 +365,8 @@
 	},
 	{
 		"name": "libertas",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "libertas",
 				"is_available": true
@@ -363,7 +385,8 @@
 	},
 	{
 		"name": "dottodot",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "dottodot",
 				"is_available": true
@@ -382,7 +405,8 @@
 	},
 	{
 		"name": "dreadnought",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "dreadnought",
 				"is_available": true
@@ -401,7 +425,8 @@
 	},
 	{
 		"name": "mirzam",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "mirzam",
 				"is_available": true
@@ -420,7 +445,8 @@
 	},
 	{
 		"name": "heavenlycaress",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "heavenlycaress",
 				"is_available": true
@@ -439,7 +465,8 @@
 	},
 	{
 		"name": "filament",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "filament",
 				"is_available": true
@@ -458,7 +485,8 @@
 	},
 	{
 		"name": "avantraze",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "avantraze",
 				"is_available": true
@@ -475,7 +503,8 @@
 	},
 	{
 		"name": "battlenoone",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "battlenoone",
 				"is_available": true
@@ -494,7 +523,8 @@
 	},
 	{
 		"name": "saikyostronger",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "saikyostronger",
 				"is_available": true
@@ -511,7 +541,8 @@
 	},
 	{
 		"name": "izana",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "izana",
 				"is_available": true
@@ -530,7 +561,8 @@
 	},
 	{
 		"name": "einherjar",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "einherjar",
 				"is_available": true
@@ -549,7 +581,8 @@
 	},
 	{
 		"name": "laqryma",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "laqryma",
 				"is_available": true
@@ -568,7 +601,8 @@
 	},
 	{
 		"name": "amygdata",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "amygdata",
 				"is_available": true
@@ -587,7 +621,8 @@
 	},
 	{
 		"name": "altale",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "altale",
 				"is_available": true
@@ -606,7 +641,8 @@
 	},
 	{
 		"name": "feelssoright",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "feelssoright",
 				"is_available": true
@@ -625,7 +661,8 @@
 	},
 	{
 		"name": "scarletcage",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "scarletcage",
 				"is_available": true
@@ -642,7 +679,8 @@
 	},
 	{
 		"name": "teriqma",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "teriqma",
 				"is_available": true
@@ -659,7 +697,8 @@
 	},
 	{
 		"name": "mahoroba",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "mahoroba",
 				"is_available": true
@@ -678,7 +717,8 @@
 	},
 	{
 		"name": "badtek",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "badtek",
 				"is_available": true
@@ -697,7 +737,8 @@
 	},
 	{
 		"name": "maliciousmischance",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "maliciousmischance",
 				"is_available": true
@@ -714,7 +755,8 @@
 	},
 	{
 		"name": "buchigireberserker",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "buchigireberserker",
 				"is_available": true
@@ -731,7 +773,8 @@
 	},
 	{
 		"name": "galaxyfriends",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "galaxyfriends",
 				"is_available": true
@@ -750,7 +793,8 @@
 	},
 	{
 		"name": "xeraphinite",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "xeraphinite",
 				"is_available": true
@@ -767,7 +811,8 @@
 	},
 	{
 		"name": "xanatos",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "xanatos",
 				"is_available": true
@@ -784,7 +829,8 @@
 	},
 	{
 		"name": "attraqtia",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "attraqtia",
 				"is_available": true
@@ -801,7 +847,8 @@
 	},
 	{
 		"name": "gimmedablood",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "gimmedablood",
 				"is_available": true
@@ -818,7 +865,8 @@
 	},
 	{
 		"name": "bassline",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "bassline",
 				"is_available": true
@@ -835,7 +883,8 @@
 	},
 	{
 		"name": "theultimacy",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "theultimacy",
 				"is_available": true
@@ -852,17 +901,20 @@
 	},
 	{
 		"name": "rekkaresonanc",
-		"items": [{
-			"type": "single",
-			"id": "rekkaresonanc",
-			"is_available": true
-		}],
+		"items": [
+			{
+				"type": "single",
+				"id": "rekkaresonanc",
+				"is_available": true
+			}
+		],
 		"orig_price": 100,
 		"price": 100
 	},
 	{
 		"name": "rekkaresonance",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "rekkaresonance",
 				"is_available": true
@@ -879,7 +931,8 @@
 	},
 	{
 		"name": "sheriruthrmx",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "sheriruthrmx",
 				"is_available": true
@@ -896,7 +949,8 @@
 	},
 	{
 		"name": "eveninginscarlet",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "eveninginscarlet",
 				"is_available": true
@@ -913,7 +967,8 @@
 	},
 	{
 		"name": "lastendconductor",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "lastendconductor",
 				"is_available": true
@@ -930,7 +985,8 @@
 	},
 	{
 		"name": "goldenslaughterer",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "goldenslaughterer",
 				"is_available": true
@@ -947,7 +1003,8 @@
 	},
 	{
 		"name": "redolentshape",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "redolentshape",
 				"is_available": true
@@ -964,9 +1021,28 @@
 	},
 	{
 		"name": "summerfireworks",
-		"items": [{
+		"items": [
+			{
 				"type": "single",
 				"id": "summerfireworks",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "init",
+		"items": [
+			{
+				"type": "single",
+				"id": "init",
 				"is_available": true
 			},
 			{

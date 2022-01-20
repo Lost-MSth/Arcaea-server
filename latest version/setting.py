@@ -30,7 +30,18 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.11.0', '3.11.0c']
+    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.11.2', '3.11.2c']
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
+    联机功能的端口号，若为空，则默认不开启联机功能
+    Port of your link play server
+    If it is blank, link play will be unavailable.
+    '''
+    UDP_PORT = '10900'
     '''
     --------------------
     '''

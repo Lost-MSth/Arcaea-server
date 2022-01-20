@@ -4,7 +4,7 @@ import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
-ARCAEA_SERVER_VERSION = 'v2.7.2'
+ARCAEA_SERVER_VERSION = 'v2.8'
 
 
 def main(path='./'):
@@ -305,7 +305,7 @@ def main(path='./'):
                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', '', '', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', '', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami', 'skill_elizabeth', 'skill_lily', 'skill_kanae_midsummer', '', '', 'visual_ghost_skynotes']
 
     skill_id_uncap = ['', '', 'frags_kou', '', 'visual_ink', '', '', '', '', '', '', 'eto_uncap', 'luna_uncap', 'shirabe_entry_fee',
-                      '', '', '', '', '', '', '', 'frags_yume', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+                      '', '', '', '', '', 'ayu_uncap', '', 'frags_yume', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
 
     skill_unlock_level = [0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 0, 0, 0, 0, 0,
                           0, 0, 0, 8, 0, 14, 0, 0, 8, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8]
@@ -331,10 +331,10 @@ def main(path='./'):
     frag30 = [88, 90, 100, 75, 80, 0, 70, 79, 65, 40, 50, 90, 100, 92, 0, 61, 67, 92, 85, 50, 86, 62,
               65, 85, 67, 88, 74, 0.5, 105, 80, 95, 50, 80, 87, 71, 50, 95, 0, 80, 75, 50, 70, 80, 100, 65, 80, 100, 50, 68, 60, 90, 67, 50, 60]
 
-    prog30 = [71, 90, 80, 75, 100, 0, 90, 102, 84, 78, 105, 77, 73, 78, 0, 99, 80, 66, 46, 83, 40, 83,
+    prog30 = [71, 90, 80, 75, 100, 0, 90, 102, 84, 78, 105, 77, 73, 78, 0, 99, 80, 66, 46, 93, 40, 83,
               80, 90, 93, 50, 96, 88, 99, 108, 75, 80, 50, 64, 55, 100, 100, 110, 80, 50, 74, 90, 80, 80, 56, 80, 100, 55, 65, 59, 90, 50, 90, 90]
 
-    overdrive30 = [71, 90, 57, 75, 80, 0, 95, 79, 65, 31, 50, 69, 100, 68, 0, 78, 50, 70, 62, 49, 64,
+    overdrive30 = [71, 90, 57, 75, 80, 0, 95, 79, 65, 31, 50, 69, 100, 68, 0, 78, 50, 70, 62, 59, 64,
                    56, 73, 95, 67, 84, 80, 88, 79, 80, 50, 80, 80, 63, 25, 50, 82, 55, 50, 95, 55, 70, 100, 80, 99, 80, 100, 40, 69, 62, 51, 90, 67, 60]
 
     char_type = [1, 0, 0, 0, 0, 0, 0, 2, 0, 1, 2, 0, 0, 0, 2, 3, 1, 0, 0, 0, 1,
@@ -355,13 +355,14 @@ def main(path='./'):
         42: [{'core_id': 'core_chunithm', 'amount': 15}],
         43: [{'core_id': 'core_chunithm', 'amount': 15}],
         11: [{'core_id': 'core_binary', 'amount': 25}, {'core_id': 'core_hollow', 'amount': 5}],
-        12: [{'core_id': 'core_binary', 'amount': 25}, {'core_id': 'core_desolate', 'amount': 5}]
+        12: [{'core_id': 'core_binary', 'amount': 25}, {'core_id': 'core_desolate', 'amount': 5}],
+        19: [{'core_id': 'core_colorful', 'amount': 30}]
     }
 
     for i in range(0, 54):
         skill_requires_uncap = 1 if i == 2 else 0
 
-        if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21, 42, 43, 11, 12]:
+        if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21, 42, 43, 11, 12, 19]:
             sql = '''insert into character values(?,?,30,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)'''
             c.execute(sql, (i, char[i], frag1[i], prog1[i], overdrive1[i], frag20[i], prog20[i], overdrive20[i],
                             frag30[i], prog30[i], overdrive30[i], skill_id[i], skill_unlock_level[i], skill_requires_uncap, skill_id_uncap[i], char_type[i]))
@@ -379,7 +380,7 @@ def main(path='./'):
             c.execute('''insert into char_item values(?,?,'core',?)''',
                       (i, j['core_id'], j['amount']))
     cores = ['core_hollow', 'core_desolate', 'core_chunithm', 'core_crimson',
-             'core_ambivalent', 'core_scarlet', 'core_groove', 'core_generic', 'core_binary']
+             'core_ambivalent', 'core_scarlet', 'core_groove', 'core_generic', 'core_binary', 'core_colorful']
 
     for i in cores:
         c.execute('''insert into item values(?,"core",1,'')''', (i,))

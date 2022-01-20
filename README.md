@@ -65,21 +65,22 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss. 
 
-<!--
+
 ### Version 2.8
-- 适用于Arcaea 3.12.0版本 For Arcaea 3.12.0
+- 适用于Arcaea 3.11.2版本 For Arcaea 3.11.2
 - 更新了歌曲数据库 Update the song database.
 - 新增对Link Play的支持 Add support for Link Play.
+- 搭档**彩梦**已觉醒 Uncap the character **ayu**.
 
 - 以下是累积更新 The following are cumulative updates:
-  - 修复注册接口端点多了个杠的问题 Fix unexpected slash at the registered interface endpoint.
+  - 修复注册接口端点多了个杠的问题 Fix an unexpected slash at the registered interface endpoint.
   - 新搭档**白姬**已解锁 Unlock the character **shirahime**.
   - 修正两个角色的数值问题 Fix the values of two characters.
   - 新搭档**玛莉嘉**已解锁 Unlock the character **marija**.
 
 > 提示：Link Play可能存在大量bug  
 > Tips: There may be many bugs in Link Play system.
--->
+
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows/Linux/Mac OS/Android...

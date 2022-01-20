@@ -1034,6 +1034,21 @@ def arc_all_get(user_id):
             "mi": 3,
             "c": True,
             "r": True
+        }, {
+            "ma": 11,
+            "mi": 1,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 11,
+            "mi": 2,
+            "c": True,
+            "r": True
+        }, {
+            "ma": 11,
+            "mi": 3,
+            "c": True,
+            "r": True
         }]
         unlocklist_data = [{
             "unlock_key": "worldvanquisher|1|0",
