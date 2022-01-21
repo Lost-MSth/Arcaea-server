@@ -26,14 +26,14 @@ def int2b(x):
 def calc_stamina(max_stamina_ts, curr_stamina):
     # 计算体力，返回剩余体力数值
 
-    stamina = int(server.info.MAX_STAMINA - (max_stamina_ts -
-                                             int(time.time()*1000)) / server.info.STAMINA_RECOVER_TICK)
+    stamina = int(Config.MAX_STAMINA - (max_stamina_ts -
+                                             int(time.time()*1000)) / Config.STAMINA_RECOVER_TICK)
 
-    if stamina >= server.info.MAX_STAMINA:
-        if curr_stamina >= server.info.MAX_STAMINA:
+    if stamina >= Config.MAX_STAMINA:
+        if curr_stamina >= Config.MAX_STAMINA:
             stamina = curr_stamina
         else:
-            stamina = server.info.MAX_STAMINA
+            stamina = Config.MAX_STAMINA
     if stamina < 0:
         stamina = 0
 
@@ -245,8 +245,8 @@ def play_world_song(user_id, args):
             return {}
         stamina = calc_stamina(max_stamina_ts, stamina) - \
             info['stamina_cost'] * stamina_multiply
-        max_stamina_ts = now + server.info.STAMINA_RECOVER_TICK * \
-            (server.info.MAX_STAMINA - stamina)
+        max_stamina_ts = now + Config.STAMINA_RECOVER_TICK * \
+            (Config.MAX_STAMINA - stamina)
         c.execute('''update user set max_stamina_ts=?, stamina=? where user_id=?''',
                   (max_stamina_ts, stamina, user_id))
         r = {
@@ -600,11 +600,11 @@ def add_stamina(c, user_id, add_stamina):
     if x and x[0] is not None and x[1] is not None:
         stamina = calc_stamina(x[0], x[1]) + add_stamina
         max_stamina_ts = now - \
-            (stamina-server.info.MAX_STAMINA) * \
-            server.info.STAMINA_RECOVER_TICK
+            (stamina-Config.MAX_STAMINA) * \
+            Config.STAMINA_RECOVER_TICK
     else:
         max_stamina_ts = now
-        stamina = server.info.MAX_STAMINA
+        stamina = Config.MAX_STAMINA
 
     c.execute('''update user set max_stamina_ts=?, stamina=? where user_id=?''',
               (max_stamina_ts, stamina, user_id))

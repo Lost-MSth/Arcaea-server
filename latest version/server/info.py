@@ -7,9 +7,6 @@ import server.item
 import time
 from setting import Config
 
-MAX_STAMINA = 12
-STAMINA_RECOVER_TICK = 1800000
-CORE_EXP = 250
 
 
 def int2b(x):
@@ -214,6 +211,28 @@ def arc_aggregate_small(user_id):
 
     return r
 
+def get_purchase_pack(user_id):
+    # 返回曲包数据
+    with Connect() as c:
+        return server.arcpurchase.get_purchase(c, 'pack')
+
+def get_game_info():
+    # 返回游戏基本信息
+    r={
+         "max_stamina": Config.MAX_STAMINA,
+         "stamina_recover_tick": Config.STAMINA_RECOVER_TICK,
+         "core_exp": Config.CORE_EXP,
+         "curr_ts": int(time.time()*1000),
+         "level_steps": server.character.get_level_steps(),
+         "world_ranking_enabled": True,
+         "is_byd_chapter_unlocked": True
+      }
+    return r
+
+def get_user_present(user_id):
+    # 返回礼品信息
+    with Connect() as c:
+        return server.arcpurchase.get_user_present(c, user_id)
 
 def arc_aggregate_big(user_id):
     # 返回比较全的用户数据

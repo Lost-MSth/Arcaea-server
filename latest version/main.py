@@ -21,6 +21,7 @@ from udpserver.udp_main import link_play
 import os
 import sys
 from multiprocessing import Process, Pipe
+import requests
 
 
 app = Flask(__name__)
@@ -121,6 +122,11 @@ def error_return(error_code, extra={}):  # 错误返回
             "error_code": error_code
         })
 
+def success_return(value):
+    return jsonify({
+            "success": True,
+            "value": value
+        })
 
 @app.route('/')
 def hello():
@@ -190,23 +196,63 @@ def register():
     else:
         return error_return(error_code)
 
-
-# 集成式请求，没想到什么好办法处理，就先这样写着
-@app.route(add_url_prefix('/compose/aggregate'), methods=['GET'])
+@app.route(add_url_prefix('/purchase/bundle/pack'), methods=['GET'])
 @server.auth.auth_required(request)
-def aggregate(user_id):
-    calls = request.args.get('calls')
-    if calls == '[{ "endpoint": "/user/me", "id": 0 }]':  # 极其沙雕的判断，我猜get的参数就两种
-        r = server.info.arc_aggregate_small(user_id)
-    else:
-        r = server.info.arc_aggregate_big(user_id)
-    return jsonify(r)
+def bundle_pack(user_id):
+    return success_return(server.info.get_purchase_pack(user_id))
+
+@app.route(add_url_prefix('/game/info'), methods=['GET'])
+def game_info():
+    return success_return(server.info.get_game_info())
+
+@app.route(add_url_prefix('/present/me'), methods=['GET'])
+@server.auth.auth_required(request)
+def present_info(user_id):
+    return success_return(server.info.get_user_present(user_id))
+
+if Config.USE_EXPERIMENTAL_AGGREGATE:
+    @app.route(add_url_prefix('/compose/aggregate'), methods=['GET'])
+    @server.auth.auth_required(request)
+    def myaggregate(user_id):
+        # 只有（）才会requests.request('http://localhost')
+        url_base:str='http'
+        if Config.SSL_CERT and Config.SSL_KEY:
+            url_base+='s'
+        url_base+='://'
+        url_base+='localhost:'+Config.PORT
+        finally_response={'success':True,'value':[]}
+        for i in json.loads(request.args.get('calls')):
+            resp_t=requests.request(request.method,\
+                         url_base+add_url_prefix(i.get('endpoint')),\
+                         headers=request.headers
+                        ).content.decode()
+            resp=json.loads(resp_t)
+            if hasattr(resp,'get') and resp.get('success') is False:
+                finally_response={'success':False,'error_code':7,'extra':{"id":i.get('id'),'error_code':resp.get('error_code')}}
+                if "extra" in resp:
+                    finally_response['extra']['extra']=resp['extra']
+                return jsonify(finally_response)
+                # I don't sure if the behavior is correct
+            finally_response['value'].append({'id':i.get('id'),'value':resp.get('value') if hasattr(resp,'get') else resp})
+        print(finally_response)
+        return jsonify(finally_response)
+else:
+    # 集成式请求，没想到什么好办法处理，就先这样写着
+    @app.route(add_url_prefix('/compose/aggregate'), methods=['GET'])
+    @server.auth.auth_required(request)
+    def aggregate(user_id):
+        calls = request.args.get('calls')
+        if calls == '[{ "endpoint": "/user/me", "id": 0 }]':  # 极其沙雕的判断，我猜get的参数就两种
+            r = server.info.arc_aggregate_small(user_id)
+        else:
+            r = server.info.arc_aggregate_big(user_id)
+        return jsonify(r)
 
 
 @app.route(add_url_prefix('/user/me'), methods=['GET'])  # 用户信息，给baa查分器用的
 @server.auth.auth_required(request)
 def user_me(user_id):
-    r = server.info.arc_aggregate_small(user_id)
+    r = server.info.arc_aggregate_small(user_id) # TODO:独立函数
     if r['success']:
         r['value'] = r['value'][0]['value']
     return jsonify(r)
@@ -614,10 +660,11 @@ def world_one(user_id, map_id):
 @server.auth.auth_required(request)
 def download_song(user_id):
     song_ids = request.args.getlist('sid')
-    if server.arcdownload.is_able_download(user_id):
+    url_flag=json.loads(request.args.get('url','true'))
+    if server.arcdownload.is_able_download(user_id) or not url_flag:
         re = {}
         if not song_ids:
-            re = server.arcdownload.get_all_songs(user_id)
+            re = server.arcdownload.get_all_songs(user_id, url_flag=url_flag)
         else:
             re = server.arcdownload.get_some_songs(user_id, song_ids)
 
