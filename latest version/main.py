@@ -21,7 +21,8 @@ from udpserver.udp_main import link_play
 import os
 import sys
 from multiprocessing import Process, Pipe
-import requests
+if Config.USE_EXPERIMENTAL_AGGREGATE:
+    import requests
 
 
 app = Flask(__name__)
@@ -213,7 +214,7 @@ def present_info(user_id):
 if Config.USE_EXPERIMENTAL_AGGREGATE:
     @app.route(add_url_prefix('/compose/aggregate'), methods=['GET'])
     @server.auth.auth_required(request)
-    def myaggregate(user_id):
+    def aggregate_experimental(user_id):
         # 只有（）才会requests.request('http://localhost')
         url_base:str='http'
         if Config.SSL_CERT and Config.SSL_KEY:
@@ -234,7 +235,6 @@ if Config.USE_EXPERIMENTAL_AGGREGATE:
                 return jsonify(finally_response)
                 # I don't sure if the behavior is correct
             finally_response['value'].append({'id':i.get('id'),'value':resp.get('value') if hasattr(resp,'get') else resp})
-        print(finally_response)
         return jsonify(finally_response)
 else:
     # 集成式请求，没想到什么好办法处理，就先这样写着
