@@ -22,7 +22,8 @@ import os
 import sys
 from multiprocessing import Process, Pipe
 if Config.USE_EXPERIMENTAL_AGGREGATE:
-    import requests
+    from urllib.parse import parse_qs, urlparse
+    from werkzeug.datastructures import ImmutableMultiDict
 
 
 app = Flask(__name__)
@@ -213,28 +214,29 @@ def present_info(user_id):
 
 if Config.USE_EXPERIMENTAL_AGGREGATE:
     @app.route(add_url_prefix('/compose/aggregate'), methods=['GET'])
-    @server.auth.auth_required(request)
-    def aggregate_experimental(user_id):
-        # 只有（）才会requests.request('http://localhost')
-        url_base:str='http'
-        if Config.SSL_CERT and Config.SSL_KEY:
-            url_base+='s'
-        url_base+='://'
-        url_base+='localhost:'+Config.PORT
+    def aggregate_experimental():
+        global request
+        # （）都不requests.request('http://localhost')
         finally_response={'success':True,'value':[]}
-        for i in json.loads(request.args.get('calls')):
-            resp_t=requests.request(request.method,\
-                         url_base+add_url_prefix(i.get('endpoint')),\
-                         headers=request.headers
-                        ).content.decode()
+        request_=request
+        for i in json.loads(request_.args.get('calls')):
+            url=add_url_prefix(i.get('endpoint'))
+            request.args=ImmutableMultiDict({key:value[0] for key,value in parse_qs(urlparse(url).query).items()})
+            url=urlparse(url).path
+            urls = app.url_map.bind("example.com", "/")
+            resp_t=app.view_functions[urls.match(url,"GET")[0]]()
+            if hasattr(resp_t,"response"):
+                resp_t=resp_t.response[0].decode().rstrip('\n')
             resp=json.loads(resp_t)
             if hasattr(resp,'get') and resp.get('success') is False:
                 finally_response={'success':False,'error_code':7,'extra':{"id":i.get('id'),'error_code':resp.get('error_code')}}
                 if "extra" in resp:
                     finally_response['extra']['extra']=resp['extra']
+                request=request_# 无实际影响
                 return jsonify(finally_response)
                 # I don't sure if the behavior is correct
             finally_response['value'].append({'id':i.get('id'),'value':resp.get('value') if hasattr(resp,'get') else resp})
+        request=request_# 无实际影响
         return jsonify(finally_response)
 else:
     # 集成式请求，没想到什么好办法处理，就先这样写着
