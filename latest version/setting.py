@@ -48,6 +48,17 @@ class Config():
 
     '''
     --------------------
+    联机功能地址，留空则自动获取
+    Link Play address
+    If left blank, it will be obtained automatically.
+    '''
+    LINK_PLAY_HOST = ''  # ***.com
+    '''
+    --------------------
+    '''
+
+    '''
+    --------------------
     SSL证书路径
     留空则使用HTTP
     SSL certificate path

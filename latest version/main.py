@@ -727,7 +727,11 @@ def room_create(user_id):
         conn1, user_id, client_song_map)
 
     if error_code == 0:
-        value['endPoint'] = request.host.split(':')[0]
+        if Config.LINK_PLAY_HOST == '':
+            value['endPoint'] = request.host.split(':')[0]
+        else:
+            value['endPoint'] = Config.LINK_PLAY_HOST
+
         value['port'] = int(Config.UDP_PORT)
         return jsonify({
             "success": True,
@@ -749,7 +753,11 @@ def room_join(user_id, room_code):
         conn1, user_id, client_song_map, room_code)
 
     if error_code == 0:
-        value['endPoint'] = request.host.split(':')[0]
+        if Config.LINK_PLAY_HOST == '':
+            value['endPoint'] = request.host.split(':')[0]
+        else:
+            value['endPoint'] = Config.LINK_PLAY_HOST
+
         value['port'] = int(Config.UDP_PORT)
         return jsonify({
             "success": True,
@@ -769,7 +777,11 @@ def multiplayer_update(user_id):
     error_code, value = server.arclinkplay.update_room(conn1, user_id, token)
 
     if error_code == 0:
-        value['endPoint'] = request.host.split(':')[0]
+        if Config.LINK_PLAY_HOST == '':
+            value['endPoint'] = request.host.split(':')[0]
+        else:
+            value['endPoint'] = Config.LINK_PLAY_HOST
+
         value['port'] = int(Config.UDP_PORT)
         return jsonify({
             "success": True,
