@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-from flask import Flask, json, request, jsonify, make_response, send_from_directory
+from flask import Flask, json, request, jsonify, send_from_directory
 from logging.config import dictConfig
 from setting import Config
 import base64
@@ -23,6 +23,10 @@ import sys
 from multiprocessing import Process, Pipe
 
 
+from urllib.parse import parse_qs, urlparse
+from werkzeug.datastructures import ImmutableMultiDict
+
+
 app = Flask(__name__)
 wsgi_app = app.wsgi_app
 
@@ -35,6 +39,14 @@ app.register_blueprint(web.index.bp)
 app.register_blueprint(api.api_main.bp)
 
 conn1, conn2 = Pipe()
+
+map_dict = {'/user/me': 'user_me',
+            '/purchase/bundle/pack': 'bundle_pack',
+            '/serve/download/me/song': 'download_song',
+            '/game/info': 'game_info',
+            '/present/me': 'present_info',
+            '/world/map/me': 'world_all',
+            '/score/song/friend': 'song_score_friend'}
 
 
 def add_url_prefix(url, strange_flag=False):
@@ -122,10 +134,16 @@ def error_return(error_code, extra={}):  # 错误返回
         })
 
 
+def success_return(value):
+    return jsonify({
+        "success": True,
+        "value": value
+    })
+
+
 @app.route('/')
 def hello():
     return "Hello World!"
-# 自定义路径
 
 
 @app.route('/favicon.ico', methods=['GET'])  # 图标
@@ -191,25 +209,83 @@ def register():
         return error_return(error_code)
 
 
-# 集成式请求，没想到什么好办法处理，就先这样写着
-@app.route(add_url_prefix('/compose/aggregate'), methods=['GET'])
+@app.route(add_url_prefix('/purchase/bundle/pack'), methods=['GET'])  # 曲包信息
 @server.auth.auth_required(request)
-def aggregate(user_id):
-    calls = request.args.get('calls')
-    if calls == '[{ "endpoint": "/user/me", "id": 0 }]':  # 极其沙雕的判断，我猜get的参数就两种
-        r = server.info.arc_aggregate_small(user_id)
-    else:
-        r = server.info.arc_aggregate_big(user_id)
-    return jsonify(r)
+def bundle_pack(user_id):
+    return success_return(server.info.get_purchase_pack(user_id))
 
 
-@app.route(add_url_prefix('/user/me'), methods=['GET'])  # 用户信息，给baa查分器用的
+@app.route(add_url_prefix('/game/info'), methods=['GET'])  # 系统信息
+def game_info():
+    return success_return(server.info.get_game_info())
+
+
+@app.route(add_url_prefix('/present/me'), methods=['GET'])  # 用户奖励信息
+@server.auth.auth_required(request)
+def present_info(user_id):
+    return success_return(server.info.get_user_present(user_id))
+
+
+@app.route(add_url_prefix('/compose/aggregate'), methods=['GET'])  # 集成式请求
+def aggregate():
+    try:
+        #global request
+        finally_response = {'success': True, 'value': []}
+        #request_ = request
+        get_list = json.loads(request.args.get('calls'))
+        if len(get_list) > 10:
+            # 请求太多驳回
+            return error_return(108)
+
+        for i in get_list:
+            endpoint = i['endpoint']
+            url = add_url_prefix(endpoint)
+            request.args = ImmutableMultiDict(
+                {key: value[0] for key, value in parse_qs(urlparse(url).query).items()})
+
+            resp_t = app.view_functions[map_dict[urlparse(endpoint).path]]()
+
+            if hasattr(resp_t, "response"):
+                resp_t = resp_t.response[0].decode().rstrip('\n')
+            resp = json.loads(resp_t)
+
+            if hasattr(resp, 'get') and resp.get('success') is False:
+                finally_response = {'success': False, 'error_code': 7, 'extra': {
+                    "id": i['id'], 'error_code': resp.get('error_code')}}
+                if "extra" in resp:
+                    finally_response['extra']['extra'] = resp['extra']
+                #request = request_
+                return jsonify(finally_response)
+
+            finally_response['value'].append(
+                {'id': i.get('id'), 'value': resp['value'] if hasattr(resp, 'get') else resp})
+
+        #request = request_
+        return jsonify(finally_response)
+    except KeyError:
+        return error_return(108)
+
+
+# # 集成式请求，没想到什么好办法处理，就先这样写着
+# @app.route(add_url_prefix('/compose/aggregate'), methods=['GET'])
+# @server.auth.auth_required(request)
+# def aggregate(user_id):
+#     calls = request.args.get('calls')
+#     if calls == '[{ "endpoint": "/user/me", "id": 0 }]':  # 极其沙雕的判断，我猜get的参数就两种
+#         r = server.info.arc_aggregate_small(user_id)
+#     else:
+#         r = server.info.arc_aggregate_big(user_id)
+#     return jsonify(r)
+
+
+@app.route(add_url_prefix('/user/me'), methods=['GET'])  # 用户信息
 @server.auth.auth_required(request)
 def user_me(user_id):
-    r = server.info.arc_aggregate_small(user_id)
-    if r['success']:
-        r['value'] = r['value'][0]['value']
-    return jsonify(r)
+    r = server.info.get_user_me_c(user_id)
+    if r:
+        return success_return(r)
+    else:
+        return error_return(108)
 
 
 @app.route(add_url_prefix('/user/me/character'), methods=['POST'])  # 角色切换
@@ -614,10 +690,11 @@ def world_one(user_id, map_id):
 @server.auth.auth_required(request)
 def download_song(user_id):
     song_ids = request.args.getlist('sid')
-    if server.arcdownload.is_able_download(user_id):
+    url_flag = json.loads(request.args.get('url', 'true'))
+    if server.arcdownload.is_able_download(user_id) or not url_flag:
         re = {}
         if not song_ids:
-            re = server.arcdownload.get_all_songs(user_id)
+            re = server.arcdownload.get_all_songs(user_id, url_flag=url_flag)
         else:
             re = server.arcdownload.get_some_songs(user_id, song_ids)
 
@@ -723,9 +800,11 @@ def sys_set(user_id, path):
     set_arg = path[5:]
     value = request.form['value']
     server.setme.arc_sys_set(user_id, value, set_arg)
-    r = server.info.arc_aggregate_small(user_id)
-    r['value'] = r['value'][0]['value']
-    return jsonify(r)
+    r = server.info.get_user_me_c(user_id)
+    if r:
+        return success_return(r)
+    else:
+        return error_return(108)
 
 
 def main():

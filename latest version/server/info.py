@@ -6,10 +6,7 @@ import server.character
 import server.item
 import time
 from setting import Config
-
-MAX_STAMINA = 12
-STAMINA_RECOVER_TICK = 1800000
-CORE_EXP = 250
+from .config import Constant
 
 
 def int2b(x):
@@ -202,6 +199,38 @@ def get_user_me(c, user_id):
     return r
 
 
+def get_user_me_c(user_id):
+    # user/me调用，上边没开数据库这里开一下
+    with Connect() as c:
+        return get_user_me(c, user_id)
+
+
+def get_purchase_pack(user_id):
+    # 返回曲包数据
+    with Connect() as c:
+        return server.arcpurchase.get_purchase(c, 'pack')
+
+
+def get_game_info():
+    # 返回游戏基本信息
+    r = {
+        "max_stamina": Constant.MAX_STAMINA,
+        "stamina_recover_tick": Constant.STAMINA_RECOVER_TICK,
+        "core_exp": Constant.CORE_EXP,
+        "curr_ts": int(time.time()*1000),
+        "level_steps": server.character.get_level_steps(),
+        "world_ranking_enabled": True,
+        "is_byd_chapter_unlocked": True
+    }
+    return r
+
+
+def get_user_present(user_id):
+    # 返回奖励信息
+    with Connect() as c:
+        return server.arcpurchase.get_user_present(c, user_id)
+
+
 def arc_aggregate_small(user_id):
     # 返回用户数据
     r = {"success": False}
@@ -239,9 +268,9 @@ def arc_aggregate_big(user_id):
              }, {
                  "id": 3,
                  "value": {
-                     "max_stamina": MAX_STAMINA,
-                     "stamina_recover_tick": STAMINA_RECOVER_TICK,
-                     "core_exp": CORE_EXP,
+                     "max_stamina": Constant.MAX_STAMINA,
+                     "stamina_recover_tick": Constant.STAMINA_RECOVER_TICK,
+                     "core_exp": Constant.CORE_EXP,
                      "curr_ts": int(time.time()*1000),
                      "level_steps": server.character.get_level_steps(),
                      "world_ranking_enabled": True,
