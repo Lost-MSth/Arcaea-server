@@ -40,14 +40,6 @@ app.register_blueprint(api.api_main.bp)
 
 conn1, conn2 = Pipe()
 
-map_dict = {'/user/me': 'user_me',
-            '/purchase/bundle/pack': 'bundle_pack',
-            '/serve/download/me/song': 'download_song',
-            '/game/info': 'game_info',
-            '/present/me': 'present_info',
-            '/world/map/me': 'world_all',
-            '/score/song/friend': 'song_score_friend'}
-
 
 def add_url_prefix(url, strange_flag=False):
     # 给url加前缀，返回字符串
@@ -243,7 +235,7 @@ def aggregate():
             request.args = ImmutableMultiDict(
                 {key: value[0] for key, value in parse_qs(urlparse(url).query).items()})
 
-            resp_t = app.view_functions[map_dict[urlparse(endpoint).path]]()
+            resp_t = map_dict[urlparse(endpoint).path]()
 
             if hasattr(resp_t, "response"):
                 resp_t = resp_t.response[0].decode().rstrip('\n')
@@ -805,6 +797,15 @@ def sys_set(user_id, path):
         return success_return(r)
     else:
         return error_return(108)
+
+
+map_dict = {'/user/me': user_me,
+            '/purchase/bundle/pack': bundle_pack,
+            '/serve/download/me/song': download_song,
+            '/game/info': game_info,
+            '/present/me': present_info,
+            '/world/map/me': world_all,
+            '/score/song/friend': song_score_friend}
 
 
 def main():

@@ -11,11 +11,6 @@ import time
 import random
 
 
-ETO_UNCAP_BONUS_PROGRESS = 7
-LUNA_UNCAP_BONUS_PROGRESS = 7
-AYU_UNCAP_BONUS_PROGRESS = 5
-
-
 def int2b(x):
     # int与布尔值转换
     if x is None or x == 0:
@@ -28,7 +23,7 @@ def calc_stamina(max_stamina_ts, curr_stamina):
     # 计算体力，返回剩余体力数值
 
     stamina = int(Constant.MAX_STAMINA - (max_stamina_ts -
-                                             int(time.time()*1000)) / Constant.STAMINA_RECOVER_TICK)
+                                          int(time.time()*1000)) / Constant.STAMINA_RECOVER_TICK)
 
     if stamina >= Constant.MAX_STAMINA:
         if curr_stamina >= Constant.MAX_STAMINA:
@@ -470,7 +465,7 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
             if fragment_flag:
                 break
         if fragment_flag:
-            character_bonus_progress = ETO_UNCAP_BONUS_PROGRESS
+            character_bonus_progress = Constant.ETO_UNCAP_BONUS_PROGRESS
             step += character_bonus_progress * step_times
         rewards, steps, curr_position, curr_capture, info = climb_step(
             user_id, map_id, step, y[3], y[2])  # 二次爬梯，重新计算
@@ -478,7 +473,7 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
     elif skill_special == 'luna_uncap':
         # luna觉醒技能，限制格开始时世界模式进度加7
         if 'restrict_id' in steps[0] and 'restrict_type' in steps[0] and steps[0]['restrict_type'] != '' and steps[0]['restrict_id'] != '':
-            character_bonus_progress = LUNA_UNCAP_BONUS_PROGRESS
+            character_bonus_progress = Constant.LUNA_UNCAP_BONUS_PROGRESS
             step += character_bonus_progress * step_times
         rewards, steps, curr_position, curr_capture, info = climb_step(
             user_id, map_id, step, y[3], y[2])  # 二次爬梯，重新计算
@@ -486,9 +481,9 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
     elif skill_special == 'ayu_uncap':
         # ayu觉醒技能，世界模式进度+5或-5，但不会小于0
         if random.random() >= 0.5:
-            character_bonus_progress = AYU_UNCAP_BONUS_PROGRESS
+            character_bonus_progress = Constant.AYU_UNCAP_BONUS_PROGRESS
         else:
-            character_bonus_progress = -AYU_UNCAP_BONUS_PROGRESS
+            character_bonus_progress = -Constant.AYU_UNCAP_BONUS_PROGRESS
 
         step += character_bonus_progress * step_times
         if step < 0:
@@ -516,7 +511,7 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
         c.execute('''update user_char set level=?, exp=? where user_id=? and character_id=?''',
                   (level, exp, user_id, character_id))
     else:
-        exp = server.character.LEVEL_STEPS[level]
+        exp = Constant.LEVEL_STEPS[level]
 
     if beyond_gauge == 0:
         re = {

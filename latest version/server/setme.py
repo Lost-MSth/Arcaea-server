@@ -1,5 +1,6 @@
 from server.sql import Connect
 from setting import Config
+from .config import Constant
 import server.info
 import server.character
 
@@ -90,7 +91,7 @@ def change_char_uncap(user_id, character_id):
                     "overdrive": server.character.calc_char_value(y[2], y[11], y[14], y[17]),
                     "prog": server.character.calc_char_value(y[2], y[10], y[13], y[16]),
                     "frag": server.character.calc_char_value(y[2], y[9], y[12], y[15]),
-                    "level_exp": server.character.LEVEL_STEPS[y[2]],
+                    "level_exp": Constant.LEVEL_STEPS[y[2]],
                     "exp": y[3],
                     "level": y[2],
                     "name": y[7],

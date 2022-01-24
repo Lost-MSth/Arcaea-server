@@ -1,11 +1,9 @@
 from setting import Config
 from server.sql import Connect
+from .config import Constant
 import server.info
 import server.item
 import server.setme
-
-LEVEL_STEPS = {1: 0, 2: 50, 3: 100, 4: 150, 5: 200, 6: 300, 7: 450, 8: 650, 9: 900, 10: 1200, 11: 1600, 12: 2100, 13: 2700, 14: 3400, 15: 4200, 16: 5100,
-               17: 6100, 18: 7200, 19: 8500, 20: 10000, 21: 11500, 22: 13000, 23: 14500, 24: 16000, 25: 17500, 26: 19000, 27: 20500, 28: 22000, 29: 23500, 30: 25000}
 
 
 def int2b(x):
@@ -18,7 +16,7 @@ def int2b(x):
 
 def get_level_steps():
     # 返回level_steps字典数组
-    return [{'level': i, 'level_exp': LEVEL_STEPS[i]} for i in LEVEL_STEPS]
+    return [{'level': i, 'level_exp': Constant.LEVEL_STEPS[i]} for i in Constant.LEVEL_STEPS]
 
 
 def calc_char_value(level, value1, value20, value30):
@@ -114,7 +112,7 @@ def get_user_character(c, user_id):
             "overdrive": calc_char_value(i[2], i[11], i[14], i[17]),
             "prog": calc_char_value(i[2], i[10], i[13], i[16]),
             "frag": calc_char_value(i[2], i[9], i[12], i[15]),
-            "level_exp": LEVEL_STEPS[i[2]],
+            "level_exp": Constant.LEVEL_STEPS[i[2]],
             "exp": i[3],
             "level": i[2],
             "name": i[7],
@@ -151,7 +149,7 @@ def get_one_character(c, user_id, character_id):
         "overdrive": calc_char_value(x[2], x[11], x[14], x[17]),
         "prog": calc_char_value(x[2], x[10], x[13], x[16]),
         "frag": calc_char_value(x[2], x[9], x[12], x[15]),
-        "level_exp": LEVEL_STEPS[x[2]],
+        "level_exp": Constant.LEVEL_STEPS[x[2]],
         "exp": x[3],
         "level": x[2],
         "name": x[7],
@@ -168,18 +166,18 @@ def calc_level_up(c, user_id, character_id, exp, exp_addition):
 
     exp += exp_addition
 
-    if exp >= LEVEL_STEPS[20]:  # 未觉醒溢出
+    if exp >= Constant.LEVEL_STEPS[20]:  # 未觉醒溢出
         c.execute('''select is_uncapped from user_char where user_id=? and character_id=?''',
                   (user_id, character_id))
         x = c.fetchone()
         if x and x[0] == 0:
-            return LEVEL_STEPS[20], 20
+            return Constant.LEVEL_STEPS[20], 20
 
     a = []
     b = []
-    for i in LEVEL_STEPS:
+    for i in Constant.LEVEL_STEPS:
         a.append(i)
-        b.append(LEVEL_STEPS[i])
+        b.append(Constant.LEVEL_STEPS[i])
 
     if exp >= b[-1]:  # 溢出
         return b[-1], a[-1]
@@ -215,9 +213,9 @@ def char_use_core(user_id, character_id, amount):
                 exp, level = calc_level_up(
                     c, user_id, character_id, x[0], amount*Config.CORE_EXP)
                 c.execute('''update user_char set level=?, exp=? where user_id=? and character_id=?''',
-                      (level, exp, user_id, character_id))
+                          (level, exp, user_id, character_id))
                 server.item.claim_user_item(
-                c, user_id, 'core_generic', 'core', -amount)
+                    c, user_id, 'core_generic', 'core', -amount)
 
         r = {'character': [get_one_character(c, user_id, character_id)]}
         r['cores'] = server.item.get_user_cores(c, user_id)
