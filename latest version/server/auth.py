@@ -9,12 +9,13 @@ BAN_TIME = [1, 3, 7, 15, 31]
 
 
 def arc_login(name: str, password: str, device_id: str, ip: str):  # 登录判断
-    # 查询数据库中的user表，验证账号密码，返回并记录token，多返回个error code和extra
+    # 查询数据库中的user表，验证账号密码，返回并记录token和user_id，多返回个error code和extra
     # token采用user_id和时间戳连接后hash生成（真的是瞎想的，没用bear）
     # 密码和token的加密方式为 SHA-256
 
     error_code = 108
     token = None
+    user_id = None
     with Connect() as c:
         hash_pwd = hashlib.sha256(password.encode("utf8")).hexdigest()
         c.execute('''select user_id, password, ban_flag from user where name = :name''', {
@@ -61,7 +62,7 @@ def arc_login(name: str, password: str, device_id: str, ip: str):  # 登录判�
                                 '''select count(*) from login where user_id=? and login_time>?''', (user_id, now-86400000))
                             if c.fetchone()[0] >= Config.LOGIN_DEVICE_NUMBER_LIMIT:
                                 remaining_ts = arc_auto_ban(c, user_id, now)
-                                return None, 105, {'remaining_ts': remaining_ts}
+                                return None, None, 105, {'remaining_ts': remaining_ts}
 
                         c.execute('''delete from login where rowid in (select rowid from login where user_id=:user_id limit :a);''',
                                   {'user_id': user_id, 'a': int(should_delete_num)})
@@ -76,7 +77,7 @@ def arc_login(name: str, password: str, device_id: str, ip: str):  # 登录判�
             # 用户名错误
             error_code = 104
 
-    return token, error_code, None
+    return token, user_id, error_code, None
 
 
 def arc_register(name: str, password: str, device_id: str, email: str, ip: str):  # 注册

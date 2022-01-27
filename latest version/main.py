@@ -163,10 +163,10 @@ def login():
     else:
         device_id = 'low_version'
 
-    token, error_code, extra = server.auth.arc_login(
+    token, user_id, error_code, extra = server.auth.arc_login(
         name, password, device_id, request.remote_addr)
     if not error_code:
-        r = {"success": True, "token_type": "Bearer"}
+        r = {"success": True, "token_type": "Bearer", 'user_id': user_id}
         r['access_token'] = token
         return jsonify(r)
     else:
