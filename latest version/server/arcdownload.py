@@ -51,11 +51,14 @@ def get_one_song(c, user_id, song_id, file_dir='./database/songs', url_flag=True
         'a': user_id, 'b': song_id})
 
     for i in dir_list:
-        if os.path.isfile(os.path.join(file_dir, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg']:
+        if os.path.isfile(os.path.join(file_dir, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg', '3.ogg']:
             token = hashlib.md5(
                 (str(user_id) + song_id + i + str(now)).encode(encoding='UTF-8')).hexdigest()
 
             if i == 'base.ogg':
+                if 'audio' not in re:
+                    re['audio'] = {}
+
                 c.execute(
                     '''select md5 from songfile where song_id=:a and file_type=-1''', {'a': song_id})
                 x = c.fetchone()
@@ -65,11 +68,29 @@ def get_one_song(c, user_id, song_id, file_dir='./database/songs', url_flag=True
                     checksum = get_file_md5(os.path.join(
                         file_dir, song_id, 'base.ogg'))
 
+                re['audio']["checksum"] = checksum
                 if url_flag:
-                    re['audio'] = {"checksum": checksum, "url": get_url(
-                        file_path=song_id+'/base.ogg', t=token)}
+                    re['audio']["url"] = get_url(
+                        file_path=song_id+'/base.ogg', t=token)
+
+            elif i == '3.ogg':
+                if 'audio' not in re:
+                    re['audio'] = {}
+
+                c.execute(
+                    '''select md5 from songfile where song_id=:a and file_type=-2''', {'a': song_id})
+                x = c.fetchone()
+                if x:
+                    checksum = x[0]
                 else:
-                    re['audio'] = {"checksum": checksum}
+                    checksum = get_file_md5(os.path.join(
+                        file_dir, song_id, '3.ogg'))
+
+                if url_flag:
+                    re['audio']['3'] = {"checksum": checksum, "url": get_url(
+                        file_path=song_id+'/3.ogg', t=token)}
+                else:
+                    re['audio']['3'] = {"checksum": checksum}
             else:
                 if 'chart' not in re:
                     re['chart'] = {}
@@ -116,7 +137,7 @@ def get_some_songs(user_id, song_ids):
     return re
 
 
-def is_token_able_download(t):
+def is_token_able_download(t, path):
     # token是否可以下载，返回错误码，0即可以
     errorcode = 108
     with Connect() as c:
@@ -124,7 +145,7 @@ def is_token_able_download(t):
                   {'t': t})
         x = c.fetchone()
         now = int(time.time())
-        if x and now - x[4] <= time_gap_limit:
+        if x and now - x[4] <= time_gap_limit and x[1]+'/'+x[2] == path:
             c.execute(
                 '''select count(*) from user_download where user_id = :a''', {'a': x[0]})
             y = c.fetchone()
@@ -162,10 +183,13 @@ def initialize_one_songfile(c, song_id, file_dir='./database/songs'):
     # 计算并添加歌曲md5到表中，无返回
     dir_list = os.listdir(os.path.join(file_dir, song_id))
     for i in dir_list:
-        if os.path.isfile(os.path.join(file_dir, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg']:
+        if os.path.isfile(os.path.join(file_dir, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg', '3.ogg']:
             if i == 'base.ogg':
                 c.execute('''insert into songfile values(:a,-1,:c)''', {
                           'a': song_id, 'c': get_file_md5(os.path.join(file_dir, song_id, 'base.ogg'))})
+            elif i == '3.ogg':
+                c.execute('''insert into songfile values(:a,-2,:c)''', {
+                          'a': song_id, 'c': get_file_md5(os.path.join(file_dir, song_id, '3.ogg'))})
             else:
                 c.execute('''insert into songfile values(:a,:b,:c)''', {
                           'a': song_id, 'b': int(i[0]), 'c': get_file_md5(os.path.join(file_dir, song_id, i))})

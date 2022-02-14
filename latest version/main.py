@@ -702,7 +702,7 @@ def download_song(user_id):
 def download(file_path):
     try:
         t = request.args.get('t')
-        message = server.arcdownload.is_token_able_download(t)
+        message = server.arcdownload.is_token_able_download(t, file_path)
         if message == 0:
             path = os.path.join('./database/songs', file_path)
             if os.path.isfile(path) and not('../' in path or '..\\' in path):
