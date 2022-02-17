@@ -65,21 +65,24 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss. 
 
-
-### Version 2.8
-- 适用于Arcaea 3.11.2版本 For Arcaea 3.11.2
+<!--
+### Version 2.8.1
+- 适用于Arcaea 3.12.0版本 For Arcaea 3.12.0
 - 更新了歌曲数据库 Update the song database.
-- 新增对Link Play的支持 Add support for Link Play.
-- 搭档**彩梦**已觉醒 Uncap the character **ayu**.
+- 新搭档**维塔**已解锁 Unlock the character **Vita**.
+- 新增对**维塔**的技能支持 Add support for the skill of **Vita**.
+- 修正世界模式进度计算方式 Revise the algorithm of world mode progress.
+- 修复世界模式下 **对立（风暴）** 数值计算错误的问题 Fix the wrong value of **Tairitsu(Tempest)** in the World Mode.
+
 
 - 以下是累积更新 The following are cumulative updates:
-  - 修复注册接口端点多了个杠的问题 Fix an unexpected slash at the registered interface endpoint.
-  - 新搭档**白姬**已解锁 Unlock the character **shirahime**.
-  - 修正两个角色的数值问题 Fix the values of two characters.
-  - 新搭档**玛莉嘉**已解锁 Unlock the character **marija**.
+  - #35 集成式接口优化（By Young-Lord） Optimize `aggregate` interface. (By Young-Lord)
+  - 新增填写Link Play服务器地址的选项，解决地址无法正确自动获取的问题 Add the option of filling in Link Play server address, which can solve the problem that the address cannot be obtained automatically.
+  - 修复高版本iOS客户端无法登陆的问题 Fix a bug that the high version of iOS client cannot log in.
+  - 修复有关下载的安全性问题 Fix a safety problem about downloading.
+  - 修复有不同音频的Beyond谱面无法下载的问题 Fix a bug about unable to download a beyond chart which has another audio file.
+-->
 
-> 提示：Link Play可能存在大量bug  
-> Tips: There may be many bugs in Link Play system.
 
 
 ## 运行环境与依赖 Running environment and requirements

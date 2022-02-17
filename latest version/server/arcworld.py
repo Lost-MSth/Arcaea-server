@@ -352,7 +352,7 @@ def climb_step(user_id, map_id, step, prev_capture, prev_position):
     return rewards, steps, curr_position, curr_capture, info
 
 
-def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gauge, stamina_multiply=1, fragment_multiply=100, prog_boost_multiply=0):
+def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gauge, health, stamina_multiply=1, fragment_multiply=100, prog_boost_multiply=0):
     # 成绩上传后世界模式更新，返回字典
 
     step_times = stamina_multiply * fragment_multiply / \
@@ -373,6 +373,11 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
     is_skill_sealed = x[3] if x and x[3] is not None else 1
     skill = False
     skill_uncap = False
+    level = 1
+    exp = 0
+    frag = 50
+    prog = 50
+    overdrive = 50
     if not is_skill_sealed:
         if x:
             skill = True
@@ -381,55 +386,76 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
             if x[5] is not None and x[5] == 1:
                 skill_uncap = False
 
-    c.execute('''select frag1,prog1,overdrive1,frag20,prog20,overdrive20,frag30,prog30,overdrive30,skill_id,skill_id_uncap from character where character_id=?''', (character_id,))
-    x = c.fetchone()
+        c.execute('''select frag1,prog1,overdrive1,frag20,prog20,overdrive20,frag30,prog30,overdrive30,skill_id,skill_id_uncap from character where character_id=?''', (character_id,))
+        x = c.fetchone()
 
-    if Config.CHARACTER_FULL_UNLOCK:
-        c.execute('''select level, exp from user_char_full where user_id = :a and character_id = :b''', {
-                  'a': user_id, 'b': character_id})
-    else:
-        c.execute('''select level, exp from user_char where user_id = :a and character_id = :b''', {
-                  'a': user_id, 'b': character_id})
-    y = c.fetchone()
-    if y:
-        level = y[0]
-        exp = y[1]
-    else:
-        level = 1
-        exp = 0
-
-    if x:
-        flag = server.character.calc_char_value(level, x[0], x[3], x[6])
-        prog = server.character.calc_char_value(level, x[1], x[4], x[7])
-        overdrive = server.character.calc_char_value(level, x[2], x[5], x[8])
-        if x[9] is not None and x[9] != '' and skill:
-            skill = x[9]
+        if Config.CHARACTER_FULL_UNLOCK:
+            c.execute('''select level, exp from user_char_full where user_id = :a and character_id = :b''', {
+                'a': user_id, 'b': character_id})
         else:
+            c.execute('''select level, exp from user_char where user_id = :a and character_id = :b''', {
+                'a': user_id, 'b': character_id})
+        y = c.fetchone()
+        if y:
+            level = y[0]
+            exp = y[1]
+        else:
+            level = 1
+            exp = 0
+
+        if x:
+            frag = server.character.calc_char_value(level, x[0], x[3], x[6])
+            prog = server.character.calc_char_value(level, x[1], x[4], x[7])
+            overdrive = server.character.calc_char_value(
+                level, x[2], x[5], x[8])
+            if x[9] is not None and x[9] != '' and skill:
+                skill = x[9]
+            else:
+                skill = None
+            if x[10] is not None and x[9] != '' and skill_uncap:
+                skill_uncap = x[10]
+            else:
+                skill_uncap = None
+        else:
+            frag = 0
+            prog = 0
+            overdrive = 0
             skill = None
-        if x[10] is not None and x[9] != '' and skill_uncap:
-            skill_uncap = x[10]
-        else:
             skill_uncap = None
-    else:
-        flag = 0
-        prog = 0
-        overdrive = 0
-        skill = None
-        skill_uncap = None
+
+    skill_special = ''
+    if skill_uncap is not None and skill_uncap and skill_uncap in ['eto_uncap', 'luna_uncap', 'ayu_uncap', 'skill_vita']:
+        skill_special = skill_uncap
+    elif skill is not None and skill and skill in ['eto_uncap', 'luna_uncap', 'ayu_uncap', 'skill_vita']:
+        skill_special = skill
 
     c.execute('''select current_map from user where user_id = :a''', {
         'a': user_id})
     map_id = c.fetchone()[0]
 
     if beyond_gauge == 0:  # 是否是beyond挑战
+        prog_tempest = 0
+        if not is_skill_sealed and character_id == 35:
+            # 风暴对立
+            if Config.CHARACTER_FULL_UNLOCK:
+                prog_tempest = 60
+            else:
+                c.execute(
+                    '''select sum(level) from user_char where user_id=?''', (user_id,))
+                prog_tempest = int(x[0]) / 10 if x else 0
+                if prog_tempest > 60:
+                    prog_tempest = 60
+                elif prog_tempest < 0:
+                    prog_tempest = 0
+
         base_step = 2.5 + 2.45*rating**0.5
-        step = base_step * (prog/50) * step_times
+        step = base_step * (prog + prog_tempest) / 50 * step_times
     else:
         info = get_world_info(map_id)
         if clear_type == 0:
-            base_step = 8/9 + (rating/1.3)**0.5
+            base_step = 25/28 + (rating)**0.5 * 0.43
         else:
-            base_step = 8/3 + (rating/1.3)**0.5
+            base_step = 75/28 + (rating)**0.5 * 0.43
 
         if character_id in info['character_affinity']:
             affinity_multiplier = info['affinity_multiplier'][info['character_affinity'].index(
@@ -437,7 +463,17 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
         else:
             affinity_multiplier = 1
 
-        step = base_step * (prog/50) * step_times * affinity_multiplier
+        if skill_special == 'skill_vita':
+            # vita技能，overdrive随回忆率提升，提升量最多为10
+            # 此处采用线性函数
+            overdrive_extra = 0
+            if 0 < health <= 100:
+                overdrive_extra = health / 10
+
+            overdrive += overdrive_extra
+
+        step = base_step * overdrive / 50 * \
+            step_times * affinity_multiplier
 
     c.execute('''select * from user_world where user_id = :a and map_id =:b''',
               {'a': user_id, 'b': map_id})
@@ -447,13 +483,9 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
 
     rewards, steps, curr_position, curr_capture, info = climb_step(
         user_id, map_id, step, y[3], y[2])
-    # Eto和Luna的技能
+
+    # Eto、Luna、Ayu的技能
     character_bonus_progress = None
-    skill_special = ''
-    if skill_uncap is not None and skill_uncap and skill_uncap in ['eto_uncap', 'luna_uncap', 'ayu_uncap']:
-        skill_special = skill_uncap
-    elif skill is not None and skill and skill in ['eto_uncap', 'luna_uncap', 'ayu_uncap']:
-        skill_special = skill
     if skill_special == 'eto_uncap':
         # eto觉醒技能，获得残片奖励时世界模式进度加7
         fragment_flag = False
@@ -513,60 +545,40 @@ def world_update(c, user_id, song_id, difficulty, rating, clear_type, beyond_gau
     else:
         exp = Constant.LEVEL_STEPS[level]
 
+    re = {
+        "rewards": rewards,
+        "exp": exp,
+        "level": level,
+        "base_progress": base_step,
+        "progress": step,
+        "user_map": {
+            "user_id": user_id,
+            "curr_position": curr_position,
+            "curr_capture": curr_capture,
+            "is_locked": int2b(y[4]),
+            "map_id": map_id,
+            "prev_capture": y[3],
+            "prev_position": y[2],
+            "beyond_health": info['beyond_health']
+        },
+        "char_stats": {
+            "character_id": character_id,
+            "frag": frag,
+            "prog": prog,
+            "overdrive": overdrive
+        },
+        "current_stamina": calc_stamina(max_stamina_ts, stamina),
+        "max_stamina_ts": max_stamina_ts
+    }
+
     if beyond_gauge == 0:
-        re = {
-            "rewards": rewards,
-            "exp": exp,
-            "level": level,
-            "base_progress": base_step,
-            "progress": step,
-            "user_map": {
-                "user_id": user_id,
-                "curr_position": curr_position,
-                "curr_capture": curr_capture,
-                "is_locked": int2b(y[4]),
-                "map_id": map_id,
-                "prev_capture": y[3],
-                "prev_position": y[2],
-                "beyond_health": info['beyond_health'],
-                "steps": steps
-            },
-            "char_stats": {
-                "character_id": character_id,
-                "frag": flag,
-                "prog": prog,
-                "overdrive": overdrive
-            },
-            "current_stamina": calc_stamina(max_stamina_ts, stamina),
-            "max_stamina_ts": max_stamina_ts
-        }
+        re["user_map"]["steps"] = steps
     else:
-        re = {
-            "rewards": rewards,
-            "exp": exp,
-            "level": level,
-            "base_progress": base_step,
-            "progress": step,
-            "user_map": {
-                "user_id": user_id,
-                "curr_position": curr_position,
-                "curr_capture": curr_capture,
-                "is_locked": int2b(y[4]),
-                "map_id": map_id,
-                "prev_capture": y[3],
-                "prev_position": y[2],
-                "beyond_health": info['beyond_health'],
-                "step_count": len(steps)
-            },
-            "char_stats": {
-                "character_id": character_id,
-                "frag": flag,
-                "prog": prog,
-                "overdrive": overdrive
-            },
-            "current_stamina": calc_stamina(max_stamina_ts, stamina),
-            "max_stamina_ts": max_stamina_ts
-        }
+        re["user_map"]["steps"] = len(steps)
+
+    if character_id == 35 and not is_skill_sealed:
+        re['char_stats']['prog_tempest'] = prog_tempest
+        re['char_stats']['prog'] += prog_tempest
 
     if character_bonus_progress is not None:
         re['character_bonus_progress'] = character_bonus_progress

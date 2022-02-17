@@ -19,7 +19,7 @@ class Config():
     游戏API地址前缀
     Game API's URL prefix
     '''
-    GAME_API_PREFIX = '/merikuri/17'
+    GAME_API_PREFIX = '/bridge/18'
     '''
     --------------------
     '''
@@ -30,7 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.11.2', '3.11.2c']
+    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.12.0', '3.12.0c']
     '''
     --------------------
     '''
@@ -236,7 +236,7 @@ class Config():
     '''
     --------------------
     是否全解锁世界场景
-    If unlocking all world scenerys is enabled
+    If unlocking all world sceneries is enabled
     '''
     WORLD_SCENERY_FULL_UNLOCK = True
     '''

@@ -4,7 +4,7 @@ import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
-ARCAEA_SERVER_VERSION = 'v2.8'
+ARCAEA_SERVER_VERSION = 'v2.8.1'
 
 
 def main(path='./'):
@@ -299,46 +299,46 @@ def main(path='./'):
 
     # 搭档初始化
     char = ['hikari', 'tairitsu', 'kou', 'sapphire', 'lethe', '', 'Tairitsu(Axium)', 'Tairitsu(Grievous Lady)', 'stella', 'Hikari & Fisica', 'ilith', 'eto', 'luna', 'shirabe', 'Hikari(Zero)', 'Hikari(Fracture)', 'Hikari(Summer)', 'Tairitsu(Summer)', 'Tairitsu & Trin',
-            'ayu', 'Eto & Luna', 'yume', 'Seine & Hikari', 'saya', 'Tairitsu & Chuni Penguin', 'Chuni Penguin', 'haruna', 'nono', 'MTA-XXX', 'MDA-21', 'kanae', 'Hikari(Fantasia)', 'Tairitsu(Sonata)', 'sia', 'DORO*C', 'Tairitsu(Tempest)', 'brillante', 'Ilith(Summer)', 'etude', 'Alice & Tenniel', 'Luna & Mia', 'areus', 'seele', 'isabelle', 'mir', 'lagrange', 'linka', 'nami', 'Saya & Elizabeth', 'lily', 'kanae(midsummer)', 'alice&tenniel(minuet)', 'tairitsu(elegy)', 'marija']
+            'ayu', 'Eto & Luna', 'yume', 'Seine & Hikari', 'saya', 'Tairitsu & Chuni Penguin', 'Chuni Penguin', 'haruna', 'nono', 'MTA-XXX', 'MDA-21', 'kanae', 'Hikari(Fantasia)', 'Tairitsu(Sonata)', 'sia', 'DORO*C', 'Tairitsu(Tempest)', 'brillante', 'Ilith(Summer)', 'etude', 'Alice & Tenniel', 'Luna & Mia', 'areus', 'seele', 'isabelle', 'mir', 'lagrange', 'linka', 'nami', 'Saya & Elizabeth', 'lily', 'kanae(midsummer)', 'alice&tenniel(minuet)', 'tairitsu(elegy)', 'marija', 'vita']
 
     skill_id = ['gauge_easy', '', '', '', 'note_mirror', '', '', 'gauge_hard', 'frag_plus_10_pack_stellights', 'gauge_easy|frag_plus_15_pst&prs', 'gauge_hard|fail_frag_minus_100', 'frag_plus_5_side_light', 'visual_hide_hp', 'frag_plus_5_side_conflict', 'challenge_fullcombo_0gauge', 'gauge_overflow', 'gauge_easy|note_mirror', 'note_mirror', 'visual_tomato_pack_tonesphere',
-                'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', '', '', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', '', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami', 'skill_elizabeth', 'skill_lily', 'skill_kanae_midsummer', '', '', 'visual_ghost_skynotes']
+                'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', '', '', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', '', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami', 'skill_elizabeth', 'skill_lily', 'skill_kanae_midsummer', '', '', 'visual_ghost_skynotes', 'skill_vita']
 
     skill_id_uncap = ['', '', 'frags_kou', '', 'visual_ink', '', '', '', '', '', '', 'eto_uncap', 'luna_uncap', 'shirabe_entry_fee',
-                      '', '', '', '', '', 'ayu_uncap', '', 'frags_yume', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
+                      '', '', '', '', '', 'ayu_uncap', '', 'frags_yume', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '']
 
     skill_unlock_level = [0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 8, 8, 8, 0, 0, 0, 0, 0,
-                          0, 0, 0, 8, 0, 14, 0, 0, 8, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8]
+                          0, 0, 0, 8, 0, 14, 0, 0, 8, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0]
 
     frag1 = [55, 55, 60, 50, 47, 0, 47, 57, 41, 22, 50, 54, 60, 56, 78, 42, 41, 61, 52, 50, 52, 32,
-             42, 55, 45, 58, 43, 0.5, 68, 50, 62, 45, 45, 52, 44, 27, 59, 0, 45, 50, 50, 47, 47, 61, 43, 42, 50, 25, 58, 50, 61, 45, 45, 38]
+             42, 55, 45, 58, 43, 0.5, 68, 50, 62, 45, 45, 52, 44, 27, 59, 0, 45, 50, 50, 47, 47, 61, 43, 42, 50, 25, 58, 50, 61, 45, 45, 38, 33]
 
     prog1 = [35, 55, 47, 50, 60, 0, 60, 70, 58, 45, 70, 45, 42, 46, 61, 67, 49, 44, 28, 45, 24, 46, 52,
-             59, 62, 33, 58, 25, 63, 69, 50, 45, 45, 51, 34, 70, 62, 70, 45, 32, 32, 61, 47, 47, 37, 42, 50, 50, 45, 41, 61, 45, 45, 58]
+             59, 62, 33, 58, 25, 63, 69, 50, 45, 45, 51, 34, 70, 62, 70, 45, 32, 32, 61, 47, 47, 37, 42, 50, 50, 45, 41, 61, 45, 45, 58, 50]
 
     overdrive1 = [35, 55, 25, 50, 47, 0, 72, 57, 41, 7, 10, 32, 65, 31, 61, 53, 31, 47, 38, 12, 39, 18,
-                  48, 65, 45, 55, 44, 25, 46, 44, 33, 45, 45, 37, 25, 27, 50, 20, 45, 63, 21, 47, 61, 47, 65, 80, 50, 30, 49, 15, 34, 45, 45, 38]
+                  48, 65, 45, 55, 44, 25, 46, 44, 33, 45, 45, 37, 25, 27, 50, 20, 45, 63, 21, 47, 61, 47, 65, 80, 50, 30, 49, 15, 34, 45, 45, 38, 65]
 
     frag20 = [78, 80, 90, 75, 70, 0, 70, 79, 65, 40, 50, 80, 90, 82, 0, 61, 67, 92, 85, 50, 86, 52,
-              65, 85, 67, 88, 64, 0.5, 95, 70, 95, 50, 80, 87, 71, 50, 85, 0, 80, 75, 50, 70, 70, 90, 65, 80, 100, 50, 68, 60, 90, 67, 50, 60]
+              65, 85, 67, 88, 64, 0.5, 95, 70, 95, 50, 80, 87, 71, 50, 85, 0, 80, 75, 50, 70, 70, 90, 65, 80, 100, 50, 68, 60, 90, 67, 50, 60, 51]
 
     prog20 = [61, 80, 70, 75, 90, 0, 90, 102, 84, 78, 105, 67, 63, 68, 0, 99, 80, 66, 46, 83, 40, 73,
-              80, 90, 93, 50, 86, 78, 89, 98, 75, 80, 50, 64, 55, 100, 90, 110, 80, 50, 74, 90, 70, 70, 56, 80, 100, 55, 65, 59, 90, 50, 90, 90]
+              80, 90, 93, 50, 86, 78, 89, 98, 75, 80, 50, 64, 55, 100, 90, 110, 80, 50, 74, 90, 70, 70, 56, 80, 100, 55, 65, 59, 90, 50, 90, 90, 75]
 
     overdrive20 = [61, 80, 47, 75, 70, 0, 95, 79, 65, 31, 50, 59, 90, 58, 0, 78, 50, 70, 62, 49, 64,
-                   46, 73, 95, 67, 84, 70, 78, 69, 70, 50, 80, 80, 63, 25, 50, 72, 55, 50, 95, 55, 70, 90, 70, 99, 80, 100, 40, 69, 62, 51, 90, 67, 60]
+                   46, 73, 95, 67, 84, 70, 78, 69, 70, 50, 80, 80, 63, 25, 50, 72, 55, 50, 95, 55, 70, 90, 70, 99, 80, 100, 40, 69, 62, 51, 90, 67, 60, 100]
 
     frag30 = [88, 90, 100, 75, 80, 0, 70, 79, 65, 40, 50, 90, 100, 92, 0, 61, 67, 92, 85, 50, 86, 62,
-              65, 85, 67, 88, 74, 0.5, 105, 80, 95, 50, 80, 87, 71, 50, 95, 0, 80, 75, 50, 70, 80, 100, 65, 80, 100, 50, 68, 60, 90, 67, 50, 60]
+              65, 85, 67, 88, 74, 0.5, 105, 80, 95, 50, 80, 87, 71, 50, 95, 0, 80, 75, 50, 70, 80, 100, 65, 80, 100, 50, 68, 60, 90, 67, 50, 60, 51]
 
     prog30 = [71, 90, 80, 75, 100, 0, 90, 102, 84, 78, 105, 77, 73, 78, 0, 99, 80, 66, 46, 93, 40, 83,
-              80, 90, 93, 50, 96, 88, 99, 108, 75, 80, 50, 64, 55, 100, 100, 110, 80, 50, 74, 90, 80, 80, 56, 80, 100, 55, 65, 59, 90, 50, 90, 90]
+              80, 90, 93, 50, 96, 88, 99, 108, 75, 80, 50, 64, 55, 100, 100, 110, 80, 50, 74, 90, 80, 80, 56, 80, 100, 55, 65, 59, 90, 50, 90, 90, 75]
 
     overdrive30 = [71, 90, 57, 75, 80, 0, 95, 79, 65, 31, 50, 69, 100, 68, 0, 78, 50, 70, 62, 59, 64,
-                   56, 73, 95, 67, 84, 80, 88, 79, 80, 50, 80, 80, 63, 25, 50, 82, 55, 50, 95, 55, 70, 100, 80, 99, 80, 100, 40, 69, 62, 51, 90, 67, 60]
+                   56, 73, 95, 67, 84, 80, 88, 79, 80, 50, 80, 80, 63, 25, 50, 82, 55, 50, 95, 55, 70, 100, 80, 99, 80, 100, 40, 69, 62, 51, 90, 67, 60, 100]
 
     char_type = [1, 0, 0, 0, 0, 0, 0, 2, 0, 1, 2, 0, 0, 0, 2, 3, 1, 0, 0, 0, 1,
-                 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                 0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2]
 
     char_core = {
         0: [{'core_id': 'core_hollow', 'amount': 25}, {'core_id': 'core_desolate', 'amount': 5}],
@@ -359,7 +359,7 @@ def main(path='./'):
         19: [{'core_id': 'core_colorful', 'amount': 30}]
     }
 
-    for i in range(0, 54):
+    for i in range(0, 55):
         skill_requires_uncap = 1 if i == 2 else 0
 
         if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21, 42, 43, 11, 12, 19]:
@@ -386,12 +386,12 @@ def main(path='./'):
         c.execute('''insert into item values(?,"core",1,'')''', (i,))
 
     world_songs = ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster",
-                   "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano", "vandalism", "nexttoyou3", "lostcivilization3", "turbocharger", "bookmaker3", "laqryma3", "kyogenkigo", "hivemind", "seclusion", "quonwacca3", "bluecomet", "energysynergymatrix", "gengaozo", "lastendconductor3", "antithese3", "qualia3", "kanagawa3", "heavensdoor3", "pragmatism3"]
+                   "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano", "vandalism", "nexttoyou3", "lostcivilization3", "turbocharger", "bookmaker3", "laqryma3", "kyogenkigo", "hivemind", "seclusion", "quonwacca3", "bluecomet", "energysynergymatrix", "gengaozo", "lastendconductor3", "antithese3", "qualia3", "kanagawa3", "heavensdoor3", "pragmatism3", "nulctrl", "avril"]
     for i in world_songs:
         c.execute('''insert into item values(?,"world_song",1,'')''', (i,))
 
     world_unlocks = ["scenery_chap1", "scenery_chap2",
-                     "scenery_chap3", "scenery_chap4", "scenery_chap5"]
+                     "scenery_chap3", "scenery_chap4", "scenery_chap5", "scenery_chap6"]
     for i in world_unlocks:
         c.execute('''insert into item values(?,"world_unlock",1,'')''', (i,))
 

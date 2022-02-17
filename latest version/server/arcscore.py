@@ -508,7 +508,7 @@ def arc_score_post(user_id, song_id, difficulty, score, shiny_perfect_count, per
         x = c.fetchone()
         if x:
             re = server.arcworld.world_update(
-                c, user_id, song_id, difficulty, rating, clear_type, beyond_gauge, x[0], x[1], x[2])
+                c, user_id, song_id, difficulty, rating, clear_type, beyond_gauge, health, x[0], x[1], x[2])
             re['global_rank'] = get_user_world_rank(c, user_id)  # 更新世界排名
             re["user_rating"] = ptt
         else:

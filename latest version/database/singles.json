@@ -1054,5 +1054,77 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "internetoverdose",
+		"items": [
+			{
+				"type": "single",
+				"id": "internetoverdose",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "macromod",
+		"items": [
+			{
+				"type": "single",
+				"id": "macromod",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "neowings",
+		"items": [
+			{
+				"type": "single",
+				"id": "neowings",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "kissinglucifer",
+		"items": [
+			{
+				"type": "single",
+				"id": "kissinglucifer",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

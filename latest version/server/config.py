@@ -433,7 +433,23 @@ class Constant:
         "mi": 3,
         "c": True,
         "r": True
+    }, {
+        "ma": 12,
+        "mi": 1,
+        "c": True,
+        "r": True
+    }, {
+        "ma": 12,
+        "mi": 2,
+        "c": True,
+        "r": True
+    }, {
+        "ma": 12,
+        "mi": 3,
+        "c": True,
+        "r": True
     }]
+
     unlocklist_data = [{
         "unlock_key": "worldvanquisher|1|0",
         "complete": 1
@@ -475,6 +491,9 @@ class Constant:
         "complete": 1
     }, {
         "unlock_key": "snowwhite|2|0",
+        "complete": 1
+    }, {
+        "unlock_key": "snowwhite|1|0",
         "complete": 1
     }, {
         "unlock_key": "senkyou|1|0",
@@ -649,6 +668,9 @@ class Constant:
         "complete": 1
     }, {
         "unlock_key": "lucifer|1|0",
+        "complete": 1
+    }, {
+        "unlock_key": "nulctrl|2|0",
         "complete": 1
     }, {
         "unlock_key": "lostdesire|2|0",
@@ -873,6 +895,9 @@ class Constant:
         "unlock_key": "equilibrium_challenge|1|102",
         "complete": 1
     }, {
+        "unlock_key": "nulctrl|1|0",
+        "complete": 1
+    }, {
         "unlock_key": "aterlbus|2|0",
         "complete": 1
     }, {
@@ -1052,9 +1077,6 @@ class Constant:
     }, {
         "unlock_key": "grievouslady|0|101",
         "complete": 100
-    }, {
-        "unlock_key": "snowwhite|1|0",
-        "complete": 1
     }, {
         "unlock_key": "partyvinyl|1|0",
         "complete": 1
