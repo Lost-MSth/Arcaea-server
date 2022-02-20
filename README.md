@@ -65,7 +65,7 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss. 
 
-<!--
+
 ### Version 2.8.1
 - 适用于Arcaea 3.12.0版本 For Arcaea 3.12.0
 - 更新了歌曲数据库 Update the song database.
@@ -81,7 +81,7 @@ It is just so interesting. What it can do is under exploration.
   - 修复高版本iOS客户端无法登陆的问题 Fix a bug that the high version of iOS client cannot log in.
   - 修复有关下载的安全性问题 Fix a safety problem about downloading.
   - 修复有不同音频的Beyond谱面无法下载的问题 Fix a bug about unable to download a beyond chart which has another audio file.
--->
+
 
 
 
