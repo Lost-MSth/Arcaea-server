@@ -208,7 +208,7 @@ def get_user_me_c(user_id):
 def get_purchase_pack(user_id):
     # 返回曲包数据
     with Connect() as c:
-        return server.arcpurchase.get_purchase(c, 'pack')
+        return server.arcpurchase.get_purchase(c, user_id)
 
 
 def get_game_info():
@@ -261,7 +261,7 @@ def arc_aggregate_big(user_id):
                  "value": get_user_me(c, user_id)
              }, {
                  "id": 1,
-                 "value": server.arcpurchase.get_purchase(c, 'pack')
+                 "value": server.arcpurchase.get_purchase(c, user_id)
              }, {
                  "id": 2,
                  "value": id_2

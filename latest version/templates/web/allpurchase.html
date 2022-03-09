@@ -27,6 +27,10 @@
     <span>Discount to: </span>
     <span class="char-num">{{item['discount_to']}}</span>
     <br />
+
+    <span>Whether it is allowed to purchase with exchange certificate: </span>
+    <span class="char-num">{{item['discount_reason']}}</span>
+    <br />
     {% if item['items'] %}<br />
     {% for x in item['items'] %}
     <span>Item id: </span>

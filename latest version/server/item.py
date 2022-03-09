@@ -55,20 +55,20 @@ def claim_user_item(c, user_id, item_id, item_type, amount=1):
         else:
             return False
 
-    if item_type == 'core':
+    if item_type in ['core', 'anni5tix']:
         c.execute(
-            '''select amount from user_item where user_id=? and item_id=? and type="core"''', (user_id, item_id))
+            '''select amount from user_item where user_id=? and item_id=? and type=?''', (user_id, item_id, item_type))
         x = c.fetchone()
         if x:
             if x[0] + amount < 0:  # 数量不足
                 return False
-            c.execute('''update user_item set amount=? where user_id=? and item_id=? and type="core"''',
-                      (x[0]+amount, user_id, item_id))
+            c.execute('''update user_item set amount=? where user_id=? and item_id=? and type=?''',
+                      (x[0]+amount, user_id, item_id, item_type))
         else:
             if amount < 0:  # 添加数量错误
                 return False
-            c.execute('''insert into user_item values(?,?,"core",?)''',
-                      (user_id, item_id, amount))
+            c.execute('''insert into user_item values(?,?,?,?)''',
+                      (user_id, item_id, item_type, amount))
 
     elif item_type == 'memory':
         c.execute('''select ticket from user where user_id=?''', (user_id,))

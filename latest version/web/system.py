@@ -288,6 +288,7 @@ def get_all_purchase():
 
                 discount_from = None
                 discount_to = None
+                discount_reason = 'Yes' if i[5] == 'anni5tix' else 'No'
 
                 if i[3] and i[3] >= 0:
                     discount_from = time.strftime(
@@ -302,13 +303,15 @@ def get_all_purchase():
                 items = []
                 if y:
                     for j in y:
-                        items.append({'item_id': j[1], 'type': j[2], 'amount':j[3]})
+                        items.append(
+                            {'item_id': j[1], 'type': j[2], 'amount': j[3]})
 
                 re.append({'purchase_name': i[0],
                            'price': i[1],
                            'orig_price': i[2],
                            'discount_from': discount_from,
                            'discount_to': discount_to,
+                           'discount_reason': discount_reason,
                            'items': items
                            })
 

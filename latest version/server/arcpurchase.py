@@ -2,7 +2,6 @@ from server.sql import Connect
 import server.item
 import server.character
 import time
-import json
 
 
 def int2b(x):
@@ -13,7 +12,7 @@ def int2b(x):
         return True
 
 
-def get_purchase(c, type='pack'):
+def get_purchase(c, user_id, type='pack'):
     # 读取packs内容，返回字典列表
     c.execute(
         '''select * from purchase where purchase_name in (select purchase_name from purchase_item where type = :a)''', {'a': type})
@@ -50,7 +49,6 @@ def get_purchase(c, type='pack'):
                         "amount": amount
                     })
 
-
             if t is not None:
                 # 放到列表头
                 items = [t, items]
@@ -62,19 +60,27 @@ def get_purchase(c, type='pack'):
 
         if i[3] > 0:
             r['discount_from'] = i[3]
-        if i[4] > 0:
-            r['discount_to'] = i[4]
+            if i[4] > 0:
+                r['discount_to'] = i[4]
+
+            if i[5] == 'anni5tix' and i[3] <= int(time.time() * 1000) <= i[4]:
+                c.execute(
+                    '''select amount from user_item where user_id=? and item_id="anni5tix"''', (user_id,))
+                z = c.fetchone()
+                if z and z[0] >= 1:
+                    r['discount_reason'] = 'anni5tix'
+                    r['price'] = 0
 
         re.append(r)
 
     return re
 
 
-def get_single_purchase():
+def get_single_purchase(user_id):
     # main里面没开数据库，这里写一下代替
     re = []
     with Connect() as c:
-        re = get_purchase(c, type='single')
+        re = get_purchase(c, user_id, 'single')
 
     return re
 
@@ -98,6 +104,25 @@ def buy_item(c, user_id, price):
     return True, ticket - price
 
 
+def buy_item_with_anni5tix(c, user_id):
+    # 兑换券购买接口，返回成功与否标志
+    c.execute('''select amount from user_item where user_id = :a and item_id = "anni5tix"''',
+              {'a': user_id})
+    amount = c.fetchone()
+    if amount:
+        amount = amount[0]
+    else:
+        return False
+
+    if amount <= 0:
+        return False
+
+    c.execute('''update user_item set amount = :b where user_id = :a and item_id = "anni5tix"''',
+              {'a': user_id, 'b': amount-1})
+
+    return True
+
+
 def buy_thing(user_id, purchase_id):
     # 购买物品接口，返回字典
     success_flag = False
@@ -107,7 +132,7 @@ def buy_thing(user_id, purchase_id):
     characters = []
 
     with Connect() as c:
-        c.execute('''select price, orig_price, discount_from, discount_to from purchase where purchase_name=:a''',
+        c.execute('''select price, orig_price, discount_from, discount_to, discount_reason from purchase where purchase_name=:a''',
                   {'a': purchase_id})
         x = c.fetchone()
         price = 0
@@ -117,6 +142,7 @@ def buy_thing(user_id, purchase_id):
             orig_price = x[1]
             discount_from = x[2]
             discount_to = x[3]
+            discount_reason = x[4]
         else:
             return {
                 "success": False,
@@ -130,6 +156,8 @@ def buy_thing(user_id, purchase_id):
             now = int(time.time() * 1000)
             if not(discount_from <= now <= discount_to):
                 price = orig_price
+            elif discount_reason == 'anni5tix' and buy_item_with_anni5tix(c, user_id):
+                price = 0
 
             flag, ticket = buy_item(c, user_id, price)
 

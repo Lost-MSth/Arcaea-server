@@ -4,7 +4,7 @@ import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
-ARCAEA_SERVER_VERSION = 'v2.8.1'
+ARCAEA_SERVER_VERSION = 'v2.8.2'
 
 
 def main(path='./'):
@@ -223,7 +223,8 @@ def main(path='./'):
     price int,
     orig_price int,
     discount_from int,
-    discount_to int
+    discount_to int,
+    discount_reason text
     );''')
     c.execute('''create table if not exists purchase_item(purchase_name text,
     item_id text,
@@ -399,6 +400,8 @@ def main(path='./'):
               ('fragment', 'fragment', 1, ''))
     c.execute('''insert into item values(?,?,?,?)''',
               ('memory', 'memory', 1, ''))
+    c.execute('''insert into item values(?,?,?,?)''',
+              ('anni5tix', 'anni5tix', 1, ''))
 
     def insert_items(c, items):
         # 物品数据导入
@@ -411,8 +414,12 @@ def main(path='./'):
                 discount_to = -1
             else:
                 discount_to = i['discount_to']
-            c.execute('''insert into purchase values(?,?,?,?,?)''',
-                      (i['name'], i['price'], i['orig_price'], discount_from, discount_to))
+            if 'discount_reason' not in i:
+                discount_reason = ''
+            else:
+                discount_reason = i['discount_reason']
+            c.execute('''insert into purchase values(?,?,?,?,?,?)''',
+                      (i['name'], i['price'], i['orig_price'], discount_from, discount_to, discount_reason))
             for j in i['items']:
                 if "_id" not in j:
                     _id = ''

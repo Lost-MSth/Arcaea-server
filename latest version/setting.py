@@ -19,7 +19,7 @@ class Config():
     游戏API地址前缀
     Game API's URL prefix
     '''
-    GAME_API_PREFIX = '/bridge/18'
+    GAME_API_PREFIX = '/years/19'
     '''
     --------------------
     '''
@@ -30,7 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.12.0', '3.12.0c']
+    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.12.2', '3.12.2c']
     '''
     --------------------
     '''

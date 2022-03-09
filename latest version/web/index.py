@@ -764,6 +764,7 @@ def change_purchase():
             orig_price = request.form['orig_price']
             discount_from = request.form['discount_from']
             discount_to = request.form['discount_to']
+            discount_reason = request.form['discount_reason']
 
             if price:
                 price = int(price)
@@ -783,6 +784,10 @@ def change_purchase():
                     discount_to, "%Y-%m-%dT%H:%M"))) * 1000
             else:
                 discount_to = -1
+
+            if not discount_reason:
+                discount_reason = ''
+
         except:
             error = '数据错误 Wrong data.'
             flash(error)
@@ -792,8 +797,8 @@ def change_purchase():
             c.execute(
                 '''select exists(select * from purchase where purchase_name=:a)''', {'a': purchase_name})
             if c.fetchone() == (0,):
-                c.execute('''insert into purchase values(?,?,?,?,?)''',
-                          (purchase_name, price, orig_price, discount_from, discount_to))
+                c.execute('''insert into purchase values(?,?,?,?,?,?)''',
+                          (purchase_name, price, orig_price, discount_from, discount_to, discount_reason))
 
                 flash('购买项目添加成功 Successfully add the purchase.')
             else:

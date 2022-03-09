@@ -632,10 +632,11 @@ def pack(user_id):
 
 # 单曲购买信息获取
 @app.route(add_url_prefix('/purchase/bundle/single'), methods=['GET'])
-def single():
+@server.auth.auth_required(request)
+def single(user_id):
     return jsonify({
         "success": True,
-        "value": server.arcpurchase.get_single_purchase()
+        "value": server.arcpurchase.get_single_purchase(user_id)
     })
 
 
