@@ -590,7 +590,7 @@ class Constant:
         "complete": 1
     }, {
         "unlock_key": "saikyostronger|2|3|laqryma|2",
-        "complete": 1
+        "complete": 3
     }, {
         "unlock_key": "purgatorium|1|0",
         "complete": 1
