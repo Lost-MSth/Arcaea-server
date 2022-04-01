@@ -66,23 +66,20 @@ It is just so interesting. What it can do is under exploration.
 > Tips: When updating, please keep the original database in case of data loss. 
 
 
-### Version 2.8.1
-- 适用于Arcaea 3.12.0版本 For Arcaea 3.12.0
-- 更新了歌曲数据库 Update the song database.
-- 新搭档**维塔**已解锁 Unlock the character **Vita**.
-- 新增对**维塔**的技能支持 Add support for the skill of **Vita**.
-- 修正世界模式进度计算方式 Revise the algorithm of world mode progress.
-- 修复世界模式下 **对立（风暴）** 数值计算错误的问题 Fix the wrong value of **Tairitsu(Tempest)** in the World Mode.
+### Version 2.8.4
+- &spades;适用于Arcaea 4.0.&infin;<!--3.12.6-->版本&spades; For Arcaea 3.12.6
+- &hearts;修复616==sb?PTT:PPT<!--**凛可**-->缺少Bug<!--语音-->的问题&hearts; Fix missing voices of **Linka**.
 
+- 以下大概可能也许不得不是累积更新 The following are cumulative updates:
+  - &clubs;更新了█████[](歌曲数据库)&clubs; Update the song database.
+  - &diams;尝试对!@#$%^<!--5周年兑换券-->提供支持&diams; Try to add support for Anniversary 5 ticket.
+  - &iquest;新搭档' or name = 'Taikari'--<!--**凛可**-->已解锁&iquest; Unlock the character **Linka**.
 
-- 以下是累积更新 The following are cumulative updates:
-  - #35 集成式接口优化（By Young-Lord） Optimize `aggregate` interface. (By Young-Lord)
-  - 新增填写Link Play服务器地址的选项，解决地址无法正确自动获取的问题 Add the option of filling in Link Play server address, which can solve the problem that the address cannot be obtained automatically.
-  - 修复高版本iOS客户端无法登陆的问题 Fix a bug that the high version of iOS client cannot log in.
-  - 修复有关下载的安全性问题 Fix a safety problem about downloading.
-  - 修复有不同音频的Beyond谱面无法下载的问题 Fix a bug about unable to download a beyond chart which has another audio file.
-
-
+<!--
+本项目不会像lowiro一样为各位用户制造各种奇奇怪怪的麻烦，即便是在愚人节这种盛大的节日，大家也能放心使用！
+Happy April Fool's Day!
+Sorry for no joke in English.
+-->
 
 
 ## 运行环境与依赖 Running environment and requirements

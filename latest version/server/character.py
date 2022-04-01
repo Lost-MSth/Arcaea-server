@@ -155,7 +155,7 @@ def get_one_character(c, user_id, character_id):
         "name": x[7],
         "character_id": x[1]
     }
-    if x[1] == 21:
+    if x[1] == 21 or x[1] == 46:
         r["voice"] = [0, 1, 2, 3, 100, 1000, 1001]
 
     return r

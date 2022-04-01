@@ -30,7 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.12.4', '3.12.4c']
+    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.12.6', '3.12.6c']
     '''
     --------------------
     '''
