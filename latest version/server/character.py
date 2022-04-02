@@ -211,7 +211,7 @@ def char_use_core(user_id, character_id, amount):
             x = c.fetchone()
             if x:
                 exp, level = calc_level_up(
-                    c, user_id, character_id, x[0], amount*Config.CORE_EXP)
+                    c, user_id, character_id, x[0], amount*Constant.CORE_EXP)
                 c.execute('''update user_char set level=?, exp=? where user_id=? and character_id=?''',
                           (level, exp, user_id, character_id))
                 server.item.claim_user_item(
