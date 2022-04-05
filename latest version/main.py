@@ -20,7 +20,7 @@ import server.arclinkplay
 from udpserver.udp_main import link_play
 import os
 import sys
-from multiprocessing import Process, Pipe
+from multiprocessing import Process, Pipe, set_start_method
 
 
 from urllib.parse import parse_qs, urlparse
@@ -899,6 +899,7 @@ def main():
 
 
 if __name__ == '__main__':
+    set_start_method("spawn")
     main()
 
 

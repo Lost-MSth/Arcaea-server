@@ -46,7 +46,11 @@ def create_room(conn, user_id, client_song_map):
     song_unlock = get_song_unlock(client_song_map)
 
     conn.send((1, name, song_unlock))
-    data = conn.recv()
+    if conn.poll(10):
+        data = conn.recv()
+    else:
+        data = (-1,)
+
     if data[0] == 0:
         error_code = 0
         return error_code, {'roomCode': data[1],
@@ -74,7 +78,11 @@ def join_room(conn, user_id, client_song_map, room_code):
     song_unlock = get_song_unlock(client_song_map)
 
     conn.send((2, name, song_unlock, room_code))
-    data = conn.recv()
+    if conn.poll(10):
+        data = conn.recv()
+    else:
+        data = (-1,)
+
     if data[0] == 0:
         error_code = 0
         return error_code, {'roomCode': data[1],
@@ -96,7 +104,11 @@ def update_room(conn, user_id, token):
     error_code = 108
 
     conn.send((3, int(token)))
-    data = conn.recv()
+    if conn.poll(10):
+        data = conn.recv()
+    else:
+        data = (-1,)
+
     if data[0] == 0:
         error_code = 0
         return error_code, {'roomCode': data[1],
