@@ -3,12 +3,13 @@ from flask import (
 )
 import functools
 import api.api_auth
-import api.users
+from . import users
 import api.songs
-from api.api_code import code_get_msg
+from .api_code import code_get_msg, return_encode
 
 
 bp = Blueprint('api', __name__, url_prefix='/api/v1')
+bp.register_blueprint(users.bp)
 
 
 class Query():
@@ -62,16 +63,6 @@ def get_query_parameter(request, query_able=[], sort_able=[]):
     return decorator
 
 
-def return_encode(code: int = 0, data: dict = {}, status: int = 200, msg: str = ''):
-    # 构造返回，返回jsonify处理过后的response_class
-    if msg == '':
-        msg = code_get_msg(code)
-    if code < 0:
-        return jsonify({'status': status, 'code': code, 'data': {}, 'msg': msg})
-    else:
-        return jsonify({'status': status, 'code': code, 'data': data, 'msg': msg})
-
-
 @bp.route('/')
 def ping():
     return return_encode()
@@ -111,7 +102,7 @@ def token_delete(user):
 def users_get(query, user):
     # 查询全用户信息
 
-    data = api.users.get_users(query)
+    data = users.get_users(query)
 
     if not data:
         return return_encode(-2)
@@ -133,7 +124,7 @@ def users_user_get(user, user_id):
     if user_id != user.user_id and not 'select' in user.power and user.user_id != 0:  # 查别人需要select权限
         return return_encode(-1, {}, 403, 'No permission')
 
-    data = api.users.get_user_info(user_id)
+    data = users.get_user_info(user_id)
 
     if not data:
         return return_encode(-3)
@@ -152,7 +143,7 @@ def users_user_b30_get(user, user_id):
     if user_id != user.user_id and not 'select' in user.power and user.user_id != 0:  # 查别人需要select权限
         return return_encode(-1, {}, 403, 'No permission')
 
-    data = api.users.get_user_b30(user_id)
+    data = users.get_user_b30(user_id)
 
     if data['data'] == []:
         return return_encode(-3)
@@ -173,7 +164,7 @@ def users_user_best_get(query, user, user_id):
     if user_id != user.user_id and not 'select' in user.power and user.user_id != 0:  # 查别人需要select权限
         return return_encode(-1, {}, 403, 'No permission')
 
-    data = api.users.get_user_best(user_id, query)
+    data = users.get_user_best(user_id, query)
 
     if data['data'] == []:
         return return_encode(-3)
@@ -192,7 +183,7 @@ def users_user_r30_get(user, user_id):
     if user_id != user.user_id and not 'select' in user.power and user.user_id != 0:  # 查别人需要select权限
         return return_encode(-1, {}, 403, 'No permission')
 
-    data = api.users.get_user_r30(user_id)
+    data = users.get_user_r30(user_id)
 
     if data['data'] == []:
         return return_encode(-3)

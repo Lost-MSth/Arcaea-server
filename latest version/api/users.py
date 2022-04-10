@@ -1,8 +1,47 @@
+from flask import (
+    Blueprint, request, jsonify
+)
+
+from .api_code import code_get_msg, return_encode
+from .api_auth import role_required
+from core.user import RegisterUser
+from core.error import ArcError, PostError
 from server.sql import Connect
 from server.sql import Sql
 import time
 import web.webscore
 import server.info
+
+bp = Blueprint('users', __name__, url_prefix='/users')
+
+
+@bp.route('', methods=['POST'])
+@role_required(request, ['change'])
+def users_post(user):
+    # 注册用户
+    with Connect() as c:
+        new_user = RegisterUser(c)
+        try:
+            if 'name' in request.json:
+                new_user.set_name(request.json['name'])
+            else:
+                raise PostError('No name provided.')
+
+            if 'password' in request.json:
+                new_user.set_password(request.json['password'])
+            else:
+                raise PostError('No password provided.')
+
+            if 'email' in request.json:
+                new_user.set_email(request.json['email'])
+            else:
+                raise PostError('No email provided.')
+
+            new_user.register()
+        except ArcError as e:
+            return return_encode(e.api_error_code)
+
+    return return_encode(0, {'user_id': new_user.user_id, 'user_code': new_user.user_code})
 
 
 def get_users(query=None):
