@@ -85,7 +85,7 @@ Sorry for no joke in English.
 ## 运行环境与依赖 Running environment and requirements
 - Windows/Linux/Mac OS/Android...
 - Python 3
-- Flask module, Cryptography module
+- Flask module >= 2.0, Cryptography module
 - Charles, IDA, proxy app... (optional)
 
 <!--
