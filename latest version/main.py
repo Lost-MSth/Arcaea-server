@@ -17,7 +17,6 @@ import server.arcpurchase
 import server.init
 import server.character
 import server.arclinkplay
-from udpserver.udp_main import link_play
 import os
 import sys
 from multiprocessing import Process, Pipe, set_start_method
@@ -880,6 +879,7 @@ def main():
         app.logger.info('Complete!')
 
     if Config.UDP_PORT and Config.UDP_PORT != '':
+        from udpserver.udp_main import link_play
         process = [Process(target=link_play, args=(
             conn2, Config.HOST, int(Config.UDP_PORT)))]
         [p.start() for p in process]
