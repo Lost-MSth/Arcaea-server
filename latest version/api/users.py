@@ -1,10 +1,10 @@
 from flask import (
-    Blueprint, request, jsonify
+    Blueprint, request
 )
 
 from .api_code import code_get_msg, return_encode
 from .api_auth import role_required
-from core.user import RegisterUser
+from core.user import UserRegister
 from core.error import ArcError, PostError
 from server.sql import Connect
 from server.sql import Sql
@@ -20,7 +20,7 @@ bp = Blueprint('users', __name__, url_prefix='/users')
 def users_post(user):
     # 注册用户
     with Connect() as c:
-        new_user = RegisterUser(c)
+        new_user = UserRegister(c)
         try:
             if 'name' in request.json:
                 new_user.set_name(request.json['name'])

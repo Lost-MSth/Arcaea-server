@@ -637,6 +637,9 @@ class Constant:
         "unlock_key": "nhelv|2|0",
         "complete": 1
     }, {
+        "unlock_key": "nekonote|2|0",
+        "complete": 1
+    }, {
         "unlock_key": "memoryforest|1|0",
         "complete": 1
     }, {
@@ -680,6 +683,9 @@ class Constant:
         "complete": 1
     }, {
         "unlock_key": "lostdesire|1|0",
+        "complete": 1
+    }, {
+        "unlock_key": "nekonote|1|0",
         "complete": 1
     }, {
         "unlock_key": "lostcivilization|1|0",
@@ -778,12 +784,6 @@ class Constant:
         "unlock_key": "gothiveofra|1|0",
         "complete": 1
     }, {
-        "unlock_key": "etherstrike|1|0",
-        "complete": 1
-    }, {
-        "unlock_key": "singularity|2|0",
-        "complete": 1
-    }, {
         "unlock_key": "lightningscrew|1|0",
         "complete": 1
     }, {
@@ -800,6 +800,9 @@ class Constant:
         "complete": 1
     }, {
         "unlock_key": "pragmatism|2|0",
+        "complete": 1
+    }, {
+        "unlock_key": "stasis|2|0",
         "complete": 1
     }, {
         "unlock_key": "oracle|2|0",
@@ -860,6 +863,12 @@ class Constant:
         "complete": 1
     }, {
         "unlock_key": "etherstrike|2|0",
+        "complete": 1
+    }, {
+        "unlock_key": "singularity|2|0",
+        "complete": 1
+    }, {
+        "unlock_key": "etherstrike|1|0",
         "complete": 1
     }, {
         "unlock_key": "flyburg|1|0",
@@ -1124,6 +1133,9 @@ class Constant:
         "complete": 1
     }, {
         "unlock_key": "vector|2|0",
+        "complete": 1
+    }, {
+        "unlock_key": "stasis|1|0",
         "complete": 1
     }, {
         "unlock_key": "loschen|2|0",

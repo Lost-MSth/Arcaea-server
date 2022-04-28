@@ -30,7 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.5.3', '3.5.3c', '3.12.6', '3.12.6c']
+    ALLOW_APPVERSION = ['3.12.6', '3.12.6c', '3.12.8', '3.12.8c']
     '''
     --------------------
     '''
@@ -75,7 +75,7 @@ class Config():
     愚人节模式开关
     Switch of April Fool's Day
     '''
-    IS_APRILFOOLS = True
+    IS_APRILFOOLS = False
     '''
     --------------------
     '''

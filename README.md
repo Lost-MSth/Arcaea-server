@@ -66,20 +66,25 @@ It is just so interesting. What it can do is under exploration.
 > Tips: When updating, please keep the original database in case of data loss. 
 
 
-### Version 2.8.4
-- &spades;适用于Arcaea 4.0.&infin;<!--3.12.6-->版本&spades; For Arcaea 3.12.6
-- &hearts;修复616==sb?PTT:PPT<!--**凛可**-->缺少Bug<!--语音-->的问题&hearts; Fix missing voices of **Linka**.
+### Version 2.8.5
+- 适用于Arcaea 3.12.8版本 For Arcaea 3.12.8
+- 更新了歌曲数据库 Update the song database.
+- 修复一个导致无法升级角色的拼写错误 Fix a typing error, which makes giving characters Exp wrong.
+- 尝试强制指定多进程启动方式为spawn，这可能对UNIX系统中UDP服务器的启动有所帮助 Try to forcibly specify the multiprocess startup mode as spawn, which may be helpful for the startup of UDP server in UNIX system.
+- 添加了注册API对外接口 Add an external API interface of user register. 
+- 重构一些代码，顺手修复了登陆时因多设备登录封号的用户没有正确显示错误提示的问题 Refactoring some codes and in passing fix the problem that users which has been banned because of multiple devices do not show error messages correctly when logging in.
+  
+> 注意：
+> - 现在Flask最低版本要求提高到2.0
+> - 服务端可能不再完全支持低版本客户端
+> - 对3.12.6c版本，愚人节开关打开时点击`网络`按钮会闪退，原因不明
+> 
+> Note: 
+> - Now the version of Flask which is required should be up to 2.0.
+> - The server may no longer fully support lower version clients.
+> - For version 3.12.6c, when the switch of April Fool's Day is on, clicking the `Network` button will make the client break down. The reason is not clear now.
 
-- 以下大概可能也许不得不是累积更新 The following are cumulative updates:
-  - &clubs;更新了█████[](歌曲数据库)&clubs; Update the song database.
-  - &diams;尝试对!@#$%^<!--5周年兑换券-->提供支持&diams; Try to add support for Anniversary 5 ticket.
-  - &iquest;新搭档' or name = 'Taikari'--<!--**凛可**-->已解锁&iquest; Unlock the character **Linka**.
 
-<!--
-本项目不会像lowiro一样为各位用户制造各种奇奇怪怪的麻烦，即便是在愚人节这种盛大的节日，大家也能放心使用！
-Happy April Fool's Day!
-Sorry for no joke in English.
--->
 
 
 ## 运行环境与依赖 Running environment and requirements

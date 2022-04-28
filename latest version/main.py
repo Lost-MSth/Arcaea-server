@@ -3,7 +3,7 @@
 from flask import Flask, json, request, jsonify, send_from_directory
 from logging.config import dictConfig
 from setting import Config
-import base64
+import server
 import server.auth
 import server.info
 import server.setme
@@ -36,6 +36,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.register_blueprint(web.login.bp)
 app.register_blueprint(web.index.bp)
 app.register_blueprint(api.api_main.bp)
+app.register_blueprint(server.bp)
 
 conn1, conn2 = Pipe()
 
@@ -146,60 +147,6 @@ def favicon():
     return app.send_static_file('favicon.ico')
 
 
-@app.route(add_url_prefix('/auth/login'), methods=['POST'])  # 登录接口
-def login():
-    if 'AppVersion' in request.headers:  # 版本检查
-        if Config.ALLOW_APPVERSION:
-            if request.headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-                return error_return(1203)
-
-    headers = request.headers
-    id_pwd = headers['Authorization']
-    id_pwd = base64.b64decode(id_pwd[6:]).decode()
-    name, password = id_pwd.split(':', 1)
-    if 'DeviceId' in headers:
-        device_id = headers['DeviceId']
-    else:
-        device_id = 'low_version'
-
-    token, user_id, error_code, extra = server.auth.arc_login(
-        name, password, device_id, request.remote_addr)
-    if not error_code:
-        r = {"success": True, "token_type": "Bearer", 'user_id': user_id}
-        r['access_token'] = token
-        return jsonify(r)
-    else:
-        if extra:
-            return error_return(error_code, extra)
-        else:
-            return error_return(error_code)
-
-
-@app.route(add_url_prefix('/user'), methods=['POST'])  # 注册接口
-def register():
-    if 'AppVersion' in request.headers:  # 版本检查
-        if Config.ALLOW_APPVERSION:
-            if request.headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-                return error_return(5)
-
-    name = request.form['name']
-    password = request.form['password']
-    email = request.form['email']
-    if 'device_id' in request.form:
-        device_id = request.form['device_id']
-    else:
-        device_id = 'low_version'
-
-    user_id, token, error_code = server.auth.arc_register(
-        name, password, device_id, email, request.remote_addr)
-    if user_id is not None:
-        r = {"success": True, "value": {
-            'user_id': user_id, 'access_token': token}}
-        return jsonify(r)
-    else:
-        return error_return(error_code)
-
-
 @app.route(add_url_prefix('/purchase/bundle/pack'), methods=['GET'])  # 曲包信息
 @server.auth.auth_required(request)
 def bundle_pack(user_id):
@@ -275,43 +222,6 @@ def user_me(user_id):
     r = server.info.get_user_me_c(user_id)
     if r:
         return success_return(r)
-    else:
-        return error_return(108)
-
-
-@app.route(add_url_prefix('/user/me/character'), methods=['POST'])  # 角色切换
-@server.auth.auth_required(request)
-def character_change(user_id):
-    character_id = request.form['character']
-    skill_sealed = request.form['skill_sealed']
-
-    flag = server.setme.change_char(user_id, character_id, skill_sealed)
-    if flag:
-        return jsonify({
-            "success": True,
-            "value": {
-                "user_id": user_id,
-                "character": character_id
-            }
-        })
-    else:
-        return error_return(108)
-
-
-# 角色觉醒切换
-@app.route(add_url_prefix('/<path:path>/toggle_uncap', True), methods=['POST'])
-@server.auth.auth_required(request)
-def character_uncap(user_id, path):
-    character_id = int(path[path.find('character')+10:])
-    r = server.setme.change_char_uncap(user_id, character_id)
-    if r is not None:
-        return jsonify({
-            "success": True,
-            "value": {
-                "user_id": user_id,
-                "character": [r]
-            }
-        })
     else:
         return error_return(108)
 

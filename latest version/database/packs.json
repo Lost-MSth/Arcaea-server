@@ -552,5 +552,23 @@
 		],
 		"price": 400,
 		"orig_price": 400
+	},
+	{
+		"name": "lanota_append_1",
+		"items": [
+			{
+				"type": "pack",
+				"id": "lanota_append_1",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 3,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 300,
+		"price": 300
 	}
 ]
