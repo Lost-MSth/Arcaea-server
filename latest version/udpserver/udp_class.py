@@ -140,6 +140,9 @@ class Room:
 
     def is_finish(self):
         # 是否全部进入结算
+        if self.state == 8:
+            return False
+
         for i in self.players:
             if i.player_id != 0 and (i.finish_flag == 0 or i.online == 0):
                 return False

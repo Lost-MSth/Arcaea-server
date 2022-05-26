@@ -1,17 +1,9 @@
 class ArcError(Exception):
-    api_error_code = -999
-    error_code = 108
-    message = None
-    extra_data = None
-
-    def __init__(self, message=None, error_code=None, api_error_code=None, extra_data=None) -> None:
+    def __init__(self, message=None, error_code=108, api_error_code=-999, extra_data=None) -> None:
         self.message = message
-        if error_code:
-            self.error_code = error_code
-        if api_error_code:
-            self.api_error_code = api_error_code
-        if extra_data:
-            self.extra_data = extra_data
+        self.error_code = error_code
+        self.api_error_code = api_error_code
+        self.extra_data = extra_data
 
     def __str__(self) -> str:
         return repr(self.message)
@@ -19,7 +11,7 @@ class ArcError(Exception):
 
 class InputError(ArcError):
     # 输入类型错误
-    def __init__(self, message=None, error_code=None, api_error_code=-100, extra_data=None) -> None:
+    def __init__(self, message=None, error_code=108, api_error_code=-100, extra_data=None) -> None:
         super().__init__(message, error_code, api_error_code, extra_data)
 
 
@@ -43,6 +35,24 @@ class PostError(ArcError):
 class UserBan(ArcError):
     # 用户封禁
     def __init__(self, message=None, error_code=121, api_error_code=None, extra_data=None) -> None:
+        super().__init__(message, error_code, api_error_code, extra_data)
+
+
+class ItemNotEnough(ArcError):
+    # 物品数量不足
+    def __init__(self, message=None, error_code=-6, api_error_code=-999, extra_data=None) -> None:
+        super().__init__(message, error_code, api_error_code, extra_data)
+
+
+class ItemUnavailable(ArcError):
+    # 物品不可用
+    def __init__(self, message=None, error_code=-6, api_error_code=-999, extra_data=None) -> None:
+        super().__init__(message, error_code, api_error_code, extra_data)
+
+
+class FriendError(ArcError):
+    # 好友系统出错
+    def __init__(self, message=None, error_code=108, api_error_code=-999, extra_data=None) -> None:
         super().__init__(message, error_code, api_error_code, extra_data)
 
 

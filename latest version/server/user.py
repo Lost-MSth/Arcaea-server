@@ -3,6 +3,7 @@ from core.error import ArcError, NoAccess
 from core.sql import Connect
 from core.user import UserRegister, UserLogin, User, UserOnline
 from core.character import UserCharacter
+from core.item import ItemCore
 from .func import error_return, success_return
 from .auth import auth_required
 from setting import Config
@@ -63,11 +64,49 @@ def toggle_uncap(user_id, character_id):
         try:
             user = User()
             user.user_id = user_id
-            character = UserCharacter(c)
-            character.character_id = character_id
+            character = UserCharacter(c, character_id)
             character.change_uncap_override(user)
             character.select_character_info(user)
             return success_return({'user_id': user.user_id, 'character': [character.to_dict]})
         except ArcError as e:
             return error_return(e)
     return error_return()
+
+
+@bp.route('/me/character/<int:character_id>/uncap', methods=['POST'])  # 角色觉醒
+@auth_required(request)
+def character_first_uncap(user_id, character_id):
+    with Connect() as c:
+        try:
+            user = UserOnline(c, user_id)
+            character = UserCharacter(c, character_id)
+            character.select_character_info(user)
+            character.character_uncap(user)
+            return success_return({'user_id': user.user_id, 'character': [character.to_dict], 'cores': user.cores})
+        except ArcError as e:
+            return error_return(e)
+    return error_return()
+
+
+@bp.route('/me/character/<int:character_id>/exp', methods=['POST'])  # 角色使用以太之滴
+@auth_required(request)
+def character_exp(user_id, character_id):
+    with Connect() as c:
+        try:
+            user = UserOnline(c, user_id)
+            character = UserCharacter(c, character_id)
+            character.select_character_info(user)
+            core = ItemCore(c)
+            core.amount = - int(request.form['amount'])
+            core.item_id = 'core_generic'
+            character.upgrade_by_core(user, core)
+            return success_return({'user_id': user.user_id, 'character': [character.to_dict], 'cores': user.cores})
+        except ArcError as e:
+            return error_return(e)
+    return error_return()
+
+
+@bp.route('/me/request_delete', methods=['POST'])  # 删除账号
+@auth_required(request)
+def user_delete(user_id):
+    return error_return(ArcError('Cannot delete the account.', 151)), 404

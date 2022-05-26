@@ -226,85 +226,6 @@ def user_me(user_id):
         return error_return(108)
 
 
-# 角色觉醒
-@app.route(add_url_prefix('/<path:path>/uncap', True), methods=['POST'])
-@server.auth.auth_required(request)
-def character_first_uncap(user_id, path):
-    character_id = int(path[path.find('character')+10:])
-    r = server.character.char_uncap(user_id, character_id)
-    if r is not None:
-        return jsonify({
-            "success": True,
-            "value": r
-        })
-    else:
-        return error_return(108)
-
-
-# 角色使用以太之滴
-@app.route(add_url_prefix('/<path:path>/exp', True), methods=['POST'])
-@server.auth.auth_required(request)
-def character_exp(user_id, path):
-    character_id = int(path[path.find('character')+10:])
-    amount = int(request.form['amount'])
-    r = server.character.char_use_core(user_id, character_id, amount)
-    if r is not None:
-        return jsonify({
-            "success": True,
-            "value": r
-        })
-    else:
-        return error_return(108)
-
-
-@app.route(add_url_prefix('/friend/me/add'), methods=['POST'])  # 加好友
-@server.auth.auth_required(request)
-def add_friend(user_id):
-    friend_code = request.form['friend_code']
-    friend_id = server.auth.code_get_id(friend_code)
-    if friend_id is not None:
-        r = server.setme.arc_add_friend(user_id, friend_id)
-        if r is not None and r != 602 and r != 604:
-            return jsonify({
-                "success": True,
-                "value": {
-                    "user_id": user_id,
-                    "updatedAt": "2020-09-07T07:32:12.740Z",
-                    "createdAt": "2020-09-06T10:05:18.471Z",
-                    "friends": r
-                }
-            })
-        else:
-            if r is not None:
-                return error_return(r)
-            else:
-                return error_return(108)
-    else:
-        return error_return(401)
-
-
-@app.route(add_url_prefix('/friend/me/delete'), methods=['POST'])  # 删好友
-@server.auth.auth_required(request)
-def delete_friend(user_id):
-    friend_id = int(request.form['friend_id'])
-    if friend_id is not None:
-        r = server.setme.arc_delete_friend(user_id, friend_id)
-        if r is not None:
-            return jsonify({
-                "success": True,
-                "value": {
-                    "user_id": user_id,
-                    "updatedAt": "2020-09-07T07:32:12.740Z",
-                    "createdAt": "2020-09-06T10:05:18.471Z",
-                    "friends": r
-                }
-            })
-        else:
-            return error_return(108)
-    else:
-        return error_return(401)
-
-
 # 好友排名，默认最多50
 @app.route(add_url_prefix('/score/song/friend'), methods=['GET'])
 @server.auth.auth_required(request)
@@ -701,10 +622,10 @@ def multiplayer_update(user_id):
         return error_return(error_code), 400
 
 
-@app.route(add_url_prefix('/user/me/request_delete'), methods=['POST'])  # 删除账号
-@server.auth.auth_required(request)
-def user_delete(user_id):
-    return error_return(151), 404
+# @app.route(add_url_prefix('/user/me/request_delete'), methods=['POST'])  # 删除账号
+# @server.auth.auth_required(request)
+# def user_delete(user_id):
+#     return error_return(151), 404
 
 
 # 三个设置，写在最后降低优先级

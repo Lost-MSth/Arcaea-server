@@ -1149,4 +1149,10 @@ class Constant:
     }, {
         "unlock_key": "cyberneciacatharsis|2|0",
         "complete": 1
+    }, {
+        "unlock_key": "sanskia|1|0",
+        "complete": 1
+    }, {
+        "unlock_key": "sanskia|2|0",
+        "complete": 1
     }]

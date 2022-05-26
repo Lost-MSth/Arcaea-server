@@ -20,13 +20,16 @@ class Connect():
         return self.c
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
+            if self.conn:
+                self.conn.rollback()
+
+            current_app.logger.error(
+                traceback.format_exception(exc_type, exc_val, exc_tb))
+
         if self.conn:
             self.conn.commit()
             self.conn.close()
-
-        if exc_type is not None:
-            current_app.logger.error(
-                traceback.format_exception(exc_type, exc_val, exc_tb))
 
         return True
 

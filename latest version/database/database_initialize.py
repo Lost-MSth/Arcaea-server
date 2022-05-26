@@ -4,7 +4,7 @@ import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
-ARCAEA_SERVER_VERSION = 'v2.8.5'
+ARCAEA_SERVER_VERSION = 'v2.8.6'
 
 
 def main(path='./'):
@@ -387,7 +387,7 @@ def main(path='./'):
         c.execute('''insert into item values(?,"core",1,'')''', (i,))
 
     world_songs = ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster",
-                   "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano", "vandalism", "nexttoyou3", "lostcivilization3", "turbocharger", "bookmaker3", "laqryma3", "kyogenkigo", "hivemind", "seclusion", "quonwacca3", "bluecomet", "energysynergymatrix", "gengaozo", "lastendconductor3", "antithese3", "qualia3", "kanagawa3", "heavensdoor3", "pragmatism3", "nulctrl", "avril", "ddd", "merlin3", "omakeno3", "nekonote"]
+                   "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano", "vandalism", "nexttoyou3", "lostcivilization3", "turbocharger", "bookmaker3", "laqryma3", "kyogenkigo", "hivemind", "seclusion", "quonwacca3", "bluecomet", "energysynergymatrix", "gengaozo", "lastendconductor3", "antithese3", "qualia3", "kanagawa3", "heavensdoor3", "pragmatism3", "nulctrl", "avril", "ddd", "merlin3", "omakeno3", "nekonote", "sanskia"]
     for i in world_songs:
         c.execute('''insert into item values(?,"world_song",1,'')''', (i,))
 
