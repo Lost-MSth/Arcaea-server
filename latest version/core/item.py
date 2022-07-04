@@ -1,5 +1,5 @@
-from sympy import Nor
-from .error import NoData, ItemUnavailable, ItemNotEnough, InputError
+from .error import InputError, ItemNotEnough, ItemUnavailable, NoData
+from setting import Config
 
 
 class Item:
@@ -18,17 +18,50 @@ class Item:
     def amount(self, value: int):
         self.__amount = int(value)
 
+    def to_dict(self, has_is_available: bool = False) -> dict:
+        r = {
+            'id': self.item_id,
+            'amount': self.amount,
+            'type': self.item_type
+        }
+        if has_is_available:
+            r['is_available'] = self.is_available
+        return r
+
     def user_claim_item(self, user):
         # parameter: user - User类或子类的实例
         pass
 
 
-class NormalItem(Item):
+class UserItem(Item):
+
+    def __init__(self, c=None) -> None:
+        super().__init__()
+        self.c = c
+        self.user = None
+
+    def select(self, user=None):
+        '''
+            查询用户item\ 
+            parameter: `user` - `User`类或子类的实例
+        '''
+        self.user = user
+        self.c.execute('''select amount from user_item where user_id=? and item_id=? and type=?''',
+                       (self.user.user_id, self.item_id, self.item_type))
+        x = self.c.fetchone()
+        if x:
+            self.amount = x[0] if x[0] else 1
+        else:
+            self.amount = 0
+
+
+class NormalItem(UserItem):
     def __init__(self, c) -> None:
         super().__init__()
         self.c = c
 
     def user_claim_item(self, user):
+        self.user = user
         if not self.is_available:
             self.c.execute(
                 '''select is_available from item where item_id=? and type=?''', (self.item_id, self.item_type))
@@ -43,33 +76,34 @@ class NormalItem(Item):
                 raise NoData('No item data.')
 
         self.c.execute('''select exists(select * from user_item where user_id=? and item_id=? and type=?)''',
-                       (user.user_id, self.item_id, self.item_type))
+                       (self.user.user_id, self.item_id, self.item_type))
         if self.c.fetchone() == (0,):
             self.c.execute('''insert into user_item values(:a,:b,:c,1)''',
-                           {'a': user.user_id, 'b': self.item_id, 'c': self.item_type})
+                           {'a': self.user.user_id, 'b': self.item_id, 'c': self.item_type})
 
 
-class PositiveItem(Item):
+class PositiveItem(UserItem):
     def __init__(self, c) -> None:
         super().__init__()
         self.c = c
 
     def user_claim_item(self, user):
+        self.user = user
         self.c.execute('''select amount from user_item where user_id=? and item_id=? and type=?''',
-                       (user.user_id, self.item_id, self.item_type))
+                       (self.user.user_id, self.item_id, self.item_type))
         x = self.c.fetchone()
         if x:
             if x[0] + self.amount < 0:  # 数量不足
                 raise ItemNotEnough(
                     'The user does not have enough `%s`.' % self.item_id)
             self.c.execute('''update user_item set amount=? where user_id=? and item_id=? and type=?''',
-                           (x[0]+self.amount, user.user_id, self.item_id, self.item_type))
+                           (x[0]+self.amount, self.user.user_id, self.item_id, self.item_type))
         else:
             if self.amount < 0:  # 添加数量错误
                 raise InputError(
                     'The amount of `%s` is wrong.' % self.item_id)
             self.c.execute('''insert into user_item values(?,?,?,?)''',
-                           (user.user_id, self.item_id, self.item_type, self.amount))
+                           (self.user.user_id, self.item_id, self.item_type, self.amount))
 
 
 class ItemCore(PositiveItem):
@@ -83,7 +117,7 @@ class ItemCore(PositiveItem):
             self.amount = - core.amount if reverse else core.amount
 
 
-class ItemCharacter(Item):
+class ItemCharacter(UserItem):
     item_type = 'character'
 
     def __init__(self, c) -> None:
@@ -91,7 +125,7 @@ class ItemCharacter(Item):
         self.c = c
         self.is_available = True
 
-    def set_id(self, character_id):
+    def set_id(self, character_id: str) -> None:
         # 将name: str转为character_id: int存到item_id里
         if character_id.isdigit():
             self.item_id = int(character_id)
@@ -105,6 +139,9 @@ class ItemCharacter(Item):
                 raise NoData('No character `%s`.' % character_id)
 
     def user_claim_item(self, user):
+        if not isinstance(self.item_id, int):
+            self.set_id(self.item_id)
+
         self.c.execute(
             '''select exists(select * from user_char where user_id=? and character_id=?)''', (user.user_id, self.item_id))
         if self.c.fetchone() == (0,):
@@ -112,7 +149,7 @@ class ItemCharacter(Item):
                 '''insert into user_char values(?,?,1,0,0,0)''', (user.user_id, self.item_id))
 
 
-class Memory(Item):
+class Memory(UserItem):
     item_type = 'memory'
 
     def __init__(self, c) -> None:
@@ -131,6 +168,18 @@ class Memory(Item):
             raise NoData('The ticket of the user is null.')
 
 
+class Fragment(UserItem):
+    item_type = 'fragment'
+
+    def __init__(self, c) -> None:
+        super().__init__()
+        self.c = c
+        self.is_available = True
+
+    def user_claim_item(self, user):
+        pass
+
+
 class Anni5tix(PositiveItem):
     item_type = 'anni5tix'
 
@@ -144,6 +193,7 @@ class WorldSong(NormalItem):
 
     def __init__(self, c) -> None:
         super().__init__(c)
+        self.is_available = True
 
 
 class WorldUnlock(NormalItem):
@@ -151,6 +201,7 @@ class WorldUnlock(NormalItem):
 
     def __init__(self, c) -> None:
         super().__init__(c)
+        self.is_available = True
 
 
 class Single(NormalItem):
@@ -167,19 +218,125 @@ class Pack(NormalItem):
         super().__init__(c)
 
 
-def get_user_cores(c, user) -> list:
-    # parameter: user - User类或子类的实例
-    # 得到用户的cores，返回字典列表
-    r = []
-    c.execute(
-        '''select item_id, amount from user_item where user_id = ? and type="core"''', (user.user_id,))
-    x = c.fetchall()
-    if x:
-        for i in x:
-            if i[1]:
-                amount = i[1]
-            else:
-                amount = 0
-            r.append({'core_type': i[0], 'amount': amount})
+class ProgBoost(UserItem):
+    item_type = 'prog_boost_300'
 
-    return r
+    def __init__(self, c) -> None:
+        super().__init__(c)
+
+    def user_claim_item(self, user):
+        '''
+            世界模式prog_boost\ 
+            parameters: `user` - `UserOnline`类或子类的实例
+        '''
+        user.update_prog_boost(1)
+
+
+class Stamina6(UserItem):
+    item_type = 'stamina6'
+
+    def __init__(self, c) -> None:
+        super().__init__(c)
+
+    def user_claim_item(self, user):
+        '''
+            世界模式记忆源点买体力
+        '''
+        user.select_user_about_stamina()
+        user.stamina.stamina += 6
+        user.stamina.update()
+
+
+class ItemFactory:
+    def __init__(self, c=None) -> None:
+        self.c = c
+
+    def get_item(self, item_type: str):
+        '''
+            根据item_type实例化对应的item类
+            return: Item类或子类的实例
+        '''
+        if item_type == 'core':
+            return ItemCore(self.c)
+        elif item_type == 'character':
+            return ItemCharacter(self.c)
+        elif item_type == 'memory':
+            return Memory(self.c)
+        elif item_type == 'anni5tix':
+            return Anni5tix(self.c)
+        elif item_type == 'world_song':
+            return WorldSong(self.c)
+        elif item_type == 'world_unlock':
+            return WorldUnlock(self.c)
+        elif item_type == 'single':
+            return Single(self.c)
+        elif item_type == 'pack':
+            return Pack(self.c)
+        elif item_type == 'fragment':
+            return Fragment(self.c)
+        elif item_type == 'prog_boost_300':
+            return ProgBoost(self.c)
+        elif item_type == 'stamina6':
+            return Stamina6(self.c)
+        else:
+            raise InputError('The item type `%s` is wrong.' % item_type)
+
+    @classmethod
+    def from_dict(cls, d: dict, c=None):
+        '''注意这里没有处理character_id的转化，是为了世界模式的map服务的'''
+        if 'item_type' in d:
+            item_type = d['item_type']
+        elif 'type' in d:
+            item_type = d['type']
+        else:
+            raise InputError('The dict of item is wrong.')
+        i = cls().get_item(item_type)
+        if c is not None:
+            i.c = c
+        if 'item_id' in d:
+            i.item_id = d['item_id']
+        elif 'id' in d:
+            i.item_id = d['id']
+        else:
+            i.item_id = item_type
+        i.amount = d.get('amount', 1)
+        i.is_available = d.get('is_available', True)
+        return i
+
+
+class UserItemList:
+    '''
+        用户的item列表\ 
+        注意只能查在user_item里面的，character不行\ 
+        properties: `user` - `User`类或子类的实例
+    '''
+
+    def __init__(self, c=None, user=None):
+        self.c = c
+        self.user = user
+
+        self.items: list = []
+
+    def select_from_type(self, item_type: str) -> 'UserItemList':
+        '''
+            根据item_type搜索用户的item
+        '''
+        if Config.WORLD_SONG_FULL_UNLOCK and item_type == 'world_song' or Config.WORLD_SCENERY_FULL_UNLOCK and item_type == 'world_unlock':
+            self.c.execute(
+                '''select item_id from item where type=?''', (item_type,))
+        else:
+            self.c.execute('''select item_id, amount from user_item where type = :a''', {
+                'a': item_type})
+        x = self.c.fetchall()
+        if not x:
+            return self
+
+        self.items: list = []
+        for i in x:
+            if len(i) > 1:
+                amount = i[1] if i[1] else 0
+            else:
+                amount = 1
+            self.items.append(ItemFactory.from_dict(
+                {'item_id': i[0], 'amount': amount, 'item_type': item_type}, self.c))
+        return self

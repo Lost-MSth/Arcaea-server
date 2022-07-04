@@ -1,16 +1,15 @@
-from flask import (
-    Blueprint, flash, redirect, render_template, request, url_for
-)
-from web.login import login_required
-from werkzeug.utils import secure_filename
-from server.sql import Connect
-import web.webscore
-import web.system
-import time
-import server.arcscore
 import os
-import json
-from server.arcdownload import initialize_songfile
+import time
+
+import server.arcscore
+from core.download import initialize_songfile
+from core.sql import Connect
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from werkzeug.utils import secure_filename
+
+import web.system
+import web.webscore
+from web.login import login_required
 
 UPLOAD_FOLDER = 'database'
 ALLOWED_EXTENSIONS = {'db'}
@@ -184,21 +183,21 @@ def all_song():
             return None
 
     error = None
-    with Connect('./database/arcsong.db') as c:
-        c.execute('''select * from songs''')
+    with Connect() as c:
+        c.execute('''select * from chart''')
         x = c.fetchall()
         if x:
             posts = []
             for i in x:
                 posts.append({'song_id': i[0],
                               'name_en': i[1],
-                              'rating_pst': defnum(i[13]),
-                              'rating_prs': defnum(i[14]),
-                              'rating_ftr': defnum(i[15]),
-                              'rating_byn': defnum(i[16])
+                              'rating_pst': defnum(i[2]),
+                              'rating_prs': defnum(i[3]),
+                              'rating_ftr': defnum(i[4]),
+                              'rating_byn': defnum(i[5])
                               })
         else:
-            error = '没有铺面数据 No song data.'
+            error = '没有谱面数据 No song data.'
 
     if error:
         flash(error)
@@ -218,9 +217,9 @@ def single_chart_top():
             difficulty = int(difficulty)
         error = None
         x = None
-        with Connect('./database/arcsong.db') as c:
+        with Connect('') as c:
             song_name = '%'+song_name+'%'
-            c.execute('''select sid, name_en from songs where sid like :a limit 1''',
+            c.execute('''select song_id, name from chart where song_id like :a limit 1''',
                       {'a': song_name})
             x = c.fetchone()
 
@@ -260,7 +259,7 @@ def update_database():
             flash('未选择文件 No selected file.')
             return redirect(request.url)
 
-        if file and allowed_file(file.filename) and file.filename in ['arcsong.db', 'arcaea_database.db']:
+        if file and allowed_file(file.filename) and file.filename in ['arcaea_database.db']:
             filename = 'old_' + secure_filename(file.filename)
             file.save(os.path.join(UPLOAD_FOLDER, filename))
             flash('上传成功 Success upload.')
@@ -282,11 +281,11 @@ def update_database():
 @login_required
 def update_song_hash():
     # 更新数据库内谱面文件hash值
-    error = initialize_songfile()
-    if error:
-        flash(error)
-    else:
+    try:
+        initialize_songfile()
         flash('数据刷新成功 Success refresh data.')
+    except:
+        flash('Something error!')
     return render_template('web/updatedatabase.html')
 
 
@@ -336,11 +335,11 @@ def add_song():
     if len(name_en) >= 256:
         name_en = name_en[:200]
 
-    with Connect('./database/arcsong.db') as c:
+    with Connect() as c:
         c.execute(
-            '''select exists(select * from songs where sid=:a)''', {'a': song_id})
+            '''select exists(select * from chart where song_id=:a)''', {'a': song_id})
         if c.fetchone() == (0,):
-            c.execute('''insert into songs(sid,name_en,rating_pst,rating_prs,rating_ftr,rating_byn) values(:a,:b,:c,:d,:e,:f)''', {
+            c.execute('''insert into chart values(:a,:b,:c,:d,:e,:f)''', {
                 'a': song_id, 'b': name_en, 'c': rating_pst, 'd': rating_prs, 'e': rating_ftr, 'f': rating_byd})
             flash('歌曲添加成功 Successfully add the song.')
         else:
@@ -359,11 +358,11 @@ def delete_song():
 
     error = None
     song_id = request.form['sid']
-    with Connect('./database/arcsong.db') as c:
+    with Connect() as c:
         c.execute(
-            '''select exists(select * from songs where sid=:a)''', {'a': song_id})
+            '''select exists(select * from chart where song_id=:a)''', {'a': song_id})
         if c.fetchone() == (1,):
-            c.execute('''delete from songs where sid=:a''', {'a': song_id})
+            c.execute('''delete from chart where song_id=:a''', {'a': song_id})
             flash('歌曲删除成功 Successfully delete the song.')
         else:
             error = "歌曲不存在 The song doesn't exist."

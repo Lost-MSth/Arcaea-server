@@ -8,9 +8,9 @@ class Connect():
 
     def __init__(self, file_path='./database/arcaea_database.db'):
         """
-        数据库连接，默认连接arcaea_database.db
-        接受：文件路径
-        返回：sqlite3连接操作对象
+            数据库连接，默认连接arcaea_database.db\ 
+            接受：文件路径\ 
+            返回：sqlite3连接操作对象
         """
         self.file_path = file_path
 
@@ -19,7 +19,7 @@ class Connect():
         self.c = self.conn.cursor()
         return self.c
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
         if exc_type is not None:
             if self.conn:
                 self.conn.rollback()

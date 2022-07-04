@@ -1,12 +1,8 @@
-from server.sql import Connect
 import server.arcworld
 import server.arcpurchase
-import server.arcdownload
 import server.character
 import server.item
-import time
 from setting import Config
-from .config import Constant
 
 
 def int2b(x):
@@ -195,94 +191,5 @@ def get_user_me(c, user_id):
              "join_date": int(x[3]),
              "global_rank": world_rank
              }
-
-    return r
-
-
-def get_user_me_c(user_id):
-    # user/me调用，上边没开数据库这里开一下
-    with Connect() as c:
-        return get_user_me(c, user_id)
-
-
-def get_purchase_pack(user_id):
-    # 返回曲包数据
-    with Connect() as c:
-        return server.arcpurchase.get_purchase(c, user_id)
-
-
-def get_game_info():
-    # 返回游戏基本信息
-    r = {
-        "max_stamina": Constant.MAX_STAMINA,
-        "stamina_recover_tick": Constant.STAMINA_RECOVER_TICK,
-        "core_exp": Constant.CORE_EXP,
-        "curr_ts": int(time.time()*1000),
-        "level_steps": server.character.get_level_steps(),
-        "world_ranking_enabled": True,
-        "is_byd_chapter_unlocked": True
-    }
-    return r
-
-
-def get_user_present(user_id):
-    # 返回奖励信息
-    with Connect() as c:
-        return server.arcpurchase.get_user_present(c, user_id)
-
-
-def arc_aggregate_small(user_id):
-    # 返回用户数据
-    r = {"success": False}
-    with Connect() as c:
-        r = {"success": True,
-             "value": [{
-                 "id": 0,
-                 "value": get_user_me(c, user_id)
-             }]}
-
-    return r
-
-
-def arc_aggregate_big(user_id):
-    # 返回比较全的用户数据
-    r = {"success": False}
-    with Connect() as c:
-        # 防止数据库锁
-        id_2 = server.arcdownload.get_all_songs(user_id, url_flag=False)
-        id_5 = {
-            "current_map": server.arcworld.get_current_map(user_id),
-            "user_id": user_id,
-            "maps": server.arcworld.get_world_all(user_id)
-        }
-        r = {"success": True,
-             "value": [{
-                 "id": 0,
-                 "value": get_user_me(c, user_id)
-             }, {
-                 "id": 1,
-                 "value": server.arcpurchase.get_purchase(c, user_id)
-             }, {
-                 "id": 2,
-                 "value": id_2
-             }, {
-                 "id": 3,
-                 "value": {
-                     "max_stamina": Constant.MAX_STAMINA,
-                     "stamina_recover_tick": Constant.STAMINA_RECOVER_TICK,
-                     "core_exp": Constant.CORE_EXP,
-                     "curr_ts": int(time.time()*1000),
-                     "level_steps": server.character.get_level_steps(),
-                     "world_ranking_enabled": True,
-                     "is_byd_chapter_unlocked": True
-                 }
-             }, {
-                 "id": 4,
-                 "value": server.arcpurchase.get_user_present(c, user_id)
-             }, {
-                 "id": 5,
-                 "value": id_5
-             }
-             ]}
 
     return r

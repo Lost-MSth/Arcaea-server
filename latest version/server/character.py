@@ -1,9 +1,5 @@
 from setting import Config
-from server.sql import Connect
 from .config import Constant
-import server.info
-import server.item
-import server.setme
 
 
 def int2b(x):
@@ -12,11 +8,6 @@ def int2b(x):
         return False
     else:
         return True
-
-
-def get_level_steps():
-    # 返回level_steps字典数组
-    return [{'level': i, 'level_exp': Constant.LEVEL_STEPS[i]} for i in Constant.LEVEL_STEPS]
 
 
 def calc_char_value(level, value1, value20, value30):
@@ -57,22 +48,6 @@ def get_char_core(c, character_id):
         for i in x:
             r.append({'core_type': i[0], 'amount': i[1]})
     return r
-
-
-def get_user_characters(c, user_id):
-    # 获取用户所拥有角色，返回列表
-
-    c.execute('''select character_id from user_char where user_id = :user_id''',
-              {'user_id': user_id})
-
-    x = c.fetchall()
-    characters = []
-
-    if x:
-        for i in x:
-            characters.append(i[0])
-
-    return characters
 
 
 def get_user_character(c, user_id):
@@ -125,42 +100,6 @@ def get_user_character(c, user_id):
     return r
 
 
-def get_one_character(c, user_id, character_id):
-    # 得到用户某个拥有的角色列表，返回字典
-
-    if Config.CHARACTER_FULL_UNLOCK:
-        c.execute('''select * from user_char_full a,character b where a.user_id = :user_id and a.character_id=b.character_id and a.character_id=:a''',
-                  {'user_id': user_id, 'a': character_id})
-    else:
-        c.execute('''select * from user_char a,character b where a.user_id = :user_id and a.character_id=b.character_id and a.character_id=:a''',
-                  {'user_id': user_id, 'a': character_id})
-    x = c.fetchone()
-    if not x:
-        return {}
-    r = {
-        "is_uncapped_override": int2b(x[5]),
-        "is_uncapped": int2b(x[4]),
-        "uncap_cores": get_char_core(c, x[1]),
-        "char_type": x[22],
-        "skill_id_uncap": x[21],
-        "skill_requires_uncap": int2b(x[20]),
-        "skill_unlock_level": x[19],
-        "skill_id": x[18],
-        "overdrive": calc_char_value(x[2], x[11], x[14], x[17]),
-        "prog": calc_char_value(x[2], x[10], x[13], x[16]),
-        "frag": calc_char_value(x[2], x[9], x[12], x[15]),
-        "level_exp": Constant.LEVEL_STEPS[x[2]],
-        "exp": x[3],
-        "level": x[2],
-        "name": x[7],
-        "character_id": x[1]
-    }
-    if x[1] == 21 or x[1] == 46:
-        r["voice"] = [0, 1, 2, 3, 100, 1000, 1001]
-
-    return r
-
-
 def calc_level_up(c, user_id, character_id, exp, exp_addition):
     # 计算角色升级，返回当前经验和等级
 
@@ -190,65 +129,3 @@ def calc_level_up(c, user_id, character_id, exp, exp_addition):
         i -= 1
 
     return exp, a[i]
-
-
-def char_use_core(user_id, character_id, amount):
-    # 以太之滴升级，返回user_id，core状态，角色状态的字典
-    r = None
-    with Connect() as c:
-
-        c.execute(
-            '''select amount from user_item where user_id=? and item_id="core_generic" and type="core"''', (user_id,))
-        x = c.fetchone()
-        if x:
-            pre_amount = x[0]
-        else:
-            pre_amount = 0
-
-        if amount <= pre_amount:
-            c.execute(
-                '''select exp from user_char where user_id=? and character_id=?''', (user_id, character_id))
-            x = c.fetchone()
-            if x:
-                exp, level = calc_level_up(
-                    c, user_id, character_id, x[0], amount*Constant.CORE_EXP)
-                c.execute('''update user_char set level=?, exp=? where user_id=? and character_id=?''',
-                          (level, exp, user_id, character_id))
-                server.item.claim_user_item(
-                    c, user_id, 'core_generic', 'core', -amount)
-
-        r = {'character': [get_one_character(c, user_id, character_id)]}
-        r['cores'] = server.item.get_user_cores(c, user_id)
-        r['user_id'] = user_id
-    return r
-
-
-def char_uncap(user_id, character_id):
-    # 角色觉醒，返回user_id，core状态，角色状态的字典
-    r = None
-    with Connect() as c:
-        c.execute('''select * from char_item where character_id=?''',
-                  (character_id,))
-        x = c.fetchall()
-        if not x:
-            return None
-
-        success = True
-        for i in x:
-            c.execute(
-                '''select amount from user_item where user_id=? and item_id=? and type=?''', (user_id, i[1], i[2]))
-            y = c.fetchone()
-            if not y or i[3] > y[0]:
-                success = False
-                break
-
-        if success:
-            c.execute('''update user_char set is_uncapped=1, is_uncapped_override=0 where user_id=? and character_id=?''',
-                      (user_id, character_id))
-            for i in x:
-                server.item.claim_user_item(c, user_id, i[1], i[2], -i[3])
-
-        r = {'character': [get_one_character(c, user_id, character_id)]}
-        r['cores'] = server.item.get_user_cores(c, user_id)
-        r['user_id'] = user_id
-    return r

@@ -100,6 +100,8 @@ class CharacterValue:
 
 
 class Character:
+    database_table_name = None
+
     def __init__(self) -> None:
         self.character_id = None
         self.name = None
@@ -115,17 +117,41 @@ class Character:
         self.voice = None
 
     @property
+    def skill_id_displayed(self) -> str:
+        return None
+
+    @property
     def uncap_cores_to_dict(self):
         return [x.to_dict() for x in self.uncap_cores]
 
+    @property
+    def is_uncapped_displayed(self) -> bool:
+        '''对外显示的uncap状态'''
+        return False if self.is_uncapped_override else self.is_uncapped
+
 
 class UserCharacter(Character):
+    '''
+        用户角色类\ 
+        property: `user` - `User`类或子类的实例
+    '''
     database_table_name = 'user_char_full' if Config.CHARACTER_FULL_UNLOCK else 'user_char'
 
-    def __init__(self, c, character_id=None) -> None:
+    def __init__(self, c, character_id=None, user=None) -> None:
         super().__init__()
         self.c = c
         self.character_id = character_id
+        self.user = user
+
+    @property
+    def skill_id_displayed(self) -> str:
+        '''对外显示的技能id'''
+        if self.is_uncapped_displayed and self.skill.skill_id_uncap:
+            return self.skill.skill_id_uncap
+        elif self.skill.skill_id and self.level.level >= self.skill.skill_unlock_level:
+            return self.skill.skill_id
+        else:
+            return None
 
     def select_character_core(self):
         # 获取此角色所需核心
@@ -137,12 +163,13 @@ class UserCharacter(Character):
             for i in x:
                 self.uncap_cores.append(Core(i[0], i[1]))
 
-    def select_character_uncap_condition(self, user):
+    def select_character_uncap_condition(self, user=None):
         # parameter: user - User类或子类的实例
         # 获取此角色的觉醒信息
-
+        if user:
+            self.user = user
         self.c.execute('''select is_uncapped, is_uncapped_override from %s where user_id = :a and character_id = :b''' % self.database_table_name,
-                       {'a': user.user_id, 'b': self.character_id})
+                       {'a': self.user.user_id, 'b': self.character_id})
 
         x = self.c.fetchone()
         if not x:
@@ -151,12 +178,13 @@ class UserCharacter(Character):
         self.is_uncapped = x[0] == 1
         self.is_uncapped_override = x[1] == 1
 
-    def select_character_info(self, user):
+    def select_character_info(self, user=None):
         # parameter: user - User类或子类的实例
         # 获取所给用户此角色信息
-
+        if user:
+            self.user = user
         self.c.execute('''select * from %s a,character b where a.user_id=? and a.character_id=b.character_id and a.character_id=?''' % self.database_table_name,
-                       (user.user_id, self.character_id))
+                       (self.user.user_id, self.character_id))
 
         y = self.c.fetchone()
         if y is None:
@@ -184,6 +212,8 @@ class UserCharacter(Character):
 
     @property
     def to_dict(self):
+        if self.char_type is None:
+            self.select_character_info(self.user)
         r = {"is_uncapped_override": self.is_uncapped_override,
              "is_uncapped": self.is_uncapped,
              "uncap_cores": self.uncap_cores_to_dict,
@@ -205,27 +235,31 @@ class UserCharacter(Character):
             r['voice'] = self.voice
         return r
 
-    def change_uncap_override(self, user):
+    def change_uncap_override(self, user=None):
         # parameter: user - User类或子类的实例
         # 切换觉醒状态
+        if user:
+            self.user = user
         self.c.execute('''select is_uncapped, is_uncapped_override from %s where user_id = :a and character_id = :b''' % self.database_table_name,
-                       {'a': user.user_id, 'b': self.character_id})
+                       {'a': self.user.user_id, 'b': self.character_id})
 
         x = self.c.fetchone()
         if x is None or x[0] == 0:
             raise ArcError('Unknown Error')
 
         self.c.execute('''update user set is_char_uncapped_override = :a where user_id = :b''', {
-            'a': 1 if x[1] == 0 else 0, 'b': user.user_id})
+            'a': 1 if x[1] == 0 else 0, 'b': self.user.user_id})
 
         self.c.execute('''update %s set is_uncapped_override = :a where user_id = :b and character_id = :c''' % self.database_table_name, {
-            'a': 1 if x[1] == 0 else 0, 'b': user.user_id, 'c': self.character_id})
+            'a': 1 if x[1] == 0 else 0, 'b': self.user.user_id, 'c': self.character_id})
 
         self.is_uncapped_override = x[1] == 0
 
-    def character_uncap(self, user):
+    def character_uncap(self, user=None):
         # parameter: user - User类或子类的实例
         # 觉醒角色
+        if user:
+            self.user = user
         if Config.CHARACTER_FULL_UNLOCK:
             # 全解锁了你觉醒个鬼啊
             raise ArcError('All characters are available.')
@@ -235,7 +269,7 @@ class UserCharacter(Character):
 
         if self.is_uncapped is None:
             self.c.execute(
-                '''select is_uncapped from user_char where user_id=? and character_id=?''', (user.user_id, self.character_id))
+                '''select is_uncapped from user_char where user_id=? and character_id=?''', (self.user.user_id, self.character_id))
             x = self.c.fetchone()
             if x and x[0] == 1:
                 raise ArcError('The character has been uncapped.')
@@ -244,33 +278,37 @@ class UserCharacter(Character):
 
         for i in self.uncap_cores:
             self.c.execute(
-                '''select amount from user_item where user_id=? and item_id=? and type="core"''', (user.user_id, i.item_id))
+                '''select amount from user_item where user_id=? and item_id=? and type="core"''', (self.user.user_id, i.item_id))
             y = self.c.fetchone()
             if not y or i.amount > y[0]:
                 raise ItemNotEnough('The cores are not enough.')
 
         for i in self.uncap_cores:
-            ItemCore(self.c, i, reverse=True).user_claim_item(user)
+            ItemCore(self.c, i, reverse=True).user_claim_item(self.user)
 
         self.c.execute('''update user_char set is_uncapped=1, is_uncapped_override=0 where user_id=? and character_id=?''',
-                       (user.user_id, self.character_id))
+                       (self.user.user_id, self.character_id))
 
         self.is_uncapped = True
         self.is_uncapped_override = False
 
-    def upgrade(self, user, exp_addition: float):
+    def upgrade(self, user=None, exp_addition: float = 0) -> None:
         # parameter: user - User类或子类的实例
         # 升级角色
+        if user:
+            self.user = user
+        if exp_addition == 0:
+            return None
         if Config.CHARACTER_FULL_UNLOCK:
             # 全解锁了你升级个鬼啊
             raise ArcError('All characters are available.')
 
         if self.level.exp is None:
-            self.select_character_info(user)
+            self.select_character_info(self.user)
 
         if self.is_uncapped is None:
             self.c.execute(
-                '''select is_uncapped from user_char where user_id=? and character_id=?''', (user.user_id, self.character_id))
+                '''select is_uncapped from user_char where user_id=? and character_id=?''', (self.user.user_id, self.character_id))
             x = self.c.fetchone()
             if x:
                 self.is_uncapped = x[0] == 1
@@ -279,13 +317,18 @@ class UserCharacter(Character):
         self.level.add_exp(exp_addition)
 
         self.c.execute('''update user_char set level=?, exp=? where user_id=? and character_id=?''',
-                       (self.level.level, self.level.exp, user.user_id, self.character_id))
+                       (self.level.level, self.level.exp, self.user.user_id, self.character_id))
 
-    def upgrade_by_core(self, user, core):
-        # parameter: user - User类或子类的实例
-        # core - ItemCore类或子类的实例
-        # 以太之滴升级，注意这里core.amount应该是负数
-
+    def upgrade_by_core(self, user=None, core=None):
+        '''
+            以太之滴升级，注意这里core.amount应该是负数\ 
+            parameter: `user` - `User`类或子类的实例\ 
+            `core` - `ItemCore`类或子类的实例
+        '''
+        if user:
+            self.user = user
+        if not core:
+            raise InputError('No `core_generic`.')
         if core.item_id != 'core_generic':
             raise ArcError('Core type error.')
 
@@ -293,5 +336,31 @@ class UserCharacter(Character):
             raise InputError(
                 'The amount of `core_generic` should be negative.')
 
-        core.user_claim_item(user)
-        self.upgrade(user, - core.amount * Constant.CORE_EXP)
+        core.user_claim_item(self.user)
+        self.upgrade(self.user, - core.amount * Constant.CORE_EXP)
+
+
+class UserCharacterList:
+    '''
+        用户拥有角色列表类\ 
+        properties: `user` - `User`类或子类的实例
+    '''
+    database_table_name = 'user_char_full' if Config.CHARACTER_FULL_UNLOCK else 'user_char'
+
+    def __init__(self, c=None, user=None):
+        self.c = c
+        self.user = user
+        self.characters: list = []
+
+    def select_user_characters(self):
+        self.c.execute(
+            '''select character_id from %s where user_id=?''' % self.database_table_name, (self.user.user_id,))
+        x = self.c.fetchall()
+        self.characters: list = []
+        if x:
+            for i in x:
+                self.characters.append(UserCharacter(self.c, i[0], self.user))
+
+    def select_characters_info(self):
+        for i in self.characters:
+            i.select_character_info(self.user)

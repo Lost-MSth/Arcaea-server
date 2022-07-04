@@ -218,7 +218,7 @@ class Config():
     是否全解锁搭档
     If unlocking all partners is enabled
     '''
-    CHARACTER_FULL_UNLOCK = True
+    CHARACTER_FULL_UNLOCK = False
     '''
     --------------------
     '''

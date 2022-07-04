@@ -1,8 +1,6 @@
 import os
-from server.sql import Connect
+from core.sql import Connect
 import time
-import json
-import server.arcscore
 import hashlib
 from random import Random
 from setting import Config
@@ -22,7 +20,7 @@ def random_str(randomlength=10):
     chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789'
     length = len(chars) - 1
     random = Random()
-    for i in range(randomlength):
+    for _ in range(randomlength):
         s += chars[random.randint(0, length)]
     return s
 
@@ -179,7 +177,6 @@ def update_user_char(c):
 def update_database():
     # 将old数据库不存在数据加入到新数据库上，并删除old数据库
     # 对于arcaea_datebase.db，更新一些表，并用character数据更新user_char_full
-    # 对于arcsong.db，更新songs
     if os.path.isfile("database/old_arcaea_database.db") and os.path.isfile("database/arcaea_database.db"):
         with Connect('./database/old_arcaea_database.db') as c1:
             with Connect() as c2:
@@ -206,6 +203,7 @@ def update_database():
                 update_one_table(c1, c2, 'power')
                 update_one_table(c1, c2, 'role_power')
                 update_one_table(c1, c2, 'api_login')
+                update_one_table(c1, c2, 'chart')
 
                 update_one_table(c1, c2, 'user_char')
 
@@ -215,15 +213,6 @@ def update_database():
                 update_user_char(c2)  # 更新user_char_full
 
         os.remove('database/old_arcaea_database.db')
-
-    # songs
-    if os.path.isfile("database/old_arcsong.db") and os.path.isfile("database/arcsong.db"):
-        with Connect('./database/old_arcsong.db') as c1:
-            with Connect('./database/arcsong.db') as c2:
-
-                update_one_table(c1, c2, 'songs')
-
-        os.remove('database/old_arcsong.db')
 
 
 def unlock_all_user_item(c):
@@ -321,43 +310,44 @@ def get_all_purchase():
 def update_one_save(c, user_id):
     # 同步指定用户存档
     # 注意，best_score表不比较，直接覆盖
-
-    c.execute('''select scores_data, clearlamps_data from user_save where user_id=:a''', {
-              'a': user_id})
-    x = c.fetchone()
-    if x:
-        scores = json.loads(x[0])[""]
-        clearlamps = json.loads(x[1])[""]
-        clear_song_id_difficulty = []
-        clear_state = []
-        for i in clearlamps:
-            clear_song_id_difficulty.append(i['song_id']+str(i['difficulty']))
-            clear_state.append(i['clear_type'])
-
-        for i in scores:
-            rating = server.arcscore.get_one_ptt(
-                i['song_id'], i['difficulty'], i['score'])
-            if rating < 0:
-                rating = 0
-            try:
-                index = clear_song_id_difficulty.index(
-                    i['song_id'] + str(i['difficulty']))
-            except:
-                index = -1
-            if index != -1:
-                clear_type = clear_state[index]
-            else:
-                clear_type = 0
-            c.execute('''delete from best_score where user_id=:a and song_id=:b and difficulty=:c''', {
-                'a': user_id, 'b': i['song_id'], 'c': i['difficulty']})
-            c.execute('''insert into best_score values(:a, :b, :c, :d, :e, :f, :g, :h, :i, :j, :k, :l, :m, :n)''', {
-                'a': user_id, 'b': i['song_id'], 'c': i['difficulty'], 'd': i['score'], 'e': i['shiny_perfect_count'], 'f': i['perfect_count'], 'g': i['near_count'], 'h': i['miss_count'], 'i': i['health'], 'j': i['modifier'], 'k': i['time_played'], 'l': clear_type, 'm': clear_type, 'n': rating})
-
-        ptt = server.arcscore.get_user_ptt(c, user_id)  # 更新PTT
-        c.execute('''update user set rating_ptt=:a where user_id=:b''', {
-            'a': ptt, 'b': user_id})
-
     return
+
+    # c.execute('''select scores_data, clearlamps_data from user_save where user_id=:a''', {
+    #           'a': user_id})
+    # x = c.fetchone()
+    # if x:
+    #     scores = json.loads(x[0])[""]
+    #     clearlamps = json.loads(x[1])[""]
+    #     clear_song_id_difficulty = []
+    #     clear_state = []
+    #     for i in clearlamps:
+    #         clear_song_id_difficulty.append(i['song_id']+str(i['difficulty']))
+    #         clear_state.append(i['clear_type'])
+
+    #     for i in scores:
+    #         rating = server.arcscore.get_one_ptt(
+    #             i['song_id'], i['difficulty'], i['score'])
+    #         if rating < 0:
+    #             rating = 0
+    #         try:
+    #             index = clear_song_id_difficulty.index(
+    #                 i['song_id'] + str(i['difficulty']))
+    #         except:
+    #             index = -1
+    #         if index != -1:
+    #             clear_type = clear_state[index]
+    #         else:
+    #             clear_type = 0
+    #         c.execute('''delete from best_score where user_id=:a and song_id=:b and difficulty=:c''', {
+    #             'a': user_id, 'b': i['song_id'], 'c': i['difficulty']})
+    #         c.execute('''insert into best_score values(:a, :b, :c, :d, :e, :f, :g, :h, :i, :j, :k, :l, :m, :n)''', {
+    #             'a': user_id, 'b': i['song_id'], 'c': i['difficulty'], 'd': i['score'], 'e': i['shiny_perfect_count'], 'f': i['perfect_count'], 'g': i['near_count'], 'h': i['miss_count'], 'i': i['health'], 'j': i['modifier'], 'k': i['time_played'], 'l': clear_type, 'm': clear_type, 'n': rating})
+
+    #     ptt = server.arcscore.get_user_ptt(c, user_id)  # 更新PTT
+    #     c.execute('''update user set rating_ptt=:a where user_id=:b''', {
+    #         'a': ptt, 'b': user_id})
+
+    # return
 
 
 def update_all_save(c):

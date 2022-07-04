@@ -4,7 +4,7 @@ import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
-ARCAEA_SERVER_VERSION = 'v2.8.6'
+ARCAEA_SERVER_VERSION = 'v2.8.7.dev'
 
 
 def main(path='./'):
@@ -256,10 +256,12 @@ def main(path='./'):
     amount int,
     primary key(present_id, item_id, type)
     );''')
-    c.execute('''create table if not exists songfile(song_id text,
-    file_type int,
-    md5 text,
-    primary key(song_id, file_type)
+    c.execute('''create table if not exists chart(song_id text primary key,
+    name text,
+    rating_pst int,
+    rating_prs int,
+    rating_ftr int,
+    rating_byn int
     );''')
     c.execute('''create table if not exists redeem(code text primary key,
     type int

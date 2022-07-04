@@ -2,7 +2,7 @@ import hashlib
 import base64
 import time
 import random
-from server.sql import Connect
+from core.sql import Connect
 import functools
 from setting import Config
 from flask import jsonify

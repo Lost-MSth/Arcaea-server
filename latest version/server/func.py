@@ -59,8 +59,8 @@ def error_return(e: ArcError = default_error):  # 错误返回
     return jsonify(r)
 
 
-def success_return(value):
-    return jsonify({
-        "success": True,
-        "value": value
-    })
+def success_return(value=None):
+    r = {"success": True}
+    if value is not None:
+        r['value'] = value
+    return jsonify(r)
