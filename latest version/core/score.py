@@ -1,9 +1,9 @@
 from time import time
 
+from .constant import Constant
 from .error import NoData, StaminaNotEnough
 from .song import Chart
 from .util import md5
-from .constant import Constant
 from .world import WorldPlay
 
 
@@ -219,13 +219,11 @@ class UserPlay(UserScore):
             return False
 
         # 歌曲谱面MD5检查，服务器没有谱面就不管了
-        # TODO: 这里肯定是要改的了
-        self.c.execute('''select md5 from songfile where song_id=:a and file_type=:b''', {
-            'a': self.song.song_id, 'b': self.song.difficulty})
-        x = self.c.fetchone()
-        if x:
-            if x[0] != self.song_hash:
-                return False
+        from .download import get_song_file_md5
+        songfile_hash = get_song_file_md5(
+            self.song.song_id, str(self.song.difficulty) + '.aff')
+        if songfile_hash and songfile_hash != self.song_hash:
+            return False
 
         x = self.song_token + self.song_hash + self.song.song_id + str(self.song.difficulty) + str(self.score) + str(self.shiny_perfect_count) + str(
             self.perfect_count) + str(self.near_count) + str(self.miss_count) + str(self.health) + str(self.modifier) + str(self.clear_type)
@@ -448,6 +446,6 @@ class Potential:
             sql_list.append(self.r30[i])
             sql_list.append(self.s30[i])
 
-        sql.list.append(self.user.user_id)
+        sql_list.append(self.user.user_id)
 
         self.c.execute(sql, sql_list)
