@@ -1,7 +1,7 @@
-from .user import UserInfo
-from .song import Chart
-from .score import UserScore
 from .constant import Constant
+from .score import UserScore
+from .song import Chart
+from .user import UserInfo
 
 
 class RankList:
@@ -18,9 +18,8 @@ class RankList:
         self.limit: int = 20
         self.user = None
 
-    @property
     def to_dict_list(self) -> list:
-        return [x.to_dict for x in self.list]
+        return [x.to_dict() for x in self.list]
 
     def select_top(self) -> None:
         '''

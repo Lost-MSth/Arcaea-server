@@ -176,7 +176,7 @@ class CommandParser:
                     t = self.room.players[i]
                     if t.player_id != 0:
                         if t.last_timestamp != 0:
-                            if t.online == 1 and x.timestamp - t.last_timestamp >= 3000000:
+                            if t.online == 1 and x.timestamp - t.last_timestamp >= Config.PLAYER_PRE_TIMEOUT:
                                 t.online = 0
                                 self.room.command_queue_length += 1
                                 self.room.command_queue.append(x.command_12(i))

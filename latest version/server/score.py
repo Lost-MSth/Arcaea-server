@@ -63,7 +63,7 @@ def song_score_post(user_id):
             if not x.is_valid:
                 raise InputError('Invalid score.', 107)
             x.upload_score()
-            return success_return(x.to_dict)
+            return success_return(x.to_dict())
         except ArcError as e:
             return error_return(e)
     return error_return()
@@ -78,7 +78,7 @@ def song_score_top(user_id):
             rank_list.song.set_chart(request.args.get(
                 'song_id'), request.args.get('difficulty'))
             rank_list.select_top()
-            return success_return(rank_list.to_dict_list)
+            return success_return(rank_list.to_dict_list())
         except ArcError as e:
             return error_return(e)
     return error_return()
@@ -93,7 +93,7 @@ def song_score_me(user_id):
             rank_list.song.set_chart(request.args.get(
                 'song_id'), request.args.get('difficulty'))
             rank_list.select_me(UserOnline(c, user_id))
-            return success_return(rank_list.to_dict_list)
+            return success_return(rank_list.to_dict_list())
         except ArcError as e:
             return error_return(e)
     return error_return()
@@ -108,7 +108,7 @@ def song_score_friend(user_id):
             rank_list.song.set_chart(request.args.get(
                 'song_id'), request.args.get('difficulty'))
             rank_list.select_friend(UserOnline(c, user_id))
-            return success_return(rank_list.to_dict_list)
+            return success_return(rank_list.to_dict_list())
         except ArcError as e:
             return error_return(e)
     return error_return()

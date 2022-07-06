@@ -1,138 +1,150 @@
-from flask import (
-    Blueprint, request
-)
+from core.error import ArcError, InputError, NoAccess, NoData
+from core.score import Potential, UserScoreList
+from core.sql import Connect, Query, Sql
+from core.user import UserInfo, UserRegister
+from flask import Blueprint, request
 
-from .api_code import return_encode
-from .api_auth import role_required
-from core.user import UserRegister
-from core.error import ArcError, PostError
-from core.sql import Connect
-from core.sql import Sql
-import time
-import web.webscore
-import server.info
+from .api_auth import request_json_handle, role_required
+from .api_code import error_return, success_return
+from .constant import Constant
 
 bp = Blueprint('users', __name__, url_prefix='/users')
 
 
 @bp.route('', methods=['POST'])
 @role_required(request, ['change'])
-def users_post(user):
-    # 注册用户
+@request_json_handle(request, ['name', 'password', 'email'])
+def users_post(data, _):
+    '''注册一个用户'''
     with Connect() as c:
         new_user = UserRegister(c)
         try:
-            if 'name' in request.json:
-                new_user.set_name(request.json['name'])
-            else:
-                raise PostError('No name provided.')
-
-            if 'password' in request.json:
-                new_user.set_password(request.json['password'])
-            else:
-                raise PostError('No password provided.')
-
-            if 'email' in request.json:
-                new_user.set_email(request.json['email'])
-            else:
-                raise PostError('No email provided.')
-
+            new_user.set_name(data['name'])
+            new_user.set_password(data['password'])
+            new_user.set_email(data['email'])
             new_user.register()
+            return success_return({'user_id': new_user.user_id, 'user_code': new_user.user_code})
         except ArcError as e:
-            return return_encode(e.api_error_code)
+            return error_return(e)
+    return error_return()
 
-    return return_encode(0, {'user_id': new_user.user_id, 'user_code': new_user.user_code})
 
-
-def get_users(query=None):
-    # 获取全用户信息，返回字典列表
-
-    r = []
+@bp.route('', methods=['GET'])
+@role_required(request, ['select'])
+@request_json_handle(request, optional_keys=Constant.QUERY_KEYS)
+def users_get(data, user):
+    '''查询全用户信息'''
+    A = ['user_id', 'name', 'user_code']
+    B = ['user_id', 'name', 'user_code', 'join_date',
+         'rating_ptt', 'time_played', 'ticket', 'world_rank_score']
     with Connect() as c:
-        x = Sql.select(c, 'user', [], query)
-
-        if x:
+        try:
+            query = Query(A, A, B).from_data(data)
+            x = Sql(c).select('user', query=query)
+            r = []
             for i in x:
-                if i[23] != -1:
-                    character_id = i[23]
-                else:
-                    character_id = i[6]
-                r.append({
-                    'user_id': i[0],
-                    'name': i[1],
-                    'join_date': i[3],
-                    'user_code': i[4],
-                    'rating_ptt': i[5]/100,
-                    'character_id': character_id,
-                    'is_char_uncapped': i[8] == 1,
-                    'is_char_uncapped_override': i[9] == 1,
-                    'is_hide_rating': i[10],
-                    'ticket': i[26]
-                })
+                r.append(UserInfo(c).from_list(i))
 
-    return r
+            if not r:
+                raise NoData(api_error_code=-2)
+
+            return success_return([{
+                'user_id': x.user_id,
+                'name': x.name,
+                'join_date': x.join_date,
+                'user_code': x.user_code,
+                'rating_ptt': x.rating_ptt/100,
+                'character_id': x.character.character_id,
+                'is_char_uncapped': x.character.is_uncapped,
+                'is_char_uncapped_override': x.character.is_uncapped_override,
+                'is_hide_rating': x.is_hide_rating,
+                'ticket': x.ticket
+            } for x in r])
+        except ArcError as e:
+            return error_return(e)
+    return error_return()
 
 
-def get_user_info(user_id):
-    # 获取用户信息，返回字典，其实就是调用user/me信息
+@bp.route('/<int:user_id>', methods=['GET'])
+@role_required(request, ['select', 'select_me'])
+def users_user_get(user, user_id):
+    '''查询用户信息'''
+    if user_id <= 0:
+        return error_return(InputError(api_error_code=-4))
+    # 查别人需要select权限
+    if user_id != user.user_id and user.user_id != 0 and not user.role.has_power('select'):
+        return error_return(NoAccess('No permission', api_error_code=-1), 403)
 
-    r = {}
     with Connect() as c:
-        r = server.info.get_user_me(c, user_id)
+        try:
+            u = UserInfo(c, user_id)
+            return success_return(u.to_dict())
+        except ArcError as e:
+            return error_return(e)
+    return error_return()
 
-    return r
 
+@bp.route('/<int:user_id>/b30', methods=['GET'])
+@role_required(request, ['select', 'select_me'])
+def users_user_b30_get(user, user_id):
+    '''查询用户b30'''
+    if user_id <= 0:
+        return error_return(InputError(api_error_code=-4))
+    # 查别人需要select权限
+    if user_id != user.user_id and user.user_id != 0 and not user.role.has_power('select'):
+        return error_return(NoAccess('No permission', api_error_code=-1), 403)
 
-def get_user_b30(user_id):
-    # 获取用户b30信息，返回字典
-
-    r = []
     with Connect() as c:
-        r = web.webscore.get_user_score(c, user_id, 30)
+        try:
+            x = UserScoreList(c, UserInfo(c, user_id))
+            x.query.limit = 30
+            x.select_from_user()
+            r = x.to_dict_list()
+            rating_sum = sum([i.rating for i in x.scores])
+            return success_return({'user_id': user_id, 'b30_ptt': rating_sum / 30, 'data': r})
+        except ArcError as e:
+            return error_return(e)
+    return error_return()
 
-    bestptt = 0
-    for i in r:
-        if i['rating']:
-            bestptt += i['rating']
-        if 'time_played' in i:
-            i['time_played'] = int(time.mktime(time.strptime(
-                i['time_played'], '%Y-%m-%d %H:%M:%S')))
 
-    return {'user_id': user_id, 'b30_ptt': bestptt / 30, 'data': r}
+@bp.route('/<int:user_id>/best', methods=['GET'])
+@role_required(request, ['select', 'select_me'])
+@request_json_handle(request, optional_keys=Constant.QUERY_KEYS)
+def users_user_best_get(data, user, user_id):
+    '''查询用户所有best成绩'''
+    if user_id <= 0:
+        return error_return(InputError(api_error_code=-4))
+    # 查别人需要select权限
+    if user_id != user.user_id and user.user_id != 0 and not user.role.has_power('select'):
+        return error_return(NoAccess('No permission', api_error_code=-1), 403)
 
-
-def get_user_best(user_id, query=None):
-    # 获取用户b30信息，返回字典
-
-    r = []
     with Connect() as c:
-        x = Sql.select(c, 'best_score', [], query)
-        if x:
-            for i in x:
-                r.append({
-                    "song_id": i[1],
-                    "difficulty": i[2],
-                    "score": i[3],
-                    "shiny_perfect_count": i[4],
-                    "perfect_count": i[5],
-                    "near_count": i[6],
-                    "miss_count": i[7],
-                    "health": i[8],
-                    "modifier": i[9],
-                    "time_played": i[10],
-                    "best_clear_type": i[11],
-                    "clear_type": i[12],
-                    "rating": i[13]
-                })
-
-    return {'user_id': user_id, 'data': r}
+        try:
+            x = UserScoreList(c, UserInfo(c, user_id))
+            x.query.from_data(data)
+            x.select_from_user()
+            r = x.to_dict_list()
+            return success_return({'user_id': user_id, 'data': r})
+        except ArcError as e:
+            return error_return(e)
+    return error_return()
 
 
-def get_user_r30(user_id):
-    # 获取用户r30信息，返回字典
+@bp.route('/<int:user_id>/r30', methods=['GET'])
+@role_required(request, ['select', 'select_me'])
+def users_user_r30_get(user, user_id):
+    '''查询用户r30'''
 
-    r = []
+    if user_id <= 0:
+        return error_return(InputError(api_error_code=-4))
+    # 查别人需要select权限
+    if user_id != user.user_id and user.user_id != 0 and not user.role.has_power('select'):
+        return error_return(NoAccess('No permission', api_error_code=-1), 403)
+
     with Connect() as c:
-        r, r10_ptt = web.webscore.get_user_recent30(c, user_id)
-
-    return {'user_id': user_id, 'r10_ptt': r10_ptt, 'data': r}
+        try:
+            p = Potential(c, UserInfo(c, user_id))
+            return success_return({'user_id': user_id, 'r10_ptt': p.recent_10 / 10, 'data': p.recent_30_to_dict_list()})
+        except ArcError as e:
+            return error_return(e)
+    return error_return()

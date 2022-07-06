@@ -25,6 +25,7 @@ class Constant:
 
     WORLD_MAP_FOLDER_PATH = './database/map/'
     SONG_FILE_FOLDER_PATH = './database/songs/'
+    SQLITE_DATABASE_PATH = './database/arcaea_database.db'
 
     DOWNLOAD_TIMES_LIMIT = Config.DOWNLOAD_TIMES_LIMIT
     DOWNLOAD_TIME_GAP_LIMIT = Config.DOWNLOAD_TIME_GAP_LIMIT

@@ -18,7 +18,6 @@ class SaveData:
         self.story_data = []
         self.createdAt = 0
 
-    @property
     def to_dict(self):
         return {
             "user_id": self.user.user_id,

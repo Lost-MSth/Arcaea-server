@@ -120,7 +120,6 @@ class Character:
     def skill_id_displayed(self) -> str:
         return None
 
-    @property
     def uncap_cores_to_dict(self):
         return [x.to_dict() for x in self.uncap_cores]
 
@@ -210,13 +209,12 @@ class UserCharacter(Character):
 
         self.select_character_core()
 
-    @property
-    def to_dict(self):
+    def to_dict(self) -> dict:
         if self.char_type is None:
             self.select_character_info(self.user)
         r = {"is_uncapped_override": self.is_uncapped_override,
              "is_uncapped": self.is_uncapped,
-             "uncap_cores": self.uncap_cores_to_dict,
+             "uncap_cores": self.uncap_cores_to_dict(),
              "char_type": self.char_type,
              "skill_id_uncap": self.skill.skill_id_uncap,
              "skill_requires_uncap": self.skill.skill_requires_uncap,

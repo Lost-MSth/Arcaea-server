@@ -38,7 +38,6 @@ class Purchase:
                 return self.price
         return self.orig_price
 
-    @property
     def to_dict(self) -> dict:
         price = self.price_displayed
         r = {
@@ -143,9 +142,8 @@ class PurchaseList:
         self.user = user
         self.purchases: list = []
 
-    @property
-    def to_dict(self) -> list:
-        return [x.to_dict for x in self.purchases]
+    def to_dict_list(self) -> list:
+        return [x.to_dict() for x in self.purchases]
 
     def select_from_type(self, item_type: str) -> 'PurchaseList':
         self.c.execute('''select purchase_name from purchase_item where type = :a''', {

@@ -54,7 +54,6 @@ class Step:
         self.speed_limit_value: int = None
         self.plus_stamina_value: int = None
 
-    @property
     def to_dict(self) -> dict:
         r = {
             'position': self.position,
@@ -152,7 +151,7 @@ class Map:
             'custom_bg': self.custom_bg,
             'stamina_cost': self.stamina_cost,
             'step_count': self.step_count,
-            'steps': [s.to_dict for s in self.steps],
+            'steps': [s.to_dict() for s in self.steps],
         }
 
     def from_dict(self, raw_dict: dict) -> 'Map':
@@ -208,7 +207,6 @@ class UserMap(Map):
 
         return rewards
 
-    @property
     def rewards_for_climbing_to_dict(self) -> list:
         rewards = []
         for i in range(self.prev_position, self.curr_position+1):
@@ -441,11 +439,10 @@ class WorldPlay:
         self.overdrive_extra: float = None
         self.character_bonus_progress: float = None
 
-    @property
     def to_dict(self) -> dict:
         arcmap: 'UserMap' = self.user.current_map
         r = {
-            "rewards": arcmap.rewards_for_climbing_to_dict,
+            "rewards": arcmap.rewards_for_climbing_to_dict(),
             "exp": self.character_used.level.exp,
             "level": self.character_used.level.level,
             "base_progress": self.base_step_value,
@@ -484,7 +481,7 @@ class WorldPlay:
 
         if self.user_play.beyond_gauge == 0:
             r["user_map"]["steps"] = [
-                x.to_dict for x in arcmap.steps_for_climbing]
+                x.to_dict() for x in arcmap.steps_for_climbing]
         else:
             r["user_map"]["steps"] = len(arcmap.steps_for_climbing)
 

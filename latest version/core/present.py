@@ -113,7 +113,7 @@ class UserPresentList:
 
         self.presents: list = None
 
-    def to_dict(self) -> list:
+    def to_dict_list(self) -> list:
         return [x.to_dict() for x in self.presents]
 
     def select_user_presents(self) -> None:

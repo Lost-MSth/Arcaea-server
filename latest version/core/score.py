@@ -3,6 +3,7 @@ from time import time
 from .constant import Constant
 from .error import NoData, StaminaNotEnough
 from .song import Chart
+from .sql import Query, Sql
 from .util import md5
 from .world import WorldPlay
 
@@ -122,7 +123,6 @@ class Score:
         self.rating = self.calculate_rating(self.song.chart_const, self.score)
         return self.rating
 
-    @property
     def to_dict(self) -> dict:
         return {
             "rating": self.rating,
@@ -158,20 +158,29 @@ class UserScore(Score):
             raise NoData('No score data.')
         self.user.select_user_about_character()
 
+        self.from_list(x)
+
+    def from_list(self, x: list) -> 'UserScore':
+        if self.song.song_id is None:
+            self.song.song_id = x[1]
+        if self.song.difficulty is None:
+            self.song.difficulty = x[2]
         self.set_score(x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[12])
         self.best_clear_type = int(x[11])
         self.rating = float(x[13])
 
-    @property
-    def to_dict(self) -> dict:
-        r = super().to_dict
-        r['user_id'] = self.user.user_id
-        r['name'] = self.user.name
+        return self
+
+    def to_dict(self, has_user_info: bool = True) -> dict:
+        r = super().to_dict()
         r['best_clear_type'] = self.best_clear_type
-        r['is_skill_sealed'] = self.user.is_skill_sealed
-        character = self.user.character_displayed
-        r['is_char_uncapped'] = character.is_uncapped_displayed
-        r['character'] = character.character_id
+        if has_user_info:
+            r['user_id'] = self.user.user_id
+            r['name'] = self.user.name
+            r['is_skill_sealed'] = self.user.is_skill_sealed
+            character = self.user.character_displayed
+            r['is_char_uncapped'] = character.is_uncapped_displayed
+            r['character'] = character.character_id
         if self.rank:
             r['rank'] = self.rank
         return r
@@ -196,14 +205,13 @@ class UserPlay(UserScore):
         self.ptt: Potential = None  # 临时用来计算用户ptt的
         self.world_play: 'WorldPlay' = None
 
-    @property
     def to_dict(self) -> dict:
         if self.is_world_mode is None:
             return {}
         elif not self.is_world_mode:
             return {'global_rank': self.user.global_rank, 'user_rating': self.user.rating_ptt}
         else:
-            r = self.world_play.to_dict
+            r = self.world_play.to_dict()
             r['user_rating'] = self.user.rating_ptt
             r['global_rank'] = self.user.global_rank
             return r
@@ -384,6 +392,8 @@ class Potential:
         self.s30: list = None
         self.songs_selected: list = None
 
+        self.b30: list = None
+
     @property
     def value(self) -> float:
         '''计算用户潜力值'''
@@ -432,6 +442,15 @@ class Potential:
             i += 1
         return rating_sum
 
+    def recent_30_to_dict_list(self) -> list:
+        if self.r30 is None:
+            self.select_recent_30()
+        return [{
+            'song_id': self.s30[i][:-1],
+            'difficulty': int(self.s30[i][-1]),
+            'rating': self.r30[i]
+        } for i in range(len(self.r30))]
+
     def recent_30_update(self, pop_index: int, rating: float, song_id_difficulty: str) -> None:
         self.r30.pop(pop_index)
         self.s30.pop(pop_index)
@@ -449,3 +468,32 @@ class Potential:
         sql_list.append(self.user.user_id)
 
         self.c.execute(sql, sql_list)
+
+
+class UserScoreList:
+    '''
+        用户分数查询类\ 
+        properties: `user` - `User`类或子类的实例
+    '''
+
+    def __init__(self, c=None, user=None):
+        self.c = c
+        self.user = user
+        self.scores: list = None
+        self.query: 'Query' = Query(['user_id', 'song_id', 'difficulty'], ['song_id'], [
+                                    'rating', 'difficulty', 'song_id', 'score', 'time_played'])
+
+    def to_dict_list(self) -> list:
+        return [x.to_dict(has_user_info=False) for x in self.scores]
+
+    def select_from_user(self, user=None) -> None:
+        '''获取用户的best_score数据'''
+        if user is not None:
+            self.user = user
+
+        self.query.query_append({'user_id': self.user.user_id})
+        self.query.sort += [{'column': 'rating', 'order': 'DESC'}]
+        print(self.query.sort)
+        x = Sql(self.c).select('best_score', query=self.query)
+
+        self.scores = [UserScore(self.c, self.user).from_list(i) for i in x]

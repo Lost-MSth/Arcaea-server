@@ -3,6 +3,7 @@ import time
 
 import server.arcscore
 from core.download import initialize_songfile
+from core.rank import RankList
 from core.sql import Connect
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
@@ -215,25 +216,30 @@ def single_chart_top():
         difficulty = request.form['difficulty']
         if difficulty.isdigit():
             difficulty = int(difficulty)
+        else:
+            difficulty = 0
         error = None
         x = None
-        with Connect('') as c:
+        with Connect() as c:
             song_name = '%'+song_name+'%'
             c.execute('''select song_id, name from chart where song_id like :a limit 1''',
                       {'a': song_name})
             x = c.fetchone()
 
-        if x:
-            song_id = x[0]
-            posts = server.arcscore.arc_score_top(song_id, difficulty, -1)
-            for i in posts:
-                i['time_played'] = time.strftime('%Y-%m-%d %H:%M:%S',
-                                                 time.localtime(i['time_played']))
-        else:
-            error = '查询为空 No song.'
+            if x:
+                y = RankList(c)
+                y.song.set_chart(x[0], difficulty)
+                y.limit = -1
+                y.select_top()
+                posts = y.to_dict_list()
+                for i in posts:
+                    i['time_played'] = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                     time.localtime(i['time_played']))
+            else:
+                error = '查询为空 No song.'
 
         if not error:
-            return render_template('web/singlecharttop.html', posts=posts, song_name_en=x[1], song_id=song_id, difficulty=difficulty)
+            return render_template('web/singlecharttop.html', posts=posts, song_name_en=x[1], song_id=x[0], difficulty=difficulty)
         else:
             flash(error)
 

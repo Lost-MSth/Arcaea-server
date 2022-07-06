@@ -21,7 +21,7 @@ def bundle_pack(user_id):
         try:
             x = PurchaseList(c, UserOnline(c, user_id)
                              ).select_from_type('pack')
-            return success_return(x.to_dict)
+            return success_return(x.to_dict_list())
         except ArcError as e:
             return error_return(e)
     return error_return()
@@ -34,7 +34,7 @@ def get_single(user_id):
         try:
             x = PurchaseList(c, UserOnline(c, user_id)
                              ).select_from_type('single')
-            return success_return(x.to_dict)
+            return success_return(x.to_dict_list())
         except ArcError as e:
             return error_return(e)
     return error_return()

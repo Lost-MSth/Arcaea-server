@@ -7,7 +7,7 @@ from multiprocessing import Process, set_start_method
 
 from flask import Flask, request, send_from_directory
 
-import api.api_main
+import api
 import server
 import server.init
 import web.index
@@ -28,7 +28,7 @@ app.config.from_mapping(SECRET_KEY=Config.SECRET_KEY)
 app.config['SESSION_TYPE'] = 'filesystem'
 app.register_blueprint(web.login.bp)
 app.register_blueprint(web.index.bp)
-app.register_blueprint(api.api_main.bp)
+app.register_blueprint(api.bp)
 app.register_blueprint(server.bp)
 
 

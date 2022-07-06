@@ -80,7 +80,7 @@ def toggle_uncap(user_id, character_id):
             character = UserCharacter(c, character_id)
             character.change_uncap_override(user)
             character.select_character_info(user)
-            return success_return({'user_id': user.user_id, 'character': [character.to_dict]})
+            return success_return({'user_id': user.user_id, 'character': [character.to_dict()]})
         except ArcError as e:
             return error_return(e)
     return error_return()
@@ -96,7 +96,7 @@ def character_first_uncap(user_id, character_id):
             character = UserCharacter(c, character_id)
             character.select_character_info(user)
             character.character_uncap(user)
-            return success_return({'user_id': user.user_id, 'character': [character.to_dict], 'cores': user.cores})
+            return success_return({'user_id': user.user_id, 'character': [character.to_dict()], 'cores': user.cores})
         except ArcError as e:
             return error_return(e)
     return error_return()
@@ -130,7 +130,7 @@ def cloud_get(user_id):
             user.user_id = user_id
             save = SaveData(c)
             save.select_all(user)
-            return success_return(save.to_dict)
+            return success_return(save.to_dict())
         except ArcError as e:
             return error_return(e)
     return error_return()

@@ -34,7 +34,7 @@ class PostError(ArcError):
 
 class UserBan(ArcError):
     # 用户封禁
-    def __init__(self, message=None, error_code=121, api_error_code=-999, extra_data=None) -> None:
+    def __init__(self, message=None, error_code=121, api_error_code=-202, extra_data=None) -> None:
         super().__init__(message, error_code, api_error_code, extra_data)
 
 

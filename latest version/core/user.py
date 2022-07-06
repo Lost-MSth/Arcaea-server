@@ -45,12 +45,16 @@ class User:
         self.world_rank_score = None
         self.ban_flag = None
 
+    @property
+    def hash_pwd(self) -> str:
+        '''`password`的SHA-256值'''
+        return hashlib.sha256(self.password.encode("utf8")).hexdigest()
+
 
 class UserRegister(User):
     def __init__(self, c) -> None:
         super().__init__()
         self.c = c
-        self.hash_pwd = None
 
     def set_name(self, name: str):
         if 3 <= len(name) <= 16:
@@ -67,7 +71,6 @@ class UserRegister(User):
     def set_password(self, password: str):
         if 8 <= len(password) <= 32:
             self.password = password
-            self.hash_pwd = hashlib.sha256(password.encode("utf8")).hexdigest()
         else:
             raise InputError('Password is invalid.')
 
@@ -146,7 +149,6 @@ class UserLogin(User):
         self.c = c
         self.device_id = None
         self.ip = None
-        self.hash_pwd = None
         self.token = None
         self.now = 0
 
@@ -155,7 +157,6 @@ class UserLogin(User):
 
     def set_password(self, password: str):
         self.password = password
-        self.hash_pwd = hashlib.sha256(password.encode("utf8")).hexdigest()
 
     def set_device_id(self, device_id: str):
         self.device_id = device_id
@@ -282,7 +283,7 @@ class UserInfo(User):
         self.is_skill_sealed = False
         self.is_hide_rating = False
         self.recent_score = Score()
-        self.favorite_character = -1
+        self.favorite_character = None
         self.max_stamina_notification_enabled = False
         self.prog_boost = 0
 
@@ -411,7 +412,7 @@ class UserInfo(User):
         y = self.c.fetchone()
         best_clear_type = y[0] if y is not None else self.recent_score.clear_type
 
-        r = self.recent_score.to_dict
+        r = self.recent_score.to_dict()
         r["best_clear_type"] = best_clear_type
         return [r]
 
@@ -440,7 +441,7 @@ class UserInfo(User):
         return {
             "is_aprilfools": Config.IS_APRILFOOLS,
             "curr_available_maps": self.curr_available_maps_list,
-            "character_stats": [x.to_dict for x in self.characters.characters],
+            "character_stats": [x.to_dict() for x in self.characters.characters],
             "friends": self.friends,
             "settings": {
                 "favorite_character": favorite_character_id,
@@ -473,14 +474,12 @@ class UserInfo(User):
             "global_rank": self.global_rank
         }
 
-    def select_user(self) -> None:
-        # 查user表所有信息
-        self.c.execute(
-            '''select * from user where user_id = :x''', {'x': self.user_id})
-        x = self.c.fetchone()
+    def from_list(self, x: list) -> 'UserInfo':
+        '''从数据库user表全部数据获取信息'''
         if not x:
-            raise NoData('No user.', 108, -3)
-
+            return None
+        if self.user_id is None:
+            self.user_id = x[0]
         self.name = x[1]
         self.join_date = int(x[3])
         self.user_code = x[4]
@@ -511,6 +510,18 @@ class UserInfo(User):
 
         self.stamina = UserStamina(self.c, self)
         self.stamina.set_value(x[32], x[33])
+
+        return self
+
+    def select_user(self) -> None:
+        # 查user表所有信息
+        self.c.execute(
+            '''select * from user where user_id = :x''', {'x': self.user_id})
+        x = self.c.fetchone()
+        if not x:
+            raise NoData('No user.', 108, -3)
+
+        self.from_list(x)
 
     def select_user_about_current_map(self) -> None:
         self.c.execute('''select current_map from user where user_id = :a''',

@@ -18,7 +18,7 @@ def present_info(user_id):
             x = UserPresentList(c, UserOnline(c, user_id))
             x.select_user_presents()
 
-            return success_return(x.to_dict())
+            return success_return(x.to_dict_list())
         except ArcError as e:
             return error_return(e)
     return error_return()

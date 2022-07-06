@@ -9,8 +9,8 @@ from .user import UserInfo
 def get_song_unlock(client_song_map: dict) -> bytes:
     '''处理可用歌曲bit，返回bytes'''
 
-    user_song_unlock = [0] * 512
-    for i in range(0, 1024, 2):
+    user_song_unlock = [0] * Constant.LINK_PLAY_UNLOCK_LENGTH
+    for i in range(0, Constant.LINK_PLAY_UNLOCK_LENGTH*2, 2):
         x = 0
         y = 0
         if str(i) in client_song_map:
