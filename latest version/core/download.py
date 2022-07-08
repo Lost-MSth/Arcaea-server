@@ -136,7 +136,7 @@ class DownloadList(UserDownload):
 
         re = {}
         for i in dir_list:
-            if os.path.isfile(os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg', '3.ogg']:
+            if os.path.isfile(os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg']:
                 x = UserDownload(self.c, self.user)
                 # self.downloads.append(x) # 这实际上没有用
                 x.song_id = song_id
@@ -156,6 +156,16 @@ class DownloadList(UserDownload):
                         re['audio']['3'] = {"checksum": x.hash, "url": x.url}
                     else:
                         re['audio']['3'] = {"checksum": x.hash}
+                elif i == 'video.mp4' or i == 'video_audio.ogg':
+                    if 'additional_files' not in re:
+                        re['additional_files'] = []
+
+                    if self.url_flag:
+                        re['additional_files'].append(
+                            {"checksum": x.hash, "url": x.url, 'file_name': i})
+                    else:
+                        re['additional_files'].append(
+                            {"checksum": x.hash, 'file_name': i})
                 else:
                     if 'chart' not in re:
                         re['chart'] = {}

@@ -107,7 +107,7 @@ class LocalMultiPlayer:
         '''创建房间'''
         if user is not None:
             self.user = user
-        user.select_user_about_name()
+        user.select_user_one_column('name')
         self.data_swap((1, self.user.name, self.user.song_unlock))
         self.room = Room()
         self.room.room_code = self.data_recv[1]
@@ -124,7 +124,7 @@ class LocalMultiPlayer:
         if room is not None:
             self.room = room
 
-        self.user.select_user_about_name()
+        self.user.select_user_one_column('name')
         self.data_swap(
             (2, self.user.name, self.user.song_unlock, room.room_code))
         self.room.room_code = self.data_recv[1]

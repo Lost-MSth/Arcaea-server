@@ -286,6 +286,8 @@ class UserInfo(User):
         self.favorite_character = None
         self.max_stamina_notification_enabled = False
         self.prog_boost = 0
+        self.next_fragstam_ts: int = None
+        self.world_mode_locked_end_ts: int = None
 
         self.__cores: list = None
         self.__packs: list = None
@@ -295,6 +297,7 @@ class UserInfo(User):
         self.__world_unlocks: list = None
         self.__world_songs: list = None
         self.curr_available_maps: list = None
+        self.__course_banners: list = None
 
     @property
     def cores(self) -> list:
@@ -338,6 +341,15 @@ class UserInfo(User):
             self.__world_songs = [i.item_id for i in x.items]
 
         return self.__world_songs
+
+    @property
+    def course_banners(self) -> list:
+        if self.__course_banners is None:
+            x = UserItemList(
+                self.c, self.user_id).select_from_type('course_banner')
+            self.__course_banners = [i.item_id for i in x.items]
+
+        return self.__course_banners
 
     def select_characters(self) -> None:
         self.characters = UserCharacterList(self.c, self)
@@ -471,7 +483,11 @@ class UserInfo(User):
             "max_friend": Constant.MAX_FRIEND_COUNT,
             "rating": self.rating_ptt,
             "join_date": self.join_date,
-            "global_rank": self.global_rank
+            "global_rank": self.global_rank,
+            'country': '',
+            'course_banners': self.course_banners,
+            'world_mode_locked_end_ts': self.world_mode_locked_end_ts,
+            'locked_char_ids': []  # [1]
         }
 
     def from_list(self, x: list) -> 'UserInfo':
@@ -510,6 +526,7 @@ class UserInfo(User):
 
         self.stamina = UserStamina(self.c, self)
         self.stamina.set_value(x[32], x[33])
+        self.world_mode_locked_end_ts = x[34] if x[34] else -1
 
         return self
 
@@ -563,7 +580,7 @@ class UserInfo(User):
             查询user表有关世界模式打歌的信息
         '''
         self.c.execute(
-            '''select character_id, max_stamina_ts, stamina, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, current_map from user where user_id=?''', (self.user_id,))
+            '''select character_id, max_stamina_ts, stamina, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, current_map, world_mode_locked_end_ts from user where user_id=?''', (self.user_id,))
         x = self.c.fetchone()
         if not x:
             raise NoData('No user.', 108, -3)
@@ -575,24 +592,13 @@ class UserInfo(User):
         self.character.is_uncapped = x[4] == 1
         self.character.is_uncapped_override = x[5] == 1
         self.current_map = UserMap(self.c, x[6], self)
-
-    def select_user_about_world_rank_score(self) -> None:
-        '''
-            查询user表有关世界模式排名的信息
-        '''
-        self.c.execute(
-            '''select world_rank_score from user where user_id=?''', (self.user_id,))
-        x = self.c.fetchone()
-        if not x:
-            raise NoData('No user.', 108, -3)
-
-        self.world_rank_score = x[0]
+        self.world_mode_locked_end_ts = x[7] if x[7] else -1
 
     @property
     def global_rank(self) -> int:
         '''用户世界排名，如果超过设定最大值，返回0'''
         if self.world_rank_score is None:
-            self.select_user_about_world_rank_score()
+            self.select_user_one_column('world_rank_score', 0)
             if self.world_rank_score is None:
                 return 0
 
@@ -643,55 +649,32 @@ class UserInfo(User):
 
         self.world_rank_score = score_sum
 
-    def select_user_about_ticket(self) -> None:
+    def select_user_one_column(self, column_name: str, default_value=None) -> None:
         '''
-            查询user表有关记忆源点的信息
+            查询user表的某个属性\ 
+            请注意必须是一个普通属性，不能是一个类的实例
         '''
-        self.c.execute('''select ticket from user where user_id = :a''', {
-            'a': self.user_id})
+        if column_name not in self.__dict__:
+            raise InputError('No such column.')
+        self.c.execute('''select %s from user where user_id = :a''' %
+                       column_name, {'a': self.user_id})
         x = self.c.fetchone()
         if not x:
             raise NoData('No user.', 108, -3)
 
-        self.ticket = x[0]
+        self.__dict__[column_name] = x[0] if x[0] else default_value
 
-    def update_user_about_ticket(self, ticket: int = None) -> None:
-        '''更新记忆源点'''
-        if ticket is not None:
-            self.ticket = ticket
-        self.c.execute('''update user set ticket = :a where user_id = :b''', {
-            'a': self.ticket, 'b': self.user_id})
-
-    def select_user_about_fragstam(self) -> None:
+    def update_user_one_column(self, column_name: str, value=None) -> None:
         '''
-            查询user表有关碎片购买体力时间的信息
+            更新user表的某个属性\ 
+            请注意必须是一个普通属性，不能是一个类的实例
         '''
-        self.c.execute('''select next_fragstam_ts from user where user_id = :a''', {
-            'a': self.user_id})
-        x = self.c.fetchone()
-        if not x:
-            raise NoData('No user.', 108, -3)
-
-        self.next_fragstam_ts = x[0] if x[0] else 0
-
-    def update_user_about_fragstam(self, next_fragstam_ts: int = None) -> None:
-        '''更新碎片购买体力时间'''
-        if next_fragstam_ts is not None:
-            self.next_fragstam_ts = next_fragstam_ts
-        self.c.execute('''update user set next_fragstam_ts = :a where user_id = :b''', {
-            'a': self.next_fragstam_ts, 'b': self.user_id})
-
-    def select_user_about_name(self) -> None:
-        '''
-            查询user表有关用户名的信息
-        '''
-        self.c.execute('''select name from user where user_id = :a''', {
-            'a': self.user_id})
-        x = self.c.fetchone()
-        if not x:
-            raise NoData('No user.', 108, -3)
-
-        self.name = x[0]
+        if column_name not in self.__dict__:
+            raise InputError('No such column.')
+        if value is not None:
+            self.__dict__[column_name] = value
+        self.c.execute('''update user set %s = :a where user_id = :b''' %
+                       column_name, {'a': self.__dict__[column_name], 'b': self.user_id})
 
 
 class UserOnline(UserInfo):
@@ -731,29 +714,8 @@ class UserOnline(UserInfo):
         else:
             raise FriendError('No user or the user is not your friend.', 401)
 
-    def update_prog_boost(self, prog_boost: int = None) -> None:
-        '''更新`prog_boost`'''
-        if prog_boost:
-            self.prog_boost = prog_boost
-        self.c.execute('''update user set prog_boost = :a where user_id = :b''',
-                       {'a': self.prog_boost, 'b': self.user_id})
-
     def change_favorite_character(self, character_id: int) -> None:
         '''更改用户的favorite_character'''
         self.favorite_character = UserCharacter(self.c, character_id, self)
         self.c.execute('''update user set favorite_character = :a where user_id = :b''',
                        {'a': self.favorite_character.character_id, 'b': self.user_id})
-
-    def change_is_hide_rating(self, is_hide_rating: bool = None) -> None:
-        '''更改用户的is_hide_rating'''
-        if is_hide_rating is not None:
-            self.is_hide_rating = is_hide_rating
-        self.c.execute('''update user set is_hide_rating = :a where user_id = :b''',
-                       {'a': self.is_hide_rating, 'b': self.user_id})
-
-    def change_max_stamina_notification_enabled(self, max_stamina_notification_enabled: bool = None) -> None:
-        '''更改用户的max_stamina_notification_enabled'''
-        if max_stamina_notification_enabled is not None:
-            self.max_stamina_notification_enabled = max_stamina_notification_enabled
-        self.c.execute('''update user set max_stamina_notification_enabled = :a where user_id = :b''',
-                       {'a': self.max_stamina_notification_enabled, 'b': self.user_id})

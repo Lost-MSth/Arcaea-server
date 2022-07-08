@@ -32,8 +32,10 @@ class Chart:
             '''select rating_pst, rating_prs, rating_ftr, rating_byn from chart where song_id=:a''', {'a': self.song_id})
         x = self.c.fetchone()
         if x is None:
-            raise NoData('The song `%s` does not exist.' % self.song_id)
-        self.defnum = x[self.difficulty]
+            self.defnum = -10
+            # raise NoData('The song `%s` does not exist.' % self.song_id)
+        else:
+            self.defnum = x[self.difficulty]
 
 
 class Song:

@@ -374,8 +374,8 @@ class Stamina:
     @property
     def stamina(self) -> int:
         '''通过计算得到当前的正确体力值'''
-        stamina = int(Constant.MAX_STAMINA - (self.max_stamina_ts -
-                                              int(time()*1000)) / Constant.STAMINA_RECOVER_TICK)
+        stamina = round(Constant.MAX_STAMINA - (self.max_stamina_ts -
+                                                int(time()*1000)) / Constant.STAMINA_RECOVER_TICK)
 
         if stamina >= Constant.MAX_STAMINA:
             if self.__stamina >= Constant.MAX_STAMINA:
@@ -383,12 +383,12 @@ class Stamina:
             else:
                 stamina = Constant.MAX_STAMINA
 
-        return stamina if stamina > 0 else 0
+        return stamina
 
     @stamina.setter
     def stamina(self, value: int) -> None:
         '''设置体力值，此处会导致max_stamina_ts变化'''
-        self.__stamina = int(value)
+        self.__stamina = round(value)
         self.max_stamina_ts = int(
             time()*1000) - (self.__stamina-Constant.MAX_STAMINA) * Constant.STAMINA_RECOVER_TICK
 
@@ -464,7 +464,8 @@ class WorldPlay:
                 "overdrive": self.character_used.overdrive.get_value(self.character_used.level)
             },
             "current_stamina": self.user.stamina.stamina,
-            "max_stamina_ts": self.user.stamina.max_stamina_ts
+            "max_stamina_ts": self.user.stamina.max_stamina_ts,
+            'world_mode_locked_end_ts': self.user.world_mode_locked_end_ts
         }
 
         if self.overdrive_extra is not None:
@@ -536,7 +537,7 @@ class WorldPlay:
     def update(self) -> None:
         '''世界模式更新'''
         if self.user_play.prog_boost_multiply != 0:
-            self.user.update_prog_boost(0)
+            self.user.update_user_one_column('prog_boost', 0)
 
         self.user_play.clear_play_state()
         self.user.select_user_about_world_play()
@@ -591,8 +592,8 @@ class WorldPlay:
                 self._skill_vita()
 
     def after_climb(self) -> None:
-        factory_dict = {'eto_uncap': self._eto_uncap,
-                        'ayu_uncap': self._ayu_uncap, 'luna_uncap': self._luna_uncap}
+        factory_dict = {'eto_uncap': self._eto_uncap, 'ayu_uncap': self._ayu_uncap,
+                        'luna_uncap': self._luna_uncap, 'skill_fatalis': self._skill_fatalis}
         if self.character_used.skill_id_displayed in factory_dict:
             factory_dict[self.character_used.skill_id_displayed]()
 
@@ -658,3 +659,10 @@ class WorldPlay:
             self.step_value = 0
 
         self.user.current_map.reclimb(self.step_value)
+
+    def _skill_fatalis(self) -> None:
+        '''hikari fatalis技能，世界模式超载，打完休息60分钟'''
+
+        self.user.world_mode_locked_end_ts = int(
+            time()*1000) + Constant.SKILL_FATALIS_WORLD_LOCKED_TIME
+        self.user.update_user_one_column('world_mode_locked_end_ts')

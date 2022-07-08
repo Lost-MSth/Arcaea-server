@@ -1,7 +1,7 @@
 from time import time
 
 from core.error import ArcError, ItemUnavailable
-from core.item import ItemFactory
+from core.item import ItemFactory, Stamina6
 from core.purchase import Purchase, PurchaseList
 from core.redeem import UserRedeem
 from core.sql import Connect
@@ -38,6 +38,35 @@ def get_single(user_id):
         except ArcError as e:
             return error_return(e)
     return error_return()
+
+
+@bp.route('/bundle/bundle', methods=['GET'])  # 捆绑包
+def bundle_bundle():
+    return success_return([])
+    # return success_return([{
+    #     "name": "chronicles",
+    #     "items": [{
+    #         "type": "bundle",
+    #         "id": "core"
+    #     }, {
+    #         "type": "bundle",
+    #         "id": "prelude"
+    #     }, {
+    #         "type": "bundle",
+    #         "id": "rei"
+    #     }, {
+    #         "type": "bundle",
+    #         "id": "yugamu"
+    #     }, {
+    #         "type": "bundle",
+    #         "id": "vs"
+    #     }],
+    #     "orig_price": 2000,
+    #     "price": 2000,
+    #     "discount_from": 1657152000000,
+    #     "discount_to": 1758447999000,
+    #     "discount_reason": "chronicle"
+    # }])
 
 
 @bp.route('/me/pack', methods=['POST'])  # 曲包和单曲购买
@@ -89,7 +118,7 @@ def buy_special(user_id):
             if item_id == 'stamina6':
                 r['stamina'] = x.user.stamina.stamina
                 r['max_stamina_ts'] = x.user.stamina.max_stamina_ts
-
+                r['world_mode_locked_end_ts'] = -1
             return success_return(r)
         except ArcError as e:
             return error_return(e)
@@ -105,21 +134,21 @@ def purchase_stamina(user_id, buy_stamina_type):
                 return error_return()
 
             user = UserOnline(c, user_id)
-            user.select_user_about_fragstam()
+            user.select_user_one_column('next_fragstam_ts', -1)
             now = int(time()*1000)
             if user.next_fragstam_ts > now:
                 return ItemUnavailable('Buying stamina by fragment is not available yet.', 905)
 
-            user.update_user_about_fragstam(now + 24 * 3600 * 1000)
-            user.select_user_about_stamina()
-            user.stamina.stamina += 6
-            user.stamina.update()
-
+            user.update_user_one_column(
+                'next_fragstam_ts', now + 24 * 3600 * 1000)
+            s = Stamina6(c)
+            s.user_claim_item(user)
             return success_return({
                 "user_id": user.user_id,
                 "stamina": user.stamina.stamina,
                 "max_stamina_ts": user.stamina.max_stamina_ts,
-                "next_fragstam_ts": user.next_fragstam_ts
+                "next_fragstam_ts": user.next_fragstam_ts,
+                'world_mode_locked_end_ts': -1
             })
         except ArcError as e:
             return error_return(e)

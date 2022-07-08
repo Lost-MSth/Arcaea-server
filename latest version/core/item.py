@@ -45,7 +45,8 @@ class UserItem(Item):
             查询用户item\ 
             parameter: `user` - `User`类或子类的实例
         '''
-        self.user = user
+        if user is not None:
+            self.user = user
         self.c.execute('''select amount from user_item where user_id=? and item_id=? and type=?''',
                        (self.user.user_id, self.item_id, self.item_type))
         x = self.c.fetchone()
@@ -88,6 +89,7 @@ class PositiveItem(UserItem):
         self.c = c
 
     def user_claim_item(self, user):
+        '''添加或使用用户item，注意是+amount'''
         self.user = user
         self.c.execute('''select amount from user_item where user_id=? and item_id=? and type=?''',
                        (self.user.user_id, self.item_id, self.item_type))
@@ -115,6 +117,9 @@ class ItemCore(PositiveItem):
         if core:
             self.item_id = core.item_id
             self.amount = - core.amount if reverse else core.amount
+
+    def __str__(self) -> str:
+        return self.item_id + '_' + str(self.amount)
 
 
 class ItemCharacter(UserItem):
@@ -179,6 +184,9 @@ class Fragment(UserItem):
     def user_claim_item(self, user):
         pass
 
+    def __str__(self) -> str:
+        return 'fragment' + str(self.amount)
+
 
 class Anni5tix(PositiveItem):
     item_type = 'anni5tix'
@@ -202,6 +210,17 @@ class WorldUnlock(NormalItem):
     def __init__(self, c) -> None:
         super().__init__(c)
         self.is_available = True
+
+
+class CourseBanner(NormalItem):
+    item_type = 'course_banner'
+
+    def __init__(self, c) -> None:
+        super().__init__(c)
+        self.is_available = True
+
+    def __str__(self) -> str:
+        return str(self.item_id)
 
 
 class Single(NormalItem):
@@ -229,7 +248,7 @@ class ProgBoost(UserItem):
             世界模式prog_boost\ 
             parameters: `user` - `UserOnline`类或子类的实例
         '''
-        user.update_prog_boost(1)
+        user.update_user_one_column('prog_boost', 1)
 
 
 class Stamina6(UserItem):
@@ -240,11 +259,13 @@ class Stamina6(UserItem):
 
     def user_claim_item(self, user):
         '''
-            世界模式记忆源点买体力
+            世界模式记忆源点或残片买体力+6\ 
+            顺手清一下世界模式过载状态
         '''
         user.select_user_about_stamina()
         user.stamina.stamina += 6
         user.stamina.update()
+        user.update_user_one_column('world_mode_locked_end_ts', -1)
 
 
 class ItemFactory:
@@ -278,6 +299,8 @@ class ItemFactory:
             return ProgBoost(self.c)
         elif item_type == 'stamina6':
             return Stamina6(self.c)
+        elif item_type == 'course_banner':
+            return CourseBanner(self.c)
         else:
             raise InputError('The item type `%s` is wrong.' % item_type)
 
@@ -301,6 +324,31 @@ class ItemFactory:
             i.item_id = item_type
         i.amount = d.get('amount', 1)
         i.is_available = d.get('is_available', True)
+        return i
+
+    @classmethod
+    def from_str(cls, s: str, c=None):
+        if s.startswith('fragment'):
+            item_type = 'fragment'
+            item_id = 'fragment'
+            amount = int(s[8:])
+        elif s.startswith('core'):
+            item_type = 'core'
+            x = s.split('_')
+            item_id = x[0] + '_' + x[1]
+            amount = int(x[-1])
+        elif s.startswith('course_banner'):
+            item_type = 'course_banner'
+            item_id = s
+            amount = 1
+        else:
+            raise InputError('The string of item is wrong.')
+        i = cls().get_item(item_type)
+        if c is not None:
+            i.c = c
+        i.item_id = item_id
+        i.amount = amount
+        i.is_available = True
         return i
 
 

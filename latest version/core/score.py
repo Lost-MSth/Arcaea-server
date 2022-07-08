@@ -1,7 +1,11 @@
+from base64 import b64encode
+from os import urandom
 from time import time
 
 from .constant import Constant
+from .course import CoursePlay
 from .error import NoData, StaminaNotEnough
+from .item import ItemCore
 from .song import Chart
 from .sql import Query, Sql
 from .util import md5
@@ -205,16 +209,22 @@ class UserPlay(UserScore):
         self.ptt: Potential = None  # 临时用来计算用户ptt的
         self.world_play: 'WorldPlay' = None
 
+        self.course_play_state: int = None
+        self.course_play: 'CoursePlay' = None
+
     def to_dict(self) -> dict:
-        if self.is_world_mode is None:
+        if self.is_world_mode is None or self.course_play_state is None:
             return {}
-        elif not self.is_world_mode:
-            return {'global_rank': self.user.global_rank, 'user_rating': self.user.rating_ptt}
-        else:
+        if self.course_play_state == 4:
+            r = self.course_play.to_dict()
+        elif self.is_world_mode:
             r = self.world_play.to_dict()
-            r['user_rating'] = self.user.rating_ptt
-            r['global_rank'] = self.user.global_rank
-            return r
+        else:
+            r = {}
+        r['user_rating'] = self.user.rating_ptt
+        r['global_rank'] = self.user.global_rank
+        r['finale_play_value'] = 0  # emmmm
+        return r
 
     @property
     def is_protected(self) -> bool:
@@ -243,19 +253,31 @@ class UserPlay(UserScore):
         return True
 
     def get_play_state(self) -> None:
-        '''本应该是检查是否有token，当然这里不管有没有，是用来判断世界模式的'''
-        self.c.execute('''select stamina_multiply,fragment_multiply,prog_boost_multiply from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
-            'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty})
+        '''检查token，当然这里不管有没有，是用来判断世界模式和课题模式的'''
+        self.c.execute(
+            '''select * from songplay_token where token=:a ''', {'a': self.song_token})
         x = self.c.fetchone()
         if not x:
             self.is_world_mode = False
+            self.course_play_state = -1
             return None
-        self.stamina_multiply = int(x[0])
-        self.fragment_multiply = int(x[1])
-        self.prog_boost_multiply = int(x[2])
-        self.is_world_mode = True
+        self.song.set_chart(x[2], x[3])
+        if x[4]:
+            self.course_play = CoursePlay(self.c, self.user, self)
+            self.course_play.course_id = x[4]
+            self.course_play.score = x[6]
+            self.course_play.clear_type = x[7]
+            self.is_world_mode = False
+            self.course_play_state = x[5]
+        else:
+            self.stamina_multiply = int(x[8])
+            self.fragment_multiply = int(x[9])
+            self.prog_boost_multiply = int(x[10])
+            self.is_world_mode = True
+            self.course_play_state = -1
 
-    def set_play_state(self, stamina_multiply: int = 1, fragment_multiply: int = 100, prog_boost_multiply: int = 0) -> None:
+    def set_play_state_for_world(self, stamina_multiply: int = 1, fragment_multiply: int = 100, prog_boost_multiply: int = 0) -> None:
+        self.song_token = b64encode(urandom(64)).decode()
         self.stamina_multiply = int(stamina_multiply)
         self.fragment_multiply = int(fragment_multiply)
         self.prog_boost_multiply = int(prog_boost_multiply)
@@ -266,10 +288,9 @@ class UserPlay(UserScore):
             if x and x[0] == 1:
                 self.prog_boost_multiply = 300
 
-        self.c.execute('''delete from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
-            'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty})
-        self.c.execute('''insert into world_songplay values(:a,:b,:c,:d,:e,:f)''', {
-            'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty, 'd': self.stamina_multiply, 'e': self.fragment_multiply, 'f': self.prog_boost_multiply})
+        self.clear_play_state()
+        self.c.execute('''insert into songplay_token values(:t,:a,:b,:c,'',-1,0,0,:d,:e,:f)''', {
+            'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty, 'd': self.stamina_multiply, 'e': self.fragment_multiply, 'f': self.prog_boost_multiply, 't': self.song_token})
 
         self.user.select_user_about_current_map()
         self.user.current_map.select_map_info()
@@ -277,12 +298,59 @@ class UserPlay(UserScore):
         self.user.select_user_about_stamina()
         if self.user.stamina.stamina < self.user.current_map.stamina_cost * self.stamina_multiply:
             raise StaminaNotEnough('Stamina is not enough.')
+
+        self.user.select_user_about_character()
+        if not self.user.is_skill_sealed:
+            self.user.character.select_character_info()
+            if self.user.character.skill_id_displayed == 'skill_fatalis':
+                # 特殊判断hikari fatalis的双倍体力消耗
+                self.user.stamina.stamina -= self.user.current_map.stamina_cost * \
+                    self.stamina_multiply * 2
+                self.user.stamina.update()
+                return None
+
         self.user.stamina.stamina -= self.user.current_map.stamina_cost * self.stamina_multiply
         self.user.stamina.update()
 
+    def set_play_state_for_course(self, use_course_skip_purchase: bool, course_id: str = None) -> None:
+        '''课题模式打歌初始化'''
+        self.song_token = 'c_' + b64encode(urandom(64)).decode()
+        if course_id is not None:
+            self.course_play.course_id = course_id
+
+        self.course_play_state = 0
+        self.course_play.score = 0
+        self.course_play.clear_type = 3  # 设置为PM，即最大值
+
+        self.c.execute('''insert into songplay_token values(?,?,?,?,?,?,?,?,1,100,0)''', (self.song_token, self.user.user_id, self.song.song_id,
+                                                                                          self.song.difficulty, self.course_play.course_id, self.course_play_state, self.course_play.score, self.course_play.clear_type))
+        self.user.select_user_about_stamina()
+        if use_course_skip_purchase:
+            x = ItemCore(self.c)
+            x.item_id = 'core_course_skip_purchase'
+            x.amount = -1
+            x.user_claim_item(self.user)
+        else:
+            if self.user.stamina.stamina < Constant.COURSE_STAMINA_COST:
+                raise StaminaNotEnough('Stamina is not enough.')
+            self.user.stamina.stamina -= Constant.COURSE_STAMINA_COST
+            self.user.stamina.update()
+
+    def update_token_for_course(self) -> None:
+        '''课题模式更新token，并查用户体力'''
+        previous_token = self.song_token
+        self.song_token = 'c_' + b64encode(urandom(64)).decode()
+        self.c.execute('''update songplay_token set token=? where token=?''',
+                       (self.song_token, previous_token))
+        self.user.select_user_about_stamina()
+
+    def update_play_state_for_course(self) -> None:
+        self.c.execute('''update songplay_token set course_state=?, course_score=?, course_clear_type=? where token=?''',
+                       (self.course_play_state, self.course_play.score, self.course_play.clear_type, self.song_token))
+
     def clear_play_state(self) -> None:
-        self.c.execute('''delete from world_songplay where user_id=:a and song_id=:b and difficulty=:c''', {
-            'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty})
+        self.c.execute('''delete from songplay_token where user_id=:a ''', {
+                       'a': self.user.user_id})
 
     def update_recent30(self) -> None:
         '''更新此分数对应用户的recent30'''
@@ -376,6 +444,10 @@ class UserPlay(UserScore):
         if self.is_world_mode:
             self.world_play = WorldPlay(self.c, self.user, self)
             self.world_play.update()
+
+        # 课题模式判断
+        if self.course_play_state >= 0:
+            self.course_play.update()
 
 
 class Potential:

@@ -177,10 +177,8 @@ def sys_set(user_id, set_arg):
                 user.change_favorite_character(int(value))
             else:
                 value = 'true' == value
-                if 'is_hide_rating' == set_arg:
-                    user.change_is_hide_rating(value)
-                elif 'max_stamina_notification_enabled' == set_arg:
-                    user.change_max_stamina_notification_enabled(value)
+                if 'is_hide_rating' == set_arg or 'max_stamina_notification_enabled' == set_arg:
+                    user.update_user_one_column(set_arg, value)
             return success_return(user.to_dict())
         except ArcError as e:
             return error_return(e)

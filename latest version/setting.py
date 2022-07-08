@@ -19,7 +19,7 @@ class Config():
     游戏API地址前缀
     Game API's URL prefix
     '''
-    GAME_API_PREFIX = '/years/19'
+    GAME_API_PREFIX = '/divide/20'
     '''
     --------------------
     '''
@@ -30,7 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.12.6', '3.12.6c', '3.12.10', '3.12.10c']
+    ALLOW_APPVERSION = ['3.12.6', '3.12.6c', '4.0.0', '4.0.0c']
     '''
     --------------------
     '''
@@ -218,7 +218,7 @@ class Config():
     是否全解锁搭档
     If unlocking all partners is enabled
     '''
-    CHARACTER_FULL_UNLOCK = False
+    CHARACTER_FULL_UNLOCK = True
     '''
     --------------------
     '''

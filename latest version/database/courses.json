@@ -1,0 +1,449 @@
+[
+    {
+        "course_id": "4.0-dan-1",
+        "style": 1,
+        "songs": [
+            {
+                "flag_as_hidden": false,
+                "difficulty": 1,
+                "id": "inkarusi"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 1,
+                "id": "snowwhite"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 1,
+                "id": "sakurafubuki"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 1,
+                "id": "purgatorium"
+            }
+        ],
+        "gauge_requirement": "default",
+        "requirements": [],
+        "flag_as_hidden_when_requirements_not_met": false,
+        "dan_name": "Phase 1",
+        "course_name": "新世界的第一步",
+        "can_start": true,
+        "is_completed": false,
+        "high_score": 0,
+        "best_clear_type": -1,
+        "rewards": [
+            "fragment300",
+            "course_banner_1"
+        ]
+    },
+    {
+        "course_id": "4.0-dan-2",
+        "style": 2,
+        "songs": [
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "vexaria"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "clotho"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "brandnewworld"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "oblivia"
+            }
+        ],
+        "gauge_requirement": "default",
+        "requirements": [],
+        "flag_as_hidden_when_requirements_not_met": false,
+        "dan_name": "Phase 2",
+        "course_name": "一次心跳的加速",
+        "can_start": true,
+        "is_completed": false,
+        "high_score": 0,
+        "best_clear_type": -1,
+        "rewards": [
+            "fragment400",
+            "course_banner_2"
+        ]
+    },
+    {
+        "course_id": "4.0-dan-3",
+        "style": 3,
+        "songs": [
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "suomi"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "grimheart"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "bookmaker"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "avril"
+            }
+        ],
+        "gauge_requirement": "default",
+        "requirements": [],
+        "flag_as_hidden_when_requirements_not_met": false,
+        "dan_name": "Phase 3",
+        "course_name": "永不屈服的精神",
+        "can_start": true,
+        "is_completed": false,
+        "high_score": 0,
+        "best_clear_type": -1,
+        "rewards": [
+            "fragment500",
+            "course_banner_3"
+        ]
+    },
+    {
+        "course_id": "4.0-dan-4",
+        "style": 4,
+        "songs": [
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "gekka"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "solitarydream"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "kanagawa"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "iconoclast"
+            }
+        ],
+        "gauge_requirement": "default",
+        "requirements": [],
+        "flag_as_hidden_when_requirements_not_met": false,
+        "dan_name": "Phase 4",
+        "course_name": "光芒的永恒之地",
+        "can_start": true,
+        "is_completed": false,
+        "high_score": 0,
+        "best_clear_type": -1,
+        "rewards": [
+            "fragment600",
+            "course_banner_4"
+        ]
+    },
+    {
+        "course_id": "4.0-dan-5",
+        "style": 5,
+        "songs": [
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "faintlight"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "eveninginscarlet"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "kyogenkigo"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "blrink"
+            }
+        ],
+        "gauge_requirement": "default",
+        "requirements": [],
+        "flag_as_hidden_when_requirements_not_met": false,
+        "dan_name": "Phase 5",
+        "course_name": "玻璃之中的残酷",
+        "can_start": true,
+        "is_completed": false,
+        "high_score": 0,
+        "best_clear_type": -1,
+        "rewards": [
+            "fragment700",
+            "course_banner_5"
+        ]
+    },
+    {
+        "course_id": "4.0-dan-6",
+        "style": 6,
+        "songs": [
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "vindication"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "heartjackin"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "ascent"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "macromod"
+            }
+        ],
+        "gauge_requirement": "default",
+        "requirements": [],
+        "flag_as_hidden_when_requirements_not_met": false,
+        "dan_name": "Phase 6",
+        "course_name": "沉浸于悲喜交加",
+        "can_start": true,
+        "is_completed": false,
+        "high_score": 0,
+        "best_clear_type": -1,
+        "rewards": [
+            "fragment800",
+            "course_banner_6"
+        ]
+    },
+    {
+        "course_id": "4.0-dan-7",
+        "style": 7,
+        "songs": [
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "galaxyfriends"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "neokosmo"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "conflict"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "redolentshape"
+            }
+        ],
+        "gauge_requirement": "default",
+        "requirements": [],
+        "flag_as_hidden_when_requirements_not_met": false,
+        "dan_name": "Phase 7",
+        "course_name": "在命运到来之际",
+        "can_start": true,
+        "is_completed": false,
+        "high_score": 0,
+        "best_clear_type": -1,
+        "rewards": [
+            "fragment900",
+            "course_banner_7"
+        ]
+    },
+    {
+        "course_id": "4.0-dan-8",
+        "style": 8,
+        "songs": [
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "corruption"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "neowings"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "valhallazero"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "izana"
+            }
+        ],
+        "gauge_requirement": "default",
+        "requirements": [],
+        "flag_as_hidden_when_requirements_not_met": false,
+        "dan_name": "Phase 8",
+        "course_name": "趋于混沌的时空",
+        "can_start": true,
+        "is_completed": false,
+        "high_score": 0,
+        "best_clear_type": -1,
+        "rewards": [
+            "fragment1000",
+            "course_banner_8"
+        ]
+    },
+    {
+        "course_id": "4.0-dan-9",
+        "style": 9,
+        "songs": [
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "felis"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "lightningscrew"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "seclusion"
+            },
+            {
+                "flag_as_hidden": false,
+                "difficulty": 2,
+                "id": "livefastdieyoung"
+            }
+        ],
+        "gauge_requirement": "default",
+        "requirements": [
+            {
+                "value": "4.0-dan-8",
+                "type": "course"
+            }
+        ],
+        "flag_as_hidden_when_requirements_not_met": true,
+        "dan_name": "Phase 9",
+        "course_name": "分崩离析的自我",
+        "can_start": true,
+        "is_completed": false,
+        "high_score": 0,
+        "best_clear_type": -1,
+        "rewards": [
+            "fragment1000",
+            "core_generic_10",
+            "course_banner_9"
+        ]
+    },
+    {
+        "course_id": "4.0-dan-10",
+        "style": 10,
+        "songs": [
+            {
+                "flag_as_hidden": true,
+                "difficulty": 2,
+                "id": "cyaegha"
+            },
+            {
+                "flag_as_hidden": true,
+                "difficulty": 2,
+                "id": "divinelight"
+            },
+            {
+                "flag_as_hidden": true,
+                "difficulty": 2,
+                "id": "dantalion"
+            },
+            {
+                "flag_as_hidden": true,
+                "difficulty": 2,
+                "id": "aegleseeker"
+            }
+        ],
+        "gauge_requirement": "default",
+        "requirements": [
+            {
+                "value": "4.0-dan-9",
+                "type": "course"
+            }
+        ],
+        "flag_as_hidden_when_requirements_not_met": true,
+        "dan_name": "Phase 10",
+        "course_name": "光与对立的洪流",
+        "can_start": true,
+        "is_completed": false,
+        "high_score": 0,
+        "best_clear_type": -1,
+        "rewards": [
+            "fragment1000",
+            "core_generic_10",
+            "course_banner_10"
+        ]
+    },
+    {
+        "course_id": "4.0-dan-11",
+        "style": 11,
+        "songs": [
+            {
+                "flag_as_hidden": true,
+                "difficulty": 3,
+                "id": "infinitestrife"
+            },
+            {
+                "flag_as_hidden": true,
+                "difficulty": 2,
+                "id": "grievouslady"
+            },
+            {
+                "flag_as_hidden": true,
+                "difficulty": 2,
+                "id": "fractureray"
+            },
+            {
+                "flag_as_hidden": true,
+                "difficulty": 3,
+                "id": "tempestissimo"
+            }
+        ],
+        "gauge_requirement": "default",
+        "requirements": [
+            {
+                "value": "4.0-dan-10",
+                "type": "course"
+            }
+        ],
+        "flag_as_hidden_when_requirements_not_met": true,
+        "dan_name": "Phase 11",
+        "course_name": "创世之曙光",
+        "can_start": true,
+        "is_completed": false,
+        "high_score": 0,
+        "best_clear_type": -1,
+        "rewards": [
+            "fragment2000",
+            "core_generic_20",
+            "course_banner_11"
+        ]
+    }
+]

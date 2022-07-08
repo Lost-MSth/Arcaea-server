@@ -12,7 +12,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 from .auth import auth_required
 from .func import error_return, success_return
 from .present import present_info
-from .purchase import bundle_pack
+from .purchase import bundle_pack, bundle_bundle
 from .score import song_score_friend
 from .user import user_me
 from .world import world_all
@@ -44,13 +44,20 @@ def download_song(user_id):
     return error_return()
 
 
+@bp.route('/finale/progress', methods=['GET'])
+def finale_progress():
+    return success_return({'percentage': 100000})
+
+
 map_dict = {'/user/me': user_me,
             '/purchase/bundle/pack': bundle_pack,
             '/serve/download/me/song': download_song,
             '/game/info': game_info,
             '/present/me': present_info,
             '/world/map/me': world_all,
-            '/score/song/friend': song_score_friend}
+            '/score/song/friend': song_score_friend,
+            '/purchase/bundle/bundle': bundle_bundle,
+            '/finale/progress': finale_progress}
 
 
 @bp.route('/compose/aggregate', methods=['GET'])  # 集成式请求

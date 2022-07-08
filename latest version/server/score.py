@@ -1,4 +1,5 @@
 from time import time
+from core.course import CoursePlay
 
 from core.error import ArcError, InputError
 from core.rank import RankList
@@ -18,7 +19,7 @@ def score_token():
     return success_return({'token': '1145141919810'})
 
 
-@bp.route('/token/world', methods=['GET'])  # 世界模式成绩上传所需的token，无验证
+@bp.route('/token/world', methods=['GET'])  # 世界模式成绩上传所需的token
 @auth_required(request)
 def score_token_world(user_id):
 
@@ -33,14 +34,55 @@ def score_token_world(user_id):
             x = UserPlay(c, UserOnline(c, user_id))
             x.song.set_chart(request.args['song_id'], int(
                 request.args['difficulty']))
-            x.set_play_state(stamina_multiply,
-                             fragment_multiply, prog_boost_multiply)
+            x.set_play_state_for_world(stamina_multiply,
+                                       fragment_multiply, prog_boost_multiply)
             return success_return({
                 "stamina": x.user.stamina.stamina,
                 "max_stamina_ts": x.user.stamina.max_stamina_ts,
-                "token": "13145201919810"
+                "token": x.song_token
             }
             )
+        except ArcError as e:
+            return error_return(e)
+    return error_return()
+
+
+@bp.route('/token/course', methods=['GET'])  # 课题模式成绩上传所需的token
+@auth_required(request)
+def score_token_course(user_id):
+    with Connect() as c:
+        try:
+            use_course_skip_purchase = request.args.get(
+                'use_course_skip_purchase', 'false') == 'true'
+
+            user = UserOnline(c, user_id)
+            user_play = UserPlay(c, user)
+            user_play.song_token = request.args.get('previous_token', None)
+            user_play.get_play_state()
+
+            status = 'created'
+            if user_play.course_play_state == -1:
+                # 没有token，课题模式刚开始
+                course_play = CoursePlay(c, user, user_play)
+                course_play.course_id = request.args['course_id']
+                user_play.course_play = course_play
+                user_play.set_play_state_for_course(
+                    use_course_skip_purchase)
+            elif 0 <= user_play.course_play_state <= 3:
+                # 验证token
+                user_play.update_token_for_course()
+            else:
+                # 课题模式已经结束
+                user_play.clear_play_state()
+                user.select_user_about_stamina()
+                status = 'cleared' if user_play.course_play_state == 4 else 'failed'
+
+            return success_return({
+                "stamina": user.stamina.stamina,
+                "max_stamina_ts": user.stamina.max_stamina_ts,
+                "token": user_play.song_token,
+                'status': status
+            })
         except ArcError as e:
             return error_return(e)
     return error_return()

@@ -110,7 +110,7 @@ class Purchase:
             self.select()
         if not self.items:
             self.select_items()
-        self.user.select_user_about_ticket()
+        self.user.select_user_one_column('ticket', 0)
         price_used = self.price_displayed
 
         if self.user.ticket < price_used:
@@ -125,7 +125,7 @@ class Purchase:
                 x.user_claim_item(self.user)
             else:
                 self.user.ticket -= price_used
-                self.user.update_user_about_ticket()
+                self.user.update_user_one_column('ticket')
 
         for i in self.items:
             i.user_claim_item(self.user)

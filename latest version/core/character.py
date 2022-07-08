@@ -128,6 +128,11 @@ class Character:
         '''对外显示的uncap状态'''
         return False if self.is_uncapped_override else self.is_uncapped
 
+    @property
+    def is_base_character(self) -> bool:
+        # 应该是只有对立这样
+        return self.character_id == 1
+
 
 class UserCharacter(Character):
     '''
@@ -212,7 +217,8 @@ class UserCharacter(Character):
     def to_dict(self) -> dict:
         if self.char_type is None:
             self.select_character_info(self.user)
-        r = {"is_uncapped_override": self.is_uncapped_override,
+        r = {'base_character': self.is_base_character,
+             "is_uncapped_override": self.is_uncapped_override,
              "is_uncapped": self.is_uncapped,
              "uncap_cores": self.uncap_cores_to_dict(),
              "char_type": self.char_type,
@@ -231,6 +237,10 @@ class UserCharacter(Character):
              }
         if self.voice:
             r['voice'] = self.voice
+        if self.character_id == 55:
+            r['fatalis_is_limited'] = True  # emmmmmmm
+        if self.character_id in [1, 6, 7, 17, 18, 24, 32, 35, 52]:
+            r['base_character_id'] = 1
         return r
 
     def change_uncap_override(self, user=None):
