@@ -21,6 +21,7 @@ This procedure is mainly used for study and research, and shall not be used for 
 - PTT
 - 世界排名 Global rank
 - 排名 Rank
+- 段位系统 Course system
 - Link Play
 - 好友系统 Friends
 - 数据同步 Data synchronization
@@ -66,23 +67,30 @@ It is just so interesting. What it can do is under exploration.
 > Tips: When updating, please keep the original database in case of data loss. 
 
 
-### Version 2.8.5
-- 适用于Arcaea 3.12.8版本 For Arcaea 3.12.8
-- 更新了歌曲数据库 Update the song database.
-- 修复一个导致无法升级角色的拼写错误 Fix a typing error, which makes giving characters Exp wrong.
-- 尝试强制指定多进程启动方式为spawn，这可能对UNIX系统中UDP服务器的启动有所帮助 Try to forcibly specify the multiprocess startup mode as spawn, which may be helpful for the startup of UDP server in UNIX system.
-- 添加了注册API对外接口 Add an external API interface of user register. 
-- 重构一些代码，顺手修复了登陆时因多设备登录封号的用户没有正确显示错误提示的问题 Refactoring some codes and in passing fix the problem that users which has been banned because of multiple devices do not show error messages correctly when logging in.
+### Version 2.9
+- 适用于Arcaea 4.0.0版本 For Arcaea 4.0.0
+- 新增段位/课题模式 Add Dan/Course Mode.
+- 新搭档 **光(Fatalis)** 已解锁 Unlock the character **Hikari(Fatalis)**.
+- 新增对`光(Fatalis)`的技能的支持 Add support for the skill of `Hikari(Fatalis)`.
+- 新增对额外文件下载的支持 Add support for downloading additional files.
+- 新增对`结局挑战`的云端存档的支持 Add support for the cloud save of `finale challenge`.
+- 修复`Link Play`模式下当房主退出时，新房主没有立即显示的问题 Fix a bug that the other player will not become the host of the room at once, when the player disconnect in `Link Play`.
+- 修改了`Link Play`模式的一些时间常数 Change some constants of time in `Link Play` mode.
+- 重构一些代码，可能引入了新Bug Refactoring some codes and there may be more bugs.
+
+- 以下是累积更新 The following are cumulative updates:
+  - 修复一个`v2.8.5`版本引入的有关无法加好友的问题 Fix a bug of unable to add friend which arose in the `version 2.8.5`.
+  - 修复`Link Play`模式下重复计算歌曲完成状态的问题 Fix a bug of duplicate calculating finishing states when players finish playing the chart in `Link Play`.
   
 > 注意：
-> - 现在Flask最低版本要求提高到2.0
-> - 服务端可能不再完全支持低版本客户端
-> - 对3.12.6c版本，愚人节开关打开时点击`网络`按钮会闪退，原因不明
+> - 不再提供歌曲数据
+> - 目前尽量不会对前端web页面增补功能
+> - `对立`不会死
 > 
 > Note: 
-> - Now the version of Flask which is required should be up to 2.0.
-> - The server may no longer fully support lower version clients.
-> - For version 3.12.6c, when the switch of April Fool's Day is on, clicking the `Network` button will make the client break down. The reason is not clear now.
+> - No longer provide song data.
+> - Since now, probably not add functions to the front-end web pages.
+> - `Tairitsu` will not die.
 
 
 
@@ -109,8 +117,10 @@ It is just so interesting. What it can do is under exploration.
 
 
 ## 鸣谢 Thanks
-歌曲数据库来自 Using song database from
-[BotArcAPI releases](https://github.com/TheSnowfield/BotArcAPI/releases)  
+~~歌曲数据库来自 Using song database from
+[BotArcAPI releases](https://github.com/TheSnowfield/BotArcAPI/releases)~~
+> 从v2.9开始不再提供歌曲数据  
+> Since v2.9, song data will not be provided.
 
 网站图标来自 Using favicon from [black fate - てんてん - pixiv](https://www.pixiv.net/artworks/82374369)
 

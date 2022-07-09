@@ -19,7 +19,7 @@ class Config():
     游戏API地址前缀
     Game API's URL prefix
     '''
-    GAME_API_PREFIX = '/years/19'
+    GAME_API_PREFIX = '/divide/20'
     '''
     --------------------
     '''
@@ -30,7 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.12.6', '3.12.6c', '3.12.10', '3.12.10c']
+    ALLOW_APPVERSION = ['3.12.6', '3.12.6c', '4.0.0', '4.0.0c']
     '''
     --------------------
     '''
@@ -247,18 +247,10 @@ class Config():
     --------------------
     是否强制使用全解锁云端存档
     If forcing full unlocked cloud save is enabled
+    请注意，当前对于最终结局的判定为固定在`Testify`解锁之前
+    Please note that the current setting of the finale state is before the unlock of `Testify`
     '''
     SAVE_FULL_UNLOCK = False
-    '''
-    --------------------
-    '''
-
-    '''
-    --------------------
-    是否使用最好的 10 条记录（而不是最近的 30 条记录中较好的 10 条）来计算 PTT
-    Calculate PTT with best 10 instead of recent best 10
-    '''
-    USE_B10_AS_R10 = False
     '''
     --------------------
     '''

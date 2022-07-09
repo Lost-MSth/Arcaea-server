@@ -1,12 +1,13 @@
-from flask import Blueprint, request, jsonify
-import functools
 import base64
+import functools
+
 from core.error import ArcError, NoAccess
-from core.user import UserAuth, UserLogin
 from core.sql import Connect
-from .func import error_return
+from core.user import UserAuth, UserLogin
+from flask import Blueprint, jsonify, request
 from setting import Config
 
+from .func import error_return
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 

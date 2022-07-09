@@ -1,16 +1,16 @@
-from flask import (
-    Blueprint, flash, redirect, render_template, request, url_for
-)
-from web.login import login_required
-from werkzeug.utils import secure_filename
-from server.sql import Connect
-import web.webscore
-import web.system
-import time
-import server.arcscore
 import os
-import json
-from server.arcdownload import initialize_songfile
+import time
+
+import server.arcscore
+from core.download import initialize_songfile
+from core.rank import RankList
+from core.sql import Connect
+from flask import Blueprint, flash, redirect, render_template, request, url_for
+from werkzeug.utils import secure_filename
+
+import web.system
+import web.webscore
+from web.login import login_required
 
 UPLOAD_FOLDER = 'database'
 ALLOWED_EXTENSIONS = {'db'}
@@ -184,21 +184,21 @@ def all_song():
             return None
 
     error = None
-    with Connect('./database/arcsong.db') as c:
-        c.execute('''select * from songs''')
+    with Connect() as c:
+        c.execute('''select * from chart''')
         x = c.fetchall()
         if x:
             posts = []
             for i in x:
                 posts.append({'song_id': i[0],
                               'name_en': i[1],
-                              'rating_pst': defnum(i[13]),
-                              'rating_prs': defnum(i[14]),
-                              'rating_ftr': defnum(i[15]),
-                              'rating_byn': defnum(i[16])
+                              'rating_pst': defnum(i[2]),
+                              'rating_prs': defnum(i[3]),
+                              'rating_ftr': defnum(i[4]),
+                              'rating_byn': defnum(i[5])
                               })
         else:
-            error = '没有铺面数据 No song data.'
+            error = '没有谱面数据 No song data.'
 
     if error:
         flash(error)
@@ -216,25 +216,30 @@ def single_chart_top():
         difficulty = request.form['difficulty']
         if difficulty.isdigit():
             difficulty = int(difficulty)
+        else:
+            difficulty = 0
         error = None
         x = None
-        with Connect('./database/arcsong.db') as c:
+        with Connect() as c:
             song_name = '%'+song_name+'%'
-            c.execute('''select sid, name_en from songs where sid like :a limit 1''',
+            c.execute('''select song_id, name from chart where song_id like :a limit 1''',
                       {'a': song_name})
             x = c.fetchone()
 
-        if x:
-            song_id = x[0]
-            posts = server.arcscore.arc_score_top(song_id, difficulty, -1)
-            for i in posts:
-                i['time_played'] = time.strftime('%Y-%m-%d %H:%M:%S',
-                                                 time.localtime(i['time_played']))
-        else:
-            error = '查询为空 No song.'
+            if x:
+                y = RankList(c)
+                y.song.set_chart(x[0], difficulty)
+                y.limit = -1
+                y.select_top()
+                posts = y.to_dict_list()
+                for i in posts:
+                    i['time_played'] = time.strftime('%Y-%m-%d %H:%M:%S',
+                                                     time.localtime(i['time_played']))
+            else:
+                error = '查询为空 No song.'
 
         if not error:
-            return render_template('web/singlecharttop.html', posts=posts, song_name_en=x[1], song_id=song_id, difficulty=difficulty)
+            return render_template('web/singlecharttop.html', posts=posts, song_name_en=x[1], song_id=x[0], difficulty=difficulty)
         else:
             flash(error)
 
@@ -260,7 +265,7 @@ def update_database():
             flash('未选择文件 No selected file.')
             return redirect(request.url)
 
-        if file and allowed_file(file.filename) and file.filename in ['arcsong.db', 'arcaea_database.db']:
+        if file and allowed_file(file.filename) and file.filename in ['arcaea_database.db']:
             filename = 'old_' + secure_filename(file.filename)
             file.save(os.path.join(UPLOAD_FOLDER, filename))
             flash('上传成功 Success upload.')
@@ -282,11 +287,11 @@ def update_database():
 @login_required
 def update_song_hash():
     # 更新数据库内谱面文件hash值
-    error = initialize_songfile()
-    if error:
-        flash(error)
-    else:
+    try:
+        initialize_songfile()
         flash('数据刷新成功 Success refresh data.')
+    except:
+        flash('Something error!')
     return render_template('web/updatedatabase.html')
 
 
@@ -336,11 +341,11 @@ def add_song():
     if len(name_en) >= 256:
         name_en = name_en[:200]
 
-    with Connect('./database/arcsong.db') as c:
+    with Connect() as c:
         c.execute(
-            '''select exists(select * from songs where sid=:a)''', {'a': song_id})
+            '''select exists(select * from chart where song_id=:a)''', {'a': song_id})
         if c.fetchone() == (0,):
-            c.execute('''insert into songs(sid,name_en,rating_pst,rating_prs,rating_ftr,rating_byn) values(:a,:b,:c,:d,:e,:f)''', {
+            c.execute('''insert into chart values(:a,:b,:c,:d,:e,:f)''', {
                 'a': song_id, 'b': name_en, 'c': rating_pst, 'd': rating_prs, 'e': rating_ftr, 'f': rating_byd})
             flash('歌曲添加成功 Successfully add the song.')
         else:
@@ -359,11 +364,11 @@ def delete_song():
 
     error = None
     song_id = request.form['sid']
-    with Connect('./database/arcsong.db') as c:
+    with Connect() as c:
         c.execute(
-            '''select exists(select * from songs where sid=:a)''', {'a': song_id})
+            '''select exists(select * from chart where song_id=:a)''', {'a': song_id})
         if c.fetchone() == (1,):
-            c.execute('''delete from songs where sid=:a''', {'a': song_id})
+            c.execute('''delete from chart where song_id=:a''', {'a': song_id})
             flash('歌曲删除成功 Successfully delete the song.')
         else:
             error = "歌曲不存在 The song doesn't exist."
@@ -418,7 +423,7 @@ def all_character():
 def change_character():
     # 修改角色数据
     skill_ids = ['No_skill', 'gauge_easy', 'note_mirror', 'gauge_hard', 'frag_plus_10_pack_stellights', 'gauge_easy|frag_plus_15_pst&prs', 'gauge_hard|fail_frag_minus_100', 'frag_plus_5_side_light', 'visual_hide_hp', 'frag_plus_5_side_conflict', 'challenge_fullcombo_0gauge', 'gauge_overflow', 'gauge_easy|note_mirror', 'note_mirror', 'visual_tomato_pack_tonesphere',
-                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami', 'skill_elizabeth', 'skill_lily', 'skill_kanae_midsummer', 'eto_uncap', 'luna_uncap', 'frags_preferred_song', 'visual_ghost_skynotes', 'ayu_uncap', 'skill_vita']
+                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami', 'skill_elizabeth', 'skill_lily', 'skill_kanae_midsummer', 'eto_uncap', 'luna_uncap', 'frags_preferred_song', 'visual_ghost_skynotes', 'ayu_uncap', 'skill_vita', 'skill_fatalis']
     return render_template('web/changechar.html', skill_ids=skill_ids)
 
 

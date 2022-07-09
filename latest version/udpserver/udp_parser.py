@@ -1,8 +1,8 @@
-from operator import irshift
-from .udp_sender import CommandSender
-from .udp_class import bi, Room
-from .udp_config import Config
 import time
+
+from .udp_class import Room, bi
+from .udp_config import Config
+from .udp_sender import CommandSender
 
 
 class CommandParser:
@@ -169,13 +169,14 @@ class CommandParser:
                 re.append(x.command_0c())
                 player.last_timestamp = x.timestamp
 
+            flag_13 = False
             # 离线判断
             for i in range(4):
                 if i != self.player_index:
                     t = self.room.players[i]
                     if t.player_id != 0:
                         if t.last_timestamp != 0:
-                            if t.online == 1 and x.timestamp - t.last_timestamp >= 5000000:
+                            if t.online == 1 and x.timestamp - t.last_timestamp >= Config.PLAYER_PRE_TIMEOUT:
                                 t.online = 0
                                 self.room.command_queue_length += 1
                                 self.room.command_queue.append(x.command_12(i))
@@ -183,10 +184,10 @@ class CommandParser:
                                 self.room.delete_player(i)
                                 self.room.command_queue_length += 1
                                 self.room.command_queue.append(x.command_12(i))
+                                flag_13 = True
 
             flag_11 = False
             flag_12 = False
-            flag_13 = False
 
             if player.online == 0:
                 flag_12 = True

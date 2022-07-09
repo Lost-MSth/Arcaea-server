@@ -1,6 +1,6 @@
 import os
 from shutil import copy, copy2
-from server.sql import Connect
+from core.sql import Connect
 from database.database_initialize import main, ARCAEA_SERVER_VERSION
 from web.system import update_database
 
@@ -90,9 +90,5 @@ def check_before_run(app):
             except:
                 app.logger.warning(
                     'Fail to update the file `database/arcaea_database.db`.')
-
-    if not os.path.exists('database/arcsong.db'):
-        app.logger.warning('File `database/arcsong.db` is missing.')
-        f = False
 
     return f

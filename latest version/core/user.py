@@ -1,14 +1,18 @@
-from .error import ArcError, InputError, DataExist, NoAccess, NoData, UserBan, FriendError
-from .constant import Constant
-from .character import UserCharacter
-from .score import Score
-from .world import Map
-from .item import get_user_cores
-from setting import Config
-import hashlib
 import base64
+import hashlib
 import time
 from os import urandom
+
+from setting import Config
+
+from .character import UserCharacter, UserCharacterList
+from .constant import Constant
+from .error import (ArcError, DataExist, FriendError, InputError, NoAccess,
+                    NoData, UserBan)
+from .item import UserItemList
+from .score import Score
+from .sql import Connect
+from .world import Map, UserMap, UserStamina
 
 
 def code_get_id(c, user_code: str) -> int:
@@ -35,18 +39,22 @@ class User:
         self.user_code = None
 
         self.join_date = None
-        self.rating_ptt = None
+        self.rating_ptt: int = None  # 100 times
 
         self.ticket = None
         self.world_rank_score = None
         self.ban_flag = None
+
+    @property
+    def hash_pwd(self) -> str:
+        '''`password`的SHA-256值'''
+        return hashlib.sha256(self.password.encode("utf8")).hexdigest()
 
 
 class UserRegister(User):
     def __init__(self, c) -> None:
         super().__init__()
         self.c = c
-        self.hash_pwd = None
 
     def set_name(self, name: str):
         if 3 <= len(name) <= 16:
@@ -63,7 +71,6 @@ class UserRegister(User):
     def set_password(self, password: str):
         if 8 <= len(password) <= 32:
             self.password = password
-            self.hash_pwd = hashlib.sha256(password.encode("utf8")).hexdigest()
         else:
             raise InputError('Password is invalid.')
 
@@ -142,7 +149,6 @@ class UserLogin(User):
         self.c = c
         self.device_id = None
         self.ip = None
-        self.hash_pwd = None
         self.token = None
         self.now = 0
 
@@ -151,7 +157,6 @@ class UserLogin(User):
 
     def set_password(self, password: str):
         self.password = password
-        self.hash_pwd = hashlib.sha256(password.encode("utf8")).hexdigest()
 
     def set_device_id(self, device_id: str):
         self.device_id = device_id
@@ -269,7 +274,7 @@ class UserAuth(User):
         return self.user_id
 
 
-class UserOnline(User):
+class UserInfo(User):
     def __init__(self, c, user_id=None) -> None:
         super().__init__()
         self.c = c
@@ -278,19 +283,92 @@ class UserOnline(User):
         self.is_skill_sealed = False
         self.is_hide_rating = False
         self.recent_score = Score()
-        self.favorite_character = -1
+        self.favorite_character = None
         self.max_stamina_notification_enabled = False
         self.prog_boost = 0
+        self.next_fragstam_ts: int = None
+        self.world_mode_locked_end_ts: int = None
 
-        self.__cores = None
-        self.__friends = None
+        self.__cores: list = None
+        self.__packs: list = None
+        self.__singles: list = None
+        self.characters: 'UserCharacterList' = None
+        self.__friends: list = None
+        self.__world_unlocks: list = None
+        self.__world_songs: list = None
+        self.curr_available_maps: list = None
+        self.__course_banners: list = None
 
     @property
     def cores(self) -> list:
         if self.__cores is None:
-            self.__cores = get_user_cores(self.c, self)
+            x = UserItemList(self.c, self.user_id).select_from_type('core')
+            self.__cores = [{'core_type': i.item_id,
+                             'amount': i.amount} for i in x.items]
 
         return self.__cores
+
+    @property
+    def singles(self) -> list:
+        if self.__singles is None:
+            x = UserItemList(self.c, self.user_id).select_from_type('single')
+            self.__singles = [i.item_id for i in x.items]
+
+        return self.__singles
+
+    @property
+    def packs(self) -> list:
+        if self.__packs is None:
+            x = UserItemList(self.c, self.user_id).select_from_type('pack')
+            self.__packs = [i.item_id for i in x.items]
+
+        return self.__packs
+
+    @property
+    def world_unlocks(self) -> list:
+        if self.__world_unlocks is None:
+            x = UserItemList(self.c, self.user_id).select_from_type(
+                'world_unlock')
+            self.__world_unlocks = [i.item_id for i in x.items]
+
+        return self.__world_unlocks
+
+    @property
+    def world_songs(self) -> list:
+        if self.__world_songs is None:
+            x = UserItemList(
+                self.c, self.user_id).select_from_type('world_song')
+            self.__world_songs = [i.item_id for i in x.items]
+
+        return self.__world_songs
+
+    @property
+    def course_banners(self) -> list:
+        if self.__course_banners is None:
+            x = UserItemList(
+                self.c, self.user_id).select_from_type('course_banner')
+            self.__course_banners = [i.item_id for i in x.items]
+
+        return self.__course_banners
+
+    def select_characters(self) -> None:
+        self.characters = UserCharacterList(self.c, self)
+        self.characters.select_user_characters()
+
+    @property
+    def characters_list(self) -> list:
+        if self.characters is None:
+            self.select_characters()
+        return [x.character_id for x in self.characters.characters]
+
+    @property
+    def character_displayed(self) -> 'UserCharacter':
+        '''对外显示的角色'''
+        if self.favorite_character is None:
+            return self.character
+
+        self.favorite_character.select_character_uncap_condition(self)
+        return self.favorite_character
 
     @property
     def friends(self) -> list:
@@ -346,27 +424,78 @@ class UserOnline(User):
         y = self.c.fetchone()
         best_clear_type = y[0] if y is not None else self.recent_score.clear_type
 
-        r = self.recent_score.to_dict
+        r = self.recent_score.to_dict()
         r["best_clear_type"] = best_clear_type
         return [r]
 
-    def change_character(self, character_id: int, skill_sealed: bool = False):
-        # 用户角色改变，包括技能封印的改变
-        self.character = UserCharacter(self.c, character_id)
-        self.character.select_character_uncap_condition(self)
-        self.is_skill_sealed = skill_sealed
+    def select_curr_available_maps(self) -> None:
+        self.curr_available_maps: list = []
+        for i in Config.AVAILABLE_MAP:
+            self.curr_available_maps.append(Map(i))
 
-        self.c.execute('''update user set is_skill_sealed = :a, character_id = :b, is_char_uncapped = :c, is_char_uncapped_override = :d where user_id = :e''', {
-            'a': 1 if self.is_skill_sealed else 0, 'b': self.character.character_id, 'c': self.character.is_uncapped, 'd': self.character.is_uncapped_override, 'e': self.user_id})
+    @property
+    def curr_available_maps_list(self) -> list:
+        if self.curr_available_maps is None:
+            self.select_curr_available_maps()
+        return [x.to_dict() for x in self.curr_available_maps]
 
-    def select_user(self):
-        # 查user表所有信息
-        self.c.execute(
-            '''select * from user where user_id = :x''', {'x': self.user_id})
-        x = self.c.fetchone()
+    def to_dict(self) -> dict:
+        '''返回用户信息的字典，其实就是/user/me'''
+        if self.name is None:
+            self.select_user()
+
+        # 这是考虑有可能favourite_character设置了用户未拥有的角色，同时提前计算角色列表
+        character_list = self.characters_list
+        if self.favorite_character and self.favorite_character.character_id in character_list:
+            favorite_character_id = self.favorite_character.character_id
+        else:
+            favorite_character_id = -1
+        return {
+            "is_aprilfools": Config.IS_APRILFOOLS,
+            "curr_available_maps": self.curr_available_maps_list,
+            "character_stats": [x.to_dict() for x in self.characters.characters],
+            "friends": self.friends,
+            "settings": {
+                "favorite_character": favorite_character_id,
+                "is_hide_rating": self.is_hide_rating,
+                "max_stamina_notification_enabled": self.max_stamina_notification_enabled
+            },
+            "user_id": self.user_id,
+            "name": self.name,
+            "user_code": self.user_code,
+            "display_name": self.name,
+            "ticket": self.ticket,
+            "character": self.character.character_id,
+            "is_locked_name_duplicate": False,
+            "is_skill_sealed": self.is_skill_sealed,
+            "current_map": self.current_map.map_id,
+            "prog_boost": self.prog_boost,
+            "next_fragstam_ts": self.next_fragstam_ts,
+            "max_stamina_ts": self.stamina.max_stamina_ts,
+            "stamina": self.stamina.stamina,
+            "world_unlocks": self.world_unlocks,
+            "world_songs": self.world_songs,
+            "singles": self.singles,
+            "packs": self.packs,
+            "characters": self.characters_list,
+            "cores": self.cores,
+            "recent_score": self.recent_score_list,
+            "max_friend": Constant.MAX_FRIEND_COUNT,
+            "rating": self.rating_ptt,
+            "join_date": self.join_date,
+            "global_rank": self.global_rank,
+            'country': '',
+            'course_banners': self.course_banners,
+            'world_mode_locked_end_ts': self.world_mode_locked_end_ts,
+            'locked_char_ids': []  # [1]
+        }
+
+    def from_list(self, x: list) -> 'UserInfo':
+        '''从数据库user表全部数据获取信息'''
         if not x:
-            raise NoData('No user.', 108, -3)
-
+            return None
+        if self.user_id is None:
+            self.user_id = x[0]
         self.name = x[1]
         self.join_date = int(x[3])
         self.user_code = x[4]
@@ -386,19 +515,184 @@ class UserOnline(User):
         self.favorite_character = None if x[23] == - \
             1 else UserCharacter(self.c, x[23])
         self.max_stamina_notification_enabled = x[24] == 1
-        self.current_map = Map(x[25])
+        self.current_map = Map(x[25]) if x[25] is not None else Map('')
         self.ticket = x[26]
-        self.prog_boost = x[27]
-        self.email = x[28]
-        self.world_rank_score = x[29]
-        self.ban_flag = x[30]
+        self.prog_boost = x[27] if x[27] is not None else 0
+        self.email = x[28] if x[28] is not None else ''
+        self.world_rank_score = x[29] if x[29] is not None else 0
+        self.ban_flag = x[30] if x[30] is not None else ''
 
-        self.next_fragstam_ts = x[31]
-        self.max_stamina_ts = x[32]
-        self.stamina = x[33]
+        self.next_fragstam_ts = x[31] if x[31] else 0
+
+        self.stamina = UserStamina(self.c, self)
+        self.stamina.set_value(x[32], x[33])
+        self.world_mode_locked_end_ts = x[34] if x[34] else -1
+
+        return self
+
+    def select_user(self) -> None:
+        # 查user表所有信息
+        self.c.execute(
+            '''select * from user where user_id = :x''', {'x': self.user_id})
+        x = self.c.fetchone()
+        if not x:
+            raise NoData('No user.', 108, -3)
+
+        self.from_list(x)
+
+    def select_user_about_current_map(self) -> None:
+        self.c.execute('''select current_map from user where user_id = :a''',
+                       {'a': self.user_id})
+        x = self.c.fetchone()
+        if x:
+            self.current_map = Map(x[0])
+
+    def select_user_about_stamina(self) -> None:
+        self.c.execute('''select max_stamina_ts, stamina from user where user_id = :a''',
+                       {'a': self.user_id})
+        x = self.c.fetchone()
+        if not x:
+            raise NoData('No user.', 108, -3)
+
+        self.stamina = UserStamina(self.c, self)
+        self.stamina.set_value(x[0], x[1])
+
+    def select_user_about_character(self) -> None:
+        '''
+            查询user表有关角色的信息
+        '''
+        self.c.execute('''select name, character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, favorite_character from user where user_id = :a''', {
+            'a': self.user_id})
+        x = self.c.fetchone()
+        if not x:
+            raise NoData('No user.', 108, -3)
+
+        self.name = x[0]
+        self.character = UserCharacter(self.c, x[1], self)
+        self.is_skill_sealed = x[2] == 1
+        self.character.is_uncapped = x[3] == 1
+        self.character.is_uncapped_override = x[4] == 1
+        self.favorite_character = None if x[5] == - \
+            1 else UserCharacter(self.c, x[5], self)
+
+    def select_user_about_world_play(self) -> None:
+        '''
+            查询user表有关世界模式打歌的信息
+        '''
+        self.c.execute(
+            '''select character_id, max_stamina_ts, stamina, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, current_map, world_mode_locked_end_ts from user where user_id=?''', (self.user_id,))
+        x = self.c.fetchone()
+        if not x:
+            raise NoData('No user.', 108, -3)
+
+        self.character = UserCharacter(self.c, x[0], self)
+        self.stamina = UserStamina(self.c, self)
+        self.stamina.set_value(x[1], x[2])
+        self.is_skill_sealed = x[3] == 1
+        self.character.is_uncapped = x[4] == 1
+        self.character.is_uncapped_override = x[5] == 1
+        self.current_map = UserMap(self.c, x[6], self)
+        self.world_mode_locked_end_ts = x[7] if x[7] else -1
+
+    @property
+    def global_rank(self) -> int:
+        '''用户世界排名，如果超过设定最大值，返回0'''
+        if self.world_rank_score is None:
+            self.select_user_one_column('world_rank_score', 0)
+            if self.world_rank_score is None:
+                return 0
+
+        self.c.execute(
+            '''select count(*) from user where world_rank_score > ?''', (self.world_rank_score,))
+        y = self.c.fetchone()
+        if y and y[0] + 1 <= Config.WORLD_RANK_MAX:
+            return y[0] + 1
+
+        return 0
+
+    def update_global_rank(self) -> None:
+        '''用户世界排名计算，有新增成绩则要更新'''
+        with Connect() as c2:
+            c2.execute('''select song_id, rating_ftr, rating_byn from chart''')
+            x = c2.fetchall()
+        if x:
+            song_list_ftr = [self.user_id]
+            song_list_byn = [self.user_id]
+            for i in x:
+                if i[1] > 0:
+                    song_list_ftr.append(i[0])
+                if i[2] > 0:
+                    song_list_byn.append(i[0])
+
+        if len(song_list_ftr) >= 2:
+            self.c.execute('''select sum(score) from best_score where user_id=? and difficulty=2 and song_id in ({0})'''.format(
+                ','.join(['?']*(len(song_list_ftr)-1))), tuple(song_list_ftr))
+
+            x = self.c.fetchone()
+            if x[0] is not None:
+                score_sum = x[0]
+            else:
+                score_sum = 0
+
+        if len(song_list_byn) >= 2:
+            self.c.execute('''select sum(score) from best_score where user_id=? and difficulty=3 and song_id in ({0})'''.format(
+                ','.join(['?']*(len(song_list_byn)-1))), tuple(song_list_byn))
+
+            x = self.c.fetchone()
+            if x[0] is not None:
+                score_sum += x[0]
+            else:
+                score_sum += 0
+
+        self.c.execute('''update user set world_rank_score = :b where user_id = :a''', {
+            'a': self.user_id, 'b': score_sum})
+
+        self.world_rank_score = score_sum
+
+    def select_user_one_column(self, column_name: str, default_value=None) -> None:
+        '''
+            查询user表的某个属性\ 
+            请注意必须是一个普通属性，不能是一个类的实例
+        '''
+        if column_name not in self.__dict__:
+            raise InputError('No such column.')
+        self.c.execute('''select %s from user where user_id = :a''' %
+                       column_name, {'a': self.user_id})
+        x = self.c.fetchone()
+        if not x:
+            raise NoData('No user.', 108, -3)
+
+        self.__dict__[column_name] = x[0] if x[0] else default_value
+
+    def update_user_one_column(self, column_name: str, value=None) -> None:
+        '''
+            更新user表的某个属性\ 
+            请注意必须是一个普通属性，不能是一个类的实例
+        '''
+        if column_name not in self.__dict__:
+            raise InputError('No such column.')
+        if value is not None:
+            self.__dict__[column_name] = value
+        self.c.execute('''update user set %s = :a where user_id = :b''' %
+                       column_name, {'a': self.__dict__[column_name], 'b': self.user_id})
+
+
+class UserOnline(UserInfo):
+
+    def __init__(self, c, user_id=None) -> None:
+        super().__init__(c, user_id)
+
+    def change_character(self, character_id: int, skill_sealed: bool = False):
+        '''用户角色改变，包括技能封印的改变'''
+        self.character = UserCharacter(self.c, character_id, self)
+        self.character.select_character_uncap_condition()
+        self.is_skill_sealed = skill_sealed
+
+        self.c.execute('''update user set is_skill_sealed = :a, character_id = :b, is_char_uncapped = :c, is_char_uncapped_override = :d where user_id = :e''', {
+            'a': 1 if self.is_skill_sealed else 0, 'b': self.character.character_id, 'c': self.character.is_uncapped, 'd': self.character.is_uncapped_override, 'e': self.user_id})
 
     def add_friend(self, friend_id: int):
-        # 加好友
+        '''加好友'''
         if self.user_id == friend_id:
             raise FriendError('Add yourself as a friend.', 604)
 
@@ -411,8 +705,7 @@ class UserOnline(User):
             raise FriendError('The user has been your friend.', 602)
 
     def delete_friend(self, friend_id: int):
-        # 删好友
-
+        '''删好友'''
         self.c.execute('''select exists(select * from friend where user_id_me = :x and user_id_other = :y)''',
                        {'x': self.user_id, 'y': friend_id})
         if self.c.fetchone() == (1,):
@@ -420,3 +713,9 @@ class UserOnline(User):
                            {'x': self.user_id, 'y': friend_id})
         else:
             raise FriendError('No user or the user is not your friend.', 401)
+
+    def change_favorite_character(self, character_id: int) -> None:
+        '''更改用户的favorite_character'''
+        self.favorite_character = UserCharacter(self.c, character_id, self)
+        self.c.execute('''update user set favorite_character = :a where user_id = :b''',
+                       {'a': self.favorite_character.character_id, 'b': self.user_id})

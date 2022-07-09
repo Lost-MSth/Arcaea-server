@@ -1,3 +1,6 @@
+from .udp_config import Config
+
+
 def b(value, length=1):
     return value.to_bytes(length=length, byteorder='little')
 
@@ -35,7 +38,7 @@ class Player:
         self.last_timestamp = 0
         self.extra_command_queue = []
 
-        self.song_unlock = b'\x00' * 512
+        self.song_unlock = b'\x00' * Config.LINK_PLAY_UNLOCK_LENGTH
 
         self.start_command_num = 0
 
@@ -58,7 +61,7 @@ class Room:
         self.song_idx = 0xffff
         self.last_song_idx = 0xffff
 
-        self.song_unlock = b'\x00' * 512
+        self.song_unlock = b'\x00' * Config.LINK_PLAY_UNLOCK_LENGTH
 
         self.host_id = 0
         self.players = [Player(), Player(), Player(), Player()]
@@ -120,12 +123,12 @@ class Room:
 
     def update_song_unlock(self):
         # 更新房间可用歌曲
-        r = bi(b'\xff' * 512)
+        r = bi(b'\xff' * Config.LINK_PLAY_UNLOCK_LENGTH)
         for i in self.players:
             if i.player_id != 0:
                 r &= bi(i.song_unlock)
 
-        self.song_unlock = b(r, 512)
+        self.song_unlock = b(r, Config.LINK_PLAY_UNLOCK_LENGTH)
 
     def is_ready(self, old_state: int, player_state: int):
         # 是否全部准备就绪
