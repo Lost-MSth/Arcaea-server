@@ -373,8 +373,8 @@ class UserItemList:
             self.c.execute(
                 '''select item_id from item where type=?''', (item_type,))
         else:
-            self.c.execute('''select item_id, amount from user_item where type = :a''', {
-                'a': item_type})
+            self.c.execute('''select item_id, amount from user_item where type = :a and user_id = :b''', {
+                'a': item_type, 'b': self.user.user_id})
         x = self.c.fetchall()
         if not x:
             return self
