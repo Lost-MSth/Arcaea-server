@@ -302,7 +302,7 @@ class UserInfo(User):
     @property
     def cores(self) -> list:
         if self.__cores is None:
-            x = UserItemList(self.c, self.user_id).select_from_type('core')
+            x = UserItemList(self.c, self).select_from_type('core')
             self.__cores = [{'core_type': i.item_id,
                              'amount': i.amount} for i in x.items]
 
@@ -311,7 +311,7 @@ class UserInfo(User):
     @property
     def singles(self) -> list:
         if self.__singles is None:
-            x = UserItemList(self.c, self.user_id).select_from_type('single')
+            x = UserItemList(self.c, self).select_from_type('single')
             self.__singles = [i.item_id for i in x.items]
 
         return self.__singles
@@ -319,7 +319,7 @@ class UserInfo(User):
     @property
     def packs(self) -> list:
         if self.__packs is None:
-            x = UserItemList(self.c, self.user_id).select_from_type('pack')
+            x = UserItemList(self.c, self).select_from_type('pack')
             self.__packs = [i.item_id for i in x.items]
 
         return self.__packs
@@ -327,7 +327,7 @@ class UserInfo(User):
     @property
     def world_unlocks(self) -> list:
         if self.__world_unlocks is None:
-            x = UserItemList(self.c, self.user_id).select_from_type(
+            x = UserItemList(self.c, self).select_from_type(
                 'world_unlock')
             self.__world_unlocks = [i.item_id for i in x.items]
 
@@ -337,7 +337,7 @@ class UserInfo(User):
     def world_songs(self) -> list:
         if self.__world_songs is None:
             x = UserItemList(
-                self.c, self.user_id).select_from_type('world_song')
+                self.c, self).select_from_type('world_song')
             self.__world_songs = [i.item_id for i in x.items]
 
         return self.__world_songs
@@ -346,7 +346,7 @@ class UserInfo(User):
     def course_banners(self) -> list:
         if self.__course_banners is None:
             x = UserItemList(
-                self.c, self.user_id).select_from_type('course_banner')
+                self.c, self).select_from_type('course_banner')
             self.__course_banners = [i.item_id for i in x.items]
 
         return self.__course_banners
