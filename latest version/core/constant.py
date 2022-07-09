@@ -37,3 +37,48 @@ class Constant:
     LINK_PLAY_TIMEOUT = 10  # Units: seconds
 
     COURSE_STAMINA_COST = 4
+
+    # Well, I can't say a word when I see this.
+    SHIT_DATA_OF_616 = [
+        (0x0015F0, 0x00B032), (0x014C9A, 0x014408), (0x062585, 0x02783B),
+        (0x02429E, 0x0449A4), (0x099C9C,
+                               0x07CFB4), (0x0785BF, 0x019B2C),
+        (0x0EFF43, 0x0841BF), (0x07C88B,
+                               0x0DE9FC), (0x000778, 0x064815),
+        (0x0E62E3, 0x079F02), (0x0188FE,
+                               0x0923EB), (0x0E06CD, 0x0E1A26),
+        (0x00669E, 0x0C8BE1), (0x0BEB7A, 0x05D635), (0x040E6F,
+                                                     0x0B465B), (0x0568EC, 0x07ED2B),
+        (0x189614, 0x00A3D2), (0x62D98D,
+                               0x45E5CA), (0x6D8769, 0x473F0E),
+        (0x922E4F, 0x667D6C), (0x021F5C,
+                               0x298839), (0x2A1201, 0x49FB7E),
+        (0x158B81, 0x8D905D), (0x2253A5,
+                               0x7E7067), (0x3BEF79, 0x9368E9),
+        (0x00669E, 0x0C8BE1), (0x0BEB7A,
+                               0x05D635), (0x040E6F, 0x0B465B),
+        (0x756276, 0x55CD57), (0x130055, 0x7010E7), (0x55E28D,
+                                                     0x4477FB), (0x5E99CB, 0x81060E),
+        (0x7F43A4, 0x8FEC56), (0x69412F,
+                               0x32735C), (0x8FF846, 0x14B5A1),
+        (0x8716BE, 0x5C78BE), (0x62ED0E,
+                               0x348E4B), (0x4B20C8, 0x56E0C3),
+        (0x0AF6BC, 0x872441), (0x8825BC,
+                               0x94B315), (0x792784, 0x5B2C8E),
+        (0x1AE3A7, 0x688E97), (0x0D630F,
+                               0x06BE78), (0x792784, 0x5B2C8E),
+        (0x314869, 0x41CCC1), (0x311934, 0x24DD94), (0x190EDB,
+                                                     0x33993D), (0x25F5C5, 0x15FAE6),
+        (0x18CA10, 0x1B761A), (0x51BE82,
+                               0x120089), (0x51D3B6, 0x2C29A2),
+        (0x402075, 0x4A89B2), (0x00697B,
+                               0x0E6497), (0x6D872D, 0x618AE7),
+        (0x3DC0BE, 0x4E2AC8), (0x8C6ACF,
+                               0x9776CF), (0x84673B, 0x5CA060),
+        (0x4B05EC, 0x97FDFE), (0x207258,
+                               0x02BB9B), (0x20A9EE, 0x1BA4BB),
+        (0x503D21, 0x6A41D0), (0x1C256C,
+                               0x6DD3BC), (0x6E4E0C, 0x89FDAA), (0x3C5F95, 0x3BA786)
+    ]
+    UNKNOWN_SHIT = [0XFEA5, 0X7BF653, 0X46BEA7B,
+                    0X8BFB04, 0X5D6FC5, 0X237206D, 0XA3DEE, 0XA35687B]

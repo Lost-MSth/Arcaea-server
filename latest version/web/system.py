@@ -204,6 +204,11 @@ def update_database():
                 update_one_table(c1, c2, 'role_power')
                 update_one_table(c1, c2, 'api_login')
                 update_one_table(c1, c2, 'chart')
+                update_one_table(c1, c2, 'user_course')
+                update_one_table(c1, c2, 'course')
+                update_one_table(c1, c2, 'course_item')
+                update_one_table(c1, c2, 'course_chart')
+                update_one_table(c1, c2, 'course_requirement')
 
                 update_one_table(c1, c2, 'user_char')
 

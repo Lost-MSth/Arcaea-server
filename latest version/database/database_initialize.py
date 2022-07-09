@@ -4,7 +4,7 @@ import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
-ARCAEA_SERVER_VERSION = 'v2.8.9.dev.616sb'
+ARCAEA_SERVER_VERSION = 'v2.9.0'
 
 
 def main(path='./'):
@@ -245,7 +245,8 @@ def main(path='./'):
     installid_data text,
     devicemodelname_data text,
     story_data text,
-    createdAt int
+    createdAt int,
+    finalestate_data text
     );''')
     c.execute('''create table if not exists present(present_id text primary key,
     expire_ts int,
@@ -481,15 +482,21 @@ def main(path='./'):
                           (i['name'], j['id'], j['type'], amount))
 
     # item初始化
-    f = open(path+'singles.json', 'r')
-    singles = json.load(f)
-    f.close()
-    insert_items(c, singles)
+    try:
+        f = open(path+'singles.json', 'r')
+        singles = json.load(f)
+        f.close()
+        insert_items(c, singles)
+    except:
+        pass
 
-    f = open(path+'packs.json', 'r')
-    packs = json.load(f)
-    f.close()
-    insert_items(c, packs)
+    try:
+        f = open(path+'packs.json', 'r')
+        packs = json.load(f)
+        f.close()
+        insert_items(c, packs)
+    except:
+        pass
 
     # course初始化
     try:

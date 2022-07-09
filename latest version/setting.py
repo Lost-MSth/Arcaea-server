@@ -247,6 +247,8 @@ class Config():
     --------------------
     是否强制使用全解锁云端存档
     If forcing full unlocked cloud save is enabled
+    请注意，当前对于最终结局的判定为固定在`Testify`解锁之前
+    Please note that the current setting of the finale state is before the unlock of `Testify`
     '''
     SAVE_FULL_UNLOCK = False
     '''

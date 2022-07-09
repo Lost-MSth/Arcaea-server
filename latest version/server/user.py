@@ -158,6 +158,8 @@ def cloud_post(user_id):
                            request.form['devicemodelname_data'], request.form['devicemodelname_checksum'])
             save.set_value(
                 'story_data', request.form['story_data'], request.form['story_checksum'])
+            save.set_value(
+                'finalestate_data', request.form['finalestate_data'], request.form['finalestate_checksum'])
 
             save.update_all(user)
             return success_return({'user_id': user.user_id})

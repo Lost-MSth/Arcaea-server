@@ -46,7 +46,15 @@ def download_song(user_id):
 
 @bp.route('/finale/progress', methods=['GET'])
 def finale_progress():
+    # 世界boss血条
     return success_return({'percentage': 100000})
+
+
+@bp.route('/finale/finale_start', methods=['POST'])
+def finale_start():
+    # testify开始，对立再见
+    # 没数据
+    return success_return({})
 
 
 map_dict = {'/user/me': user_me,

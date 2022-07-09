@@ -43,6 +43,7 @@ def get_single(user_id):
 @bp.route('/bundle/bundle', methods=['GET'])  # 捆绑包
 def bundle_bundle():
     return success_return([])
+    # 感觉上是定死的，没意义啊
     # return success_return([{
     #     "name": "chronicles",
     #     "items": [{
