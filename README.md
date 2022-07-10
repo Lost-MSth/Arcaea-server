@@ -116,6 +116,10 @@ It is just so interesting. What it can do is under exploration.
 [English](https://github.com/Lost-MSth/Arcaea-server/wiki/Attentions)
 
 
+## Q&A
+[中文/English](https://github.com/Lost-MSth/Arcaea-server/wiki/Q&A)
+
+
 ## 鸣谢 Thanks
 ~~歌曲数据库来自 Using song database from
 [BotArcAPI releases](https://github.com/TheSnowfield/BotArcAPI/releases)~~
