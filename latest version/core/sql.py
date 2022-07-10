@@ -1,6 +1,5 @@
 import sqlite3
 import traceback
-from certifi import where
 
 from flask import current_app
 
