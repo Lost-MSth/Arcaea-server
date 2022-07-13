@@ -93,8 +93,8 @@ class SaveData:
                 else:
                     i['complete'] = 1
 
-            self.finalestate_data = '|'.join(['0', '100'] + [str(i[1]) for i in Constant.SHIT_DATA_OF_616] + [
-                                             str(i) for i in Constant.UNKNOWN_SHIT] + ['1337'])
+            self.finalestate_data = '|'.join(
+                ['0', '100'] + [str(x[0]) if i in [64, 65, 66, 71] else str(x[1]) for i, x in enumerate(Constant.FINALE_SWITCH)] + ['1337'])
 
     def update_all(self, user) -> None:
         '''

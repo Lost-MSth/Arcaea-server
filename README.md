@@ -67,31 +67,11 @@ It is just so interesting. What it can do is under exploration.
 > Tips: When updating, please keep the original database in case of data loss. 
 
 
-### Version 2.9
-- 适用于Arcaea 4.0.0版本 For Arcaea 4.0.0
-- 新增段位/课题模式 Add Dan/Course Mode.
-- 新搭档 **光(Fatalis)** 已解锁 Unlock the character **Hikari(Fatalis)**.
-- 新增对`光(Fatalis)`的技能的支持 Add support for the skill of `Hikari(Fatalis)`.
-- 新增对额外文件下载的支持 Add support for downloading additional files.
-- 新增对`结局挑战`的云端存档的支持 Add support for the cloud save of `finale challenge`.
-- 修复`Link Play`模式下当房主退出时，新房主没有立即显示的问题 Fix a bug that the other player will not become the host of the room at once, when the player disconnect in `Link Play`.
-- 修改了`Link Play`模式的一些时间常数 Change some constants of time in `Link Play` mode.
-- 重构一些代码，可能引入了新Bug Refactoring some codes and there may be more bugs.
-
-- 以下是累积更新 The following are cumulative updates:
-  - 修复一个`v2.8.5`版本引入的有关无法加好友的问题 Fix a bug of unable to add friend which arose in the `version 2.8.5`.
-  - 修复`Link Play`模式下重复计算歌曲完成状态的问题 Fix a bug of duplicate calculating finishing states when players finish playing the chart in `Link Play`.
-  
-> 注意：
-> - 不再提供歌曲数据
-> - 目前尽量不会对前端web页面增补功能
-> - `对立`不会死
-> 
-> Note: 
-> - No longer provide song data.
-> - Since now, probably not add functions to the front-end web pages.
-> - `Tairitsu` will not die.
-
+### Version 2.9.1
+- 适用于Arcaea 4.0.255版本 For Arcaea 4.0.255
+- 新搭档 **光&对立(Reunion)** 已解锁 Unlock the character **Hikari & Tairitsu(Reunion)**.
+- 修复角色数值问题 Fix a bug that the characters have wrong values.
+- 修复用户物品相关问题 Fix a bug about users' items.
 
 
 

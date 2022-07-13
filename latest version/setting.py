@@ -19,7 +19,7 @@ class Config():
     游戏API地址前缀
     Game API's URL prefix
     '''
-    GAME_API_PREFIX = '/divide/20'
+    GAME_API_PREFIX = '/join/21'
     '''
     --------------------
     '''
@@ -30,7 +30,7 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.12.6', '3.12.6c', '4.0.0', '4.0.0c']
+    ALLOW_APPVERSION = ['3.12.6', '3.12.6c', '4.0.255', '4.0.255c']
     '''
     --------------------
     '''

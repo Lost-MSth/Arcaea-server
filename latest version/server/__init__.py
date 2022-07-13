@@ -1,15 +1,8 @@
 from flask import Blueprint
 from setting import Config
-from . import user
-from . import auth
-from . import friend
-from . import score
-from . import world
-from . import purchase
-from . import present
-from . import others
-from . import multiplayer
-from . import course
+
+from . import (auth, course, friend, multiplayer, others, present, purchase,
+               score, user, world)
 
 bp = Blueprint('server', __name__, url_prefix=Config.GAME_API_PREFIX)
 bp.register_blueprint(user.bp)

@@ -39,7 +39,7 @@ class Constant:
     COURSE_STAMINA_COST = 4
 
     # Well, I can't say a word when I see this.
-    SHIT_DATA_OF_616 = [
+    FINALE_SWITCH = [
         (0x0015F0, 0x00B032), (0x014C9A, 0x014408), (0x062585, 0x02783B),
         (0x02429E, 0x0449A4), (0x099C9C,
                                0x07CFB4), (0x0785BF, 0x019B2C),
@@ -78,7 +78,9 @@ class Constant:
         (0x4B05EC, 0x97FDFE), (0x207258,
                                0x02BB9B), (0x20A9EE, 0x1BA4BB),
         (0x503D21, 0x6A41D0), (0x1C256C,
-                               0x6DD3BC), (0x6E4E0C, 0x89FDAA), (0x3C5F95, 0x3BA786)
+                               0x6DD3BC), (0x6E4E0C, 0x89FDAA), (0x3C5F95, 0x3BA786),
+        (0XFEA5, 0x2e4ca), (0X7BF653, 0x4befd11), (0X46BEA7B,
+                                                   0x11d3684), (0X8BFB04, 0xa83d6c1),
+        (0X5D6FC5, 0xab97ef), (0X237206D, 0xdfef2), (0XA3DEE,
+                                                     0x6CB300), (0XA35687B, 0xE456CDEA)
     ]
-    UNKNOWN_SHIT = [0XFEA5, 0X7BF653, 0X46BEA7B,
-                    0X8BFB04, 0X5D6FC5, 0X237206D, 0XA3DEE, 0XA35687B]
