@@ -227,8 +227,8 @@ class UserCharacter(Character):
              "skill_unlock_level": self.skill.skill_unlock_level,
              "skill_id": self.skill.skill_id,
              "overdrive": self.overdrive.get_value(self.level),
-             "prog": self.overdrive.get_value(self.level),
-             "frag": self.overdrive.get_value(self.level),
+             "prog": self.prog.get_value(self.level),
+             "frag": self.frag.get_value(self.level),
              "level_exp": self.level.level_exp,
              "exp": self.level.exp,
              "level": self.level.level,
@@ -238,7 +238,7 @@ class UserCharacter(Character):
         if self.voice:
             r['voice'] = self.voice
         if self.character_id == 55:
-            r['fatalis_is_limited'] = True  # emmmmmmm
+            r['fatalis_is_limited'] = False  # emmmmmmm
         if self.character_id in [1, 6, 7, 17, 18, 24, 32, 35, 52]:
             r['base_character_id'] = 1
         return r

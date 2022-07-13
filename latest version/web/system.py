@@ -174,6 +174,17 @@ def update_user_char(c):
                           (j[0], i[0], i[1], exp, i[2], 0))
 
 
+def update_user_epilogue(c):
+    c.execute('''select user_id from user''')
+    x = c.fetchall()
+    for i in x:
+        c.execute(
+            '''select exists(select * from user_item where user_id=? and item_id=? and type='pack')''', (i[0], 'epilogue'))
+        if c.fetchone() == (0,):
+            c.execute('''insert into user_item values(?,?,'pack',1)''',
+                      (i[0], 'epilogue'))
+
+
 def update_database():
     # 将old数据库不存在数据加入到新数据库上，并删除old数据库
     # 对于arcaea_datebase.db，更新一些表，并用character数据更新user_char_full
@@ -216,6 +227,7 @@ def update_database():
                     update_one_table(c1, c2, 'character')
 
                 update_user_char(c2)  # 更新user_char_full
+                update_user_epilogue(c2)  # 更新user的epilogue
 
         os.remove('database/old_arcaea_database.db')
 
