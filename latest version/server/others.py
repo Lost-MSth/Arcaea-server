@@ -10,7 +10,7 @@ from flask import Blueprint, jsonify, request
 from werkzeug.datastructures import ImmutableMultiDict
 
 from .auth import auth_required
-from .func import error_return, success_return
+from .func import arc_try, error_return, success_return
 from .present import present_info
 from .purchase import bundle_pack, bundle_bundle
 from .score import song_score_friend
@@ -27,21 +27,18 @@ def game_info():
 
 @bp.route('/serve/download/me/song', methods=['GET'])  # 歌曲下载
 @auth_required(request)
+@arc_try
 def download_song(user_id):
     with Connect() as c:
-        try:
-            x = DownloadList(c, UserOnline(c, user_id))
-            x.song_ids = request.args.getlist('sid')
-            x.url_flag = json.loads(request.args.get('url', 'true'))
-            x.clear_user_download()
-            if x.is_limited and x.url_flag:
-                raise ArcError('You have reached the download limit.', 903)
+        x = DownloadList(c, UserOnline(c, user_id))
+        x.song_ids = request.args.getlist('sid')
+        x.url_flag = json.loads(request.args.get('url', 'true'))
+        x.clear_user_download()
+        if x.is_limited and x.url_flag:
+            raise ArcError('You have reached the download limit.', 903)
 
-            x.add_songs()
-            return success_return(x.urls)
-        except ArcError as e:
-            return error_return(e)
-    return error_return()
+        x.add_songs()
+        return success_return(x.urls)
 
 
 @bp.route('/finale/progress', methods=['GET'])

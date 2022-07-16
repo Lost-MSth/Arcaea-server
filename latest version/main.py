@@ -4,6 +4,7 @@ import os
 import sys
 from logging.config import dictConfig
 from multiprocessing import Process, set_start_method
+from traceback import format_exc
 
 from flask import Flask, request, send_from_directory
 
@@ -59,6 +60,7 @@ def download(file_path):
                 x.insert_user_download()
                 return send_from_directory(Constant.SONG_FILE_FOLDER_PATH, file_path, as_attachment=True)
         except ArcError as e:
+            app.logger.warning(format_exc())
             return error_return(e)
     return error_return()
 
@@ -100,8 +102,8 @@ def main():
             }
         }
     }
-    if Config.ALLOW_LOG_INFO:
-        log_dict['root']['handlers'] = ['wsgi', 'info_file', 'error_file']
+    if Config.ALLOW_INFO_LOG:
+        log_dict['root']['handlers'].append('info_file')
         log_dict['handlers']['info_file'] = {
             "class": "logging.handlers.RotatingFileHandler",
             "maxBytes": 1024 * 1024,
@@ -110,6 +112,17 @@ def main():
             "level": "INFO",
             "formatter": "default",
             "filename": "./log/info.log"
+        }
+    if Config.ALLOW_WARNING_LOG:
+        log_dict['root']['handlers'].append('warning_file')
+        log_dict['handlers']['warning_file'] = {
+            "class": "logging.handlers.RotatingFileHandler",
+            "maxBytes": 1024 * 1024,
+            "backupCount": 1,
+            "encoding": "utf-8",
+            "level": "WARNING",
+            "formatter": "default",
+            "filename": "./log/warning.log"
         }
 
     dictConfig(log_dict)

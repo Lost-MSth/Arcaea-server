@@ -177,10 +177,12 @@ class UserCharacter(Character):
 
         x = self.c.fetchone()
         if not x:
-            raise NoData('The character of the user does not exist.')
-
-        self.is_uncapped = x[0] == 1
-        self.is_uncapped_override = x[1] == 1
+            self.is_uncapped = False
+            self.is_uncapped_override = False
+            # raise NoData('The character of the user does not exist.')
+        else:
+            self.is_uncapped = x[0] == 1
+            self.is_uncapped_override = x[1] == 1
 
     def select_character_info(self, user=None):
         # parameter: user - User类或子类的实例

@@ -98,10 +98,11 @@ class LocalMultiPlayer:
         if self.conn.poll(Constant.LINK_PLAY_TIMEOUT):
             self.data_recv = self.conn.recv()
             if self.data_recv[0] != 0:
-                raise ArcError('Link Play error.', self.data_recv[0])
+                raise ArcError('Link Play error.',
+                               self.data_recv[0], status=400)
         else:
             raise Timeout(
-                'Timeout when waiting for data from local udp server.')
+                'Timeout when waiting for data from local udp server.', status=400)
 
     def create_room(self, user: 'Player' = None) -> None:
         '''创建房间'''

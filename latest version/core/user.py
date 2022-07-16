@@ -450,6 +450,10 @@ class UserInfo(User):
             favorite_character_id = self.favorite_character.character_id
         else:
             favorite_character_id = -1
+
+        if self.character.character_id not in character_list:
+            self.character.character_id = 0
+
         return {
             "is_aprilfools": Config.IS_APRILFOOLS,
             "curr_available_maps": self.curr_available_maps_list,
@@ -477,7 +481,7 @@ class UserInfo(User):
             "world_songs": self.world_songs,
             "singles": self.singles,
             "packs": self.packs,
-            "characters": self.characters_list,
+            "characters": character_list,
             "cores": self.cores,
             "recent_score": self.recent_score_list,
             "max_friend": Constant.MAX_FRIEND_COUNT,

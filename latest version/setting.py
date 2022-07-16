@@ -186,7 +186,8 @@ class Config():
     是否记录详细的服务器日志
     If recording detailed server logs is enabled
     '''
-    ALLOW_LOG_INFO = False
+    ALLOW_INFO_LOG = False
+    ALLOW_WARNING_LOG = False
     '''
     --------------------
     '''

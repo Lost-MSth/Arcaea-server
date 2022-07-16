@@ -4,7 +4,7 @@ import traceback
 from flask import current_app
 
 from .constant import Constant
-from .error import InputError
+from .error import ArcError, InputError
 
 
 class Connect:
@@ -24,18 +24,22 @@ class Connect:
         return self.c
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+        flag = True
         if exc_type is not None:
-            if self.conn:
-                self.conn.rollback()
+            if issubclass(exc_type, ArcError):
+                flag = False
+            else:
+                if self.conn:
+                    self.conn.rollback()
 
-            current_app.logger.error(
-                traceback.format_exception(exc_type, exc_val, exc_tb))
+                current_app.logger.error(
+                    traceback.format_exception(exc_type, exc_val, exc_tb))
 
         if self.conn:
             self.conn.commit()
             self.conn.close()
 
-        return True
+        return flag
 
 
 class Query:
