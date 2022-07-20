@@ -4,7 +4,7 @@ import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
-ARCAEA_SERVER_VERSION = 'v2.9.1'
+ARCAEA_SERVER_VERSION = 'v2.9.1.dev'
 
 
 def main(path='./'):
@@ -324,7 +324,7 @@ def main(path='./'):
     difficulty int,
     flag_as_hidden int,
     song_index int,
-    primary key(course_id, song_id, difficulty)
+    primary key(course_id, song_index)
     );''')
     c.execute('''create table if not exists course_requirement(course_id text,
     required_id text,

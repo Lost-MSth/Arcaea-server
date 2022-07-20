@@ -82,16 +82,19 @@ def aggregate():
                 {key: value[0] for key, value in parse_qs(urlparse(endpoint).query).items()})
 
             resp_t = map_dict[urlparse(endpoint).path]()
+            if isinstance(resp_t, tuple):
+                # The response may be a tuple, if it is an error response
+                resp_t = resp_t[0]
 
             if hasattr(resp_t, "response"):
                 resp_t = resp_t.response[0].decode().rstrip('\n')
             resp = json.loads(resp_t)
 
             if hasattr(resp, 'get') and resp.get('success') is False:
-                finally_response = {'success': False, 'error_code': 7, 'extra': {
-                    "id": i['id'], 'error_code': resp.get('error_code')}}
+                finally_response = {'success': False, 'error_code': resp.get(
+                    'error_code'), 'id': i['id']}
                 if "extra" in resp:
-                    finally_response['extra']['extra'] = resp['extra']
+                    finally_response['extra'] = resp['extra']
                 #request = request_
                 return jsonify(finally_response)
 

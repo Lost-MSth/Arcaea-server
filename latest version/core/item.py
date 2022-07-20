@@ -382,7 +382,7 @@ class UserItemList:
         self.items: list = []
         for i in x:
             if len(i) > 1:
-                amount = i[1] if i[1] else 0
+                amount = i[1] if i[1] is not None else 1
             else:
                 amount = 1
             self.items.append(ItemFactory.from_dict(

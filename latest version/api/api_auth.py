@@ -16,7 +16,8 @@ def role_required(request, powers=[]):
         @wraps(view)
         def wrapped_view(*args, **kwargs):
             try:
-                request.json  # 检查请求json格式
+                if request.data:
+                    request.json  # 检查请求json格式
             except:
                 return error_return(PostError('Payload must be a valid json', api_error_code=-1), 400)
 

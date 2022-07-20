@@ -58,7 +58,7 @@ def download(file_path):
                 raise ArcError('You have reached the download limit.', 903)
             if x.is_valid:
                 x.insert_user_download()
-                return send_from_directory(Constant.SONG_FILE_FOLDER_PATH, file_path, as_attachment=True)
+                return send_from_directory(Constant.SONG_FILE_FOLDER_PATH, file_path, as_attachment=True, conditional=True)
         except ArcError as e:
             app.logger.warning(format_exc())
             return error_return(e)

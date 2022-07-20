@@ -6,7 +6,7 @@ from core.sql import Connect
 from flask import Blueprint, request
 
 from .api_auth import api_try, request_json_handle, role_required
-from .api_code import error_return, success_return
+from .api_code import success_return
 
 bp = Blueprint('token', __name__, url_prefix='/token')
 
@@ -22,9 +22,9 @@ def token_post(data):
     try:
         auth_decode = bytes.decode(b64decode(data['auth']))
     except:
-        return error_return(PostError(api_error_code=-100))
+        raise PostError(api_error_code=-100)
     if not ':' in auth_decode:
-        return error_return(PostError(api_error_code=-100))
+        raise PostError(api_error_code=-100)
     name, password = auth_decode.split(':', 1)
 
     with Connect() as c:
