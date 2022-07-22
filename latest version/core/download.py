@@ -1,5 +1,6 @@
 import os
 from functools import lru_cache
+from json import loads
 from time import time
 
 from .constant import Constant
@@ -23,6 +24,22 @@ def initialize_songfile():
     x.url_flag = False
     x.add_songs()
     del x
+
+
+@lru_cache()
+def get_only_3_song_ids():
+    '''初始化只能下载byd相关的歌曲id'''
+    if not os.path.isfile(Constant.SONGLIST_FILE_PATH):
+        return []
+    only_3_song_ids = []
+    data = []
+    with open(Constant.SONGLIST_FILE_PATH, 'r', encoding='utf-8') as f:
+        data = loads(f.read())['songs']
+    for x in data:
+        if 'remote_dl' not in x or 'remote_dl' in x and not x['remote_dl']:
+            if any(i['ratingClass'] == 3 for i in x['difficulties']):
+                only_3_song_ids.append(x['id'])
+    return only_3_song_ids
 
 
 class UserDownload:
@@ -137,6 +154,8 @@ class DownloadList(UserDownload):
         re = {}
         for i in dir_list:
             if os.path.isfile(os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg']:
+                if song_id in get_only_3_song_ids() and i not in ['3.aff', '3.ogg']:
+                    continue
                 x = UserDownload(self.c, self.user)
                 # self.downloads.append(x) # 这实际上没有用
                 x.song_id = song_id
