@@ -110,6 +110,8 @@ class SaveData:
         '''
             从Arcaea客户端给的奇怪字符串中获取存档数据，并进行数据校验
         '''
+        if not value:
+            return None
         if key not in self.__dict__:
             raise KeyError(
                 'Property `%s` is not found in the instance of `SaveData` class.' % key)
