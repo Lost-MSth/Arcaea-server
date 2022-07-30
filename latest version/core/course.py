@@ -213,7 +213,18 @@ class UserCourseList:
         self.courses: list = []
 
     def to_dict_list(self) -> list:
-        return [x.to_dict() for x in self.courses]
+        # 临时修复满足条件也无法解锁隐藏段位的问题
+        completed_course_id_list: list = []
+        r: list = []
+        for x in self.courses:
+            if x.is_completed:
+                completed_course_id_list.append(x.course_id)
+            r.append(x.to_dict())
+        for x in r:
+            for i in x['requirements']:
+                if i['value'] in completed_course_id_list:
+                    i['is_fullfilled'] = True
+        return r
 
     def select_all(self) -> None:
         self.c.execute('''select * from course''')
