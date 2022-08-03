@@ -1,8 +1,6 @@
-
-
 from .error import NoData
-from .song import Chart
 from .item import ItemFactory
+from .song import Chart
 
 
 class CourseChart(Chart):

@@ -222,6 +222,7 @@ class UserPlay(UserScore):
         else:
             r = {}
         r['user_rating'] = self.user.rating_ptt
+        r['finale_challenge_higher'] = self.rating > self.ptt.value
         r['global_rank'] = self.user.global_rank
         r['finale_play_value'] = 0  # emmmm
         return r

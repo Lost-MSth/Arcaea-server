@@ -51,7 +51,7 @@ class UserItem(Item):
                        (self.user.user_id, self.item_id, self.item_type))
         x = self.c.fetchone()
         if x:
-            self.amount = x[0] if x[0] else 1
+            self.amount = x[0] if x[0] is not None else 1
         else:
             self.amount = 0
 
