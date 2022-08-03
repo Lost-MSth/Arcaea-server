@@ -25,6 +25,7 @@ class Level:
         if exp >= Constant.LEVEL_STEPS[self.max_level]:
             self.exp = Constant.LEVEL_STEPS[self.max_level]
             self.level = self.max_level
+            return None
 
         a = []
         b = []

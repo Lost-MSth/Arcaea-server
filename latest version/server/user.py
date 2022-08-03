@@ -100,7 +100,7 @@ def character_exp(user_id, character_id):
         core.amount = - int(request.form['amount'])
         core.item_id = 'core_generic'
         character.upgrade_by_core(user, core)
-        return success_return({'user_id': user.user_id, 'character': [character.to_dict], 'cores': user.cores})
+        return success_return({'user_id': user.user_id, 'character': [character.to_dict()], 'cores': user.cores})
 
 
 @bp.route('/me/save', methods=['GET'])  # 从云端同步
