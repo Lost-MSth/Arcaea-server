@@ -63,6 +63,9 @@ def request_json_handle(request, required_keys=[], optional_keys=[]):
         def wrapped_view(*args, **kwargs):
 
             data = {}
+            if not request.data:
+                return view(data, *args, **kwargs)
+
             for key in required_keys:
                 if key not in request.json:
                     return error_return(PostError('Missing parameter: ' + key, api_error_code=-100))

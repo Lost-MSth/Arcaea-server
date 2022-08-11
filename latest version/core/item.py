@@ -248,7 +248,7 @@ class ProgBoost(UserItem):
             世界模式prog_boost\ 
             parameters: `user` - `UserOnline`类或子类的实例
         '''
-        user.update_user_one_column('prog_boost', 1)
+        user.update_user_one_column('prog_boost', 300)
 
 
 class Stamina6(UserItem):

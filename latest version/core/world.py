@@ -199,7 +199,7 @@ class UserMap(Map):
     @property
     def rewards_for_climbing(self) -> list:
         rewards = []
-        for i in range(self.prev_position, self.curr_position+1):
+        for i in range(self.prev_position+1, self.curr_position+1):
             step = self.steps[i]
             if step.items:
                 rewards.append(
@@ -209,7 +209,7 @@ class UserMap(Map):
 
     def rewards_for_climbing_to_dict(self) -> list:
         rewards = []
-        for i in range(self.prev_position, self.curr_position+1):
+        for i in range(self.prev_position+1, self.curr_position+1):
             step = self.steps[i]
             if step.items:
                 rewards.append(
