@@ -122,7 +122,7 @@ class RankList:
             'song_id': self.song.song_id, 'difficulty': self.song.difficulty, 'limit': sql_limit, 'offset': sql_offset})
         x = self.c.fetchall()
         if x:
-            rank = sql_offset
+            rank = sql_offset if sql_offset > 0 else 0
             self.list = []
             for i in x:
                 rank += 1
