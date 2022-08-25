@@ -21,6 +21,9 @@ class Constant:
 
     MAX_FRIEND_COUNT = 50
 
+    MY_RANK_MAX_LOCAL_POSITION = 5
+    MY_RANK_MAX_GLOBAL_POSITION = 9999
+
     # You can change this to make another PTT mechanism.
     BEST30_WEIGHT = 1 / 40
     RECENT10_WEIGHT = 1 / 40

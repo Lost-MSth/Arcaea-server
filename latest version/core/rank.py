@@ -70,10 +70,37 @@ class RankList:
             y.rank = rank
             self.list.append(y)
 
+    @staticmethod
+    def get_my_rank_parameter(my_rank: int, amount: int, all_limit: int = 20, max_local_position: int = Constant.MY_RANK_MAX_LOCAL_POSITION, max_global_position: int = Constant.MY_RANK_MAX_GLOBAL_POSITION):
+        '''
+            计算我的排名中的查询参数\ 
+            returns:
+            `sql_limit`: int - 查询limit参数
+            `sql_offset`: int - 查询offset参数
+            `need_myself`: bool - 是否需要在排名结尾添加自己
+        '''
+        sql_limit = all_limit
+        sql_offset = 0
+        need_myself = False
+
+        if my_rank <= max_local_position:  # 排名在前面，前方人数不足
+            pass
+        elif my_rank > max_global_position:  # 排名太后了，不显示排名
+            sql_limit -= 1
+            sql_offset = max_global_position - all_limit + 1
+            need_myself = True
+        elif amount - my_rank < all_limit - max_local_position:  # 后方人数不足，显示排名
+            sql_offset = amount - all_limit
+        elif my_rank >= max_local_position and my_rank <= max_global_position - all_limit + max_local_position - 1:  # 前方人数足够，显示排名
+            sql_offset = my_rank - max_local_position
+        else:  # 我已经忘了这是什么了
+            sql_offset = max_global_position - all_limit
+
+        return sql_limit, sql_offset, need_myself
+
     def select_me(self, user=None) -> None:
         '''
-            得到我的排名分数表\ 
-            尚不清楚这个函数有没有问题
+            得到我的排名分数表
         '''
         if user:
             self.user = user
@@ -85,73 +112,28 @@ class RankList:
 
         self.c.execute('''select count(*) from best_score where song_id = :song_id and difficulty = :difficulty and ( score > :score or (score = :score and time_played > :time_played) )''', {
             'user_id': self.user.user_id, 'song_id': self.song.song_id, 'difficulty': self.song.difficulty, 'score': x[0], 'time_played': x[1]})
-        x = self.c.fetchone()
-        myrank = int(x[0]) + 1
+        my_rank = int(self.c.fetchone()[0]) + 1
         self.c.execute('''select count(*) from best_score where song_id=:a and difficulty=:b''',
                        {'a': self.song.song_id, 'b': self.song.difficulty})
-        amount = int(self.c.fetchone()[0])
 
-        if myrank <= 4:  # 排名在前4
-            self.select_top()
-        elif myrank >= 5 and myrank <= 9999 - self.limit + 4 and amount >= 10000:  # 万名内，前面有4个人
-            self.c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
-                'song_id': self.song.song_id, 'difficulty': self.song.difficulty, 'limit': self.limit, 'offset': myrank - 5})
-            x = self.c.fetchall()
-            if x:
-                rank = myrank - 5
-                self.list = []
-                for i in x:
-                    rank += 1
-                    y = UserScore(self.c, UserInfo(self.c, i[0]))
-                    y.song = self.song
-                    y.select_score()
-                    y.rank = rank
-                    self.list.append(y)
-
-        elif myrank >= 10000:  # 万名外
-            self.c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
-                'song_id': self.song.song_id, 'difficulty': self.song.difficulty, 'limit': self.limit - 1, 'offset': 9999-self.limit})
-            x = self.c.fetchall()
-            if x:
-                rank = 9999 - self.limit
-                for i in x:
-                    rank += 1
-                    y = UserScore(self.c, UserInfo(self.c, i[0]))
-                    y.song = self.song
-                    y.select_score()
-                    y.rank = rank
-                    self.list.append(y)
+        sql_limit, sql_offset, need_myself = self.get_my_rank_parameter(
+            my_rank, int(self.c.fetchone()[0]), self.limit)
+        self.c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
+            'song_id': self.song.song_id, 'difficulty': self.song.difficulty, 'limit': sql_limit, 'offset': sql_offset})
+        x = self.c.fetchall()
+        if x:
+            rank = sql_offset
+            self.list = []
+            for i in x:
+                rank += 1
+                y = UserScore(self.c, UserInfo(self.c, i[0]))
+                y.song = self.song
+                y.select_score()
+                y.rank = rank
+                self.list.append(y)
+            if need_myself:
                 y = UserScore(self.c, UserInfo(self.c, self.user.user_id))
                 y.song = self.song
+                y.select_score()
                 y.rank = -1
                 self.list.append(y)
-
-        elif amount - myrank < self.limit - 5:  # 后方人数不足
-            self.c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
-                'song_id': self.song.song_id, 'difficulty': self.song.difficulty, 'limit': self.limit, 'offset': amount - self.limit})
-            x = self.c.fetchall()
-            if x:
-                rank = amount - self.limit
-                if rank < 0:
-                    rank = 0
-                for i in x:
-                    rank += 1
-                    y = UserScore(self.c, UserInfo(self.c, i[0]))
-                    y.song = self.song
-                    y.select_score()
-                    y.rank = rank
-                    self.list.append(y)
-
-        else:
-            self.c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
-                'song_id': self.song.song_id, 'difficulty': self.song.difficulty, 'limit': self.limit, 'offset': 9998-self.limit})
-            x = self.c.fetchall()
-            if x:
-                rank = 9998 - self.limit
-                for i in x:
-                    rank += 1
-                    y = UserScore(self.c, UserInfo(self.c, i[0]))
-                    y.song = self.song
-                    y.select_score()
-                    y.rank = rank
-                    self.list.append(y)
