@@ -55,7 +55,6 @@ class UserDownload:
         self.song_id: str = None
         self.file_name: str = None
 
-        self.file_path: str = None
         self.token: str = None
         self.token_time: int = None
 
@@ -66,6 +65,8 @@ class UserDownload:
     @property
     def is_limited(self) -> bool:
         '''是否达到用户最大下载量'''
+        if self.user is None:
+            self.select_for_check()
         self.c.execute(
             '''select count(*) from user_download where user_id = :a''', {'a': self.user.user_id})
         y = self.c.fetchone()
@@ -74,27 +75,26 @@ class UserDownload:
     @property
     def is_valid(self) -> bool:
         '''链接是否有效且未过期'''
-        return int(time()) - self.token_time <= Constant.DOWNLOAD_TIME_GAP_LIMIT and self.song_id+'/'+self.file_name == self.file_path
+        if self.token_time is None:
+            self.select_for_check()
+        return int(time()) - self.token_time <= Constant.DOWNLOAD_TIME_GAP_LIMIT
 
     def insert_user_download(self) -> None:
         '''记录下载信息'''
         self.c.execute('''insert into user_download values(:a,:b,:c)''', {
-                       'a': self.user.user_id, 'b': self.token, 'c': int(time())})
+                       'a': self.user.user_id, 'c': self.token, 'b': int(time())})
 
-    def select_from_token(self, token: str = None) -> None:
-        if token is not None:
-            self.token = token
-        self.c.execute('''select * from download_token where token = :t limit 1''',
-                       {'t': self.token})
+    def select_for_check(self) -> None:
+        '''利用token、song_id、file_name查询其它信息'''
+        self.c.execute('''select user_id, time from download_token where song_id=? and file_name=? and token = ? limit 1;''',
+                       (self.song_id, self.file_name, self.token))
 
         x = self.c.fetchone()
         if not x:
             raise NoAccess('The token `%s` is not valid.' % self.token)
         self.user = User()
         self.user.user_id = x[0]
-        self.song_id = x[1]
-        self.file_name = x[2]
-        self.token_time = x[4]
+        self.token_time = x[1]
 
     def generate_token(self) -> None:
         self.token_time = int(time())

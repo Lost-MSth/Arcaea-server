@@ -4,7 +4,7 @@ import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
-ARCAEA_SERVER_VERSION = 'v2.9.1.1'
+ARCAEA_SERVER_VERSION = 'v2.9.1.3'
 
 
 def main(path='./'):
@@ -208,9 +208,9 @@ def main(path='./'):
     primary key(user_id, song_id, file_name)
     );''')
     c.execute('''create table if not exists user_download(user_id int,
-    token text,
     time int,
-    primary key(user_id, token, time)
+    token text,
+    primary key(user_id, time, token)
     );''')
     c.execute('''create table if not exists item(item_id text,
     type text,
@@ -336,6 +336,11 @@ def main(path='./'):
     amount int,
     primary key(course_id, item_id, type)
     );''')
+
+    c.execute(
+        '''create index best_score_1 on best_score (song_id, difficulty);''')  # 排名查询优化
+    c.execute(
+        '''create index download_token_1 on download_token (song_id, file_name);''')  # 下载token判断优化
 
     # 搭档初始化
     char = ['hikari', 'tairitsu', 'kou', 'sapphire', 'lethe', 'hikari&tairitsu(reunion)', 'Tairitsu(Axium)', 'Tairitsu(Grievous Lady)', 'stella', 'Hikari & Fisica', 'ilith', 'eto', 'luna', 'shirabe', 'Hikari(Zero)', 'Hikari(Fracture)', 'Hikari(Summer)', 'Tairitsu(Summer)', 'Tairitsu & Trin',

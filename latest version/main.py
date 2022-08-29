@@ -52,15 +52,17 @@ def download(file_path):
     with Connect() as c:
         try:
             x = UserDownload(c)
-            x.file_path = file_path
-            x.select_from_token(request.args.get('t'))
+            x.token = request.args.get('t')
+            x.song_id, x.file_name = file_path.split('/', 1)
+            x.select_for_check()
             if x.is_limited:
                 raise ArcError('You have reached the download limit.', 903)
             if x.is_valid:
                 x.insert_user_download()
                 return send_from_directory(Constant.SONG_FILE_FOLDER_PATH, file_path, as_attachment=True, conditional=True)
         except ArcError as e:
-            app.logger.warning(format_exc())
+            if Config.ALLOW_WARNING_LOG:
+                app.logger.warning(format_exc())
             return error_return(e)
     return error_return()
 
