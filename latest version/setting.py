@@ -30,29 +30,27 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.12.6', '3.12.6c', '4.0.256', '4.0.256c', '4.0.255', '4.0.255c']
+    ALLOW_APPVERSION = ['3.12.6', '3.12.6c',
+                        '4.0.256', '4.0.256c', '4.0.255', '4.0.255c']
     '''
     --------------------
     '''
 
     '''
     --------------------
-    联机功能的端口号，若为空，则默认不开启联机功能
-    Port of your link play server
-    If it is blank, link play will be unavailable.
+    联机功能相关设置，请确保与Link Play服务器端的设置一致
+    Setting of your link play server
+    Please ensure that the settings on the side of Link Play server are consistent.
     '''
-    UDP_PORT = '10900'
-    '''
-    --------------------
-    '''
-
-    '''
-    --------------------
-    联机功能地址，留空则自动获取
-    Link Play address
-    If left blank, it will be obtained automatically.
-    '''
-    LINK_PLAY_HOST = ''  # ***.com
+    # SET_LINK_PLAY_SERVER_AS_SUB_PROCESS: If it is `True`, the link play server will run with the main server locally at the same time.
+    SET_LINK_PLAY_SERVER_AS_SUB_PROCESS = True
+    # LINK_PLAY_HOST: If it is blank, the link play feature will be disabled.
+    LINK_PLAY_HOST = '0.0.0.0'
+    LINK_PLAY_UDP_PORT = 10900
+    LINK_PLAY_TCP_PORT = 10901
+    LINK_PLAY_AUTHENTICATION = 'my_link_play_server'
+    # LINK_PLAY_DISPLAY_HOST: If it is blank, the host of link play server for the client will be obtained automatically.
+    LINK_PLAY_DISPLAY_HOST = ''
     '''
     --------------------
     '''

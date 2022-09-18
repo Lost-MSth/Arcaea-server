@@ -142,13 +142,15 @@ def main():
     except:
         app.logger.warning('Initialization error!')
 
-    if Config.UDP_PORT and Config.UDP_PORT != '':
-        from server.multiplayer import conn2
-        from udpserver.udp_main import link_play
+    if Config.LINK_PLAY_HOST and Config.SET_LINK_PLAY_SERVER_AS_SUB_PROCESS:
+        from linkplay_server import link_play
         process = [Process(target=link_play, args=(
-            conn2, Config.HOST, int(Config.UDP_PORT)))]
+            Config.LINK_PLAY_HOST, int(Config.LINK_PLAY_UDP_PORT), int(Config.LINK_PLAY_TCP_PORT)))]
         [p.start() for p in process]
-        app.logger.info("UDP server is running...")
+        app.logger.info("Link Play UDP server is running on " +
+                        Config.LINK_PLAY_HOST + ':' + str(Config.LINK_PLAY_UDP_PORT) + " ...")
+        app.logger.info("Link Play TCP server is running on " +
+                        Config.LINK_PLAY_HOST + ':' + str(Config.LINK_PLAY_TCP_PORT) + " ...")
         tcp_server_run()
         [p.join() for p in process]
     else:

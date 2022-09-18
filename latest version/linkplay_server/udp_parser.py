@@ -1,7 +1,7 @@
 import time
 
 from .udp_class import Room, bi
-from .udp_config import Config
+from .config import Config
 from .udp_sender import CommandSender
 
 
@@ -311,7 +311,7 @@ class CommandParser:
         self.room.command_queue_length += 1
         self.room.command_queue.append(x.command_12(self.player_index))
 
-        if self.room.state == 3:
+        if self.room.state == 3 or self.room.state == 2:
             self.room.state = 1
             self.room.song_idx = 0xffff
         # self.room.command_queue_length += 1
