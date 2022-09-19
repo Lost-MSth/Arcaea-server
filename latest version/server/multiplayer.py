@@ -14,7 +14,7 @@ bp = Blueprint('multiplayer', __name__, url_prefix='/multiplayer')
 @auth_required(request)
 @arc_try
 def room_create(user_id):
-    if not Config.LINK_PLAY_HOST:
+    if not Config.LINKPLAY_HOST:
         raise ArcError('The link play server is unavailable.', 151, status=404)
 
     with Connect() as c:
@@ -24,8 +24,8 @@ def room_create(user_id):
         x.create_room(user)
         r = x.to_dict()
         r['endPoint'] = request.host.split(
-            ':')[0] if Config.LINK_PLAY_DISPLAY_HOST == '' else Config.LINK_PLAY_DISPLAY_HOST
-        r['port'] = int(Config.LINK_PLAY_UDP_PORT)
+            ':')[0] if Config.LINKPLAY_DISPLAY_HOST == '' else Config.LINKPLAY_DISPLAY_HOST
+        r['port'] = int(Config.LINKPLAY_UDP_PORT)
         return success_return(r)
 
 
@@ -33,7 +33,7 @@ def room_create(user_id):
 @auth_required(request)
 @arc_try
 def room_join(user_id, room_code):
-    if not Config.LINK_PLAY_HOST:
+    if not Config.LINKPLAY_HOST:
         raise ArcError('The link play server is unavailable.', 151, status=404)
 
     with Connect() as c:
@@ -45,8 +45,8 @@ def room_join(user_id, room_code):
         x.join_room(room, user)
         r = x.to_dict()
         r['endPoint'] = request.host.split(
-            ':')[0] if Config.LINK_PLAY_DISPLAY_HOST == '' else Config.LINK_PLAY_DISPLAY_HOST
-        r['port'] = int(Config.LINK_PLAY_UDP_PORT)
+            ':')[0] if Config.LINKPLAY_DISPLAY_HOST == '' else Config.LINKPLAY_DISPLAY_HOST
+        r['port'] = int(Config.LINKPLAY_UDP_PORT)
         return success_return(r)
 
 
@@ -54,7 +54,7 @@ def room_join(user_id, room_code):
 @auth_required(request)
 @arc_try
 def multiplayer_update(user_id):
-    if not Config.LINK_PLAY_HOST:
+    if not Config.LINKPLAY_HOST:
         raise ArcError('The link play server is unavailable.', 151, status=404)
 
     with Connect() as c:
@@ -64,6 +64,6 @@ def multiplayer_update(user_id):
         x.update_room(user)
         r = x.to_dict()
         r['endPoint'] = request.host.split(
-            ':')[0] if Config.LINK_PLAY_DISPLAY_HOST == '' else Config.LINK_PLAY_DISPLAY_HOST
-        r['port'] = int(Config.LINK_PLAY_UDP_PORT)
+            ':')[0] if Config.LINKPLAY_DISPLAY_HOST == '' else Config.LINKPLAY_DISPLAY_HOST
+        r['port'] = int(Config.LINKPLAY_UDP_PORT)
         return success_return(r)

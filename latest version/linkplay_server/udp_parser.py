@@ -230,6 +230,9 @@ class CommandParser:
                 self.room.countdown = Config.COUNTDOWM_TIME
                 self.room.timestamp = round(time.time() * 1000)
                 self.room.state = 4
+                if self.room.round_switch == 1:
+                    # 将换房主时间提前到此刻
+                    self.room.make_round()
 
             if self.room.state == 4 or self.room.state == 5 or self.room.state == 6:
                 timestamp = round(time.time() * 1000)
@@ -279,8 +282,6 @@ class CommandParser:
                     flag_13 = True
                     self.room.state = 1
                     self.room.song_idx = 0xffff
-                    if self.room.round_switch == 1:
-                        self.room.make_round()
 
                     for i in self.room.players:
                         i.timer = 0

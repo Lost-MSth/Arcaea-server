@@ -6,14 +6,14 @@ from core.error import ArcError, Timeout
 from .constant import Constant
 from .user import UserInfo
 
-socket.setdefaulttimeout(Constant.LINK_PLAY_TIMEOUT)
+socket.setdefaulttimeout(Constant.LINKPLAY_TIMEOUT)
 
 
 def get_song_unlock(client_song_map: dict) -> bytes:
     '''处理可用歌曲bit，返回bytes'''
 
-    user_song_unlock = [0] * Constant.LINK_PLAY_UNLOCK_LENGTH
-    for i in range(0, Constant.LINK_PLAY_UNLOCK_LENGTH*2, 2):
+    user_song_unlock = [0] * Constant.LINKPLAY_UNLOCK_LENGTH
+    for i in range(0, Constant.LINKPLAY_UNLOCK_LENGTH*2, 2):
         x = 0
         y = 0
         if str(i) in client_song_map:
@@ -98,8 +98,8 @@ class RemoteMultiPlayer:
     @staticmethod
     def tcp(data: str) -> str:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            sock.connect((Constant.LINK_PLAY_HOST,
-                          Constant.LINK_PLAY_TCP_PORT))
+            sock.connect((Constant.LINKPLAY_HOST,
+                          Constant.LINKPLAY_TCP_PORT))
             sock.sendall(bytes(data + "\n", "utf-8"))
             try:
                 received = str(sock.recv(1024), "utf-8").strip()
@@ -111,7 +111,7 @@ class RemoteMultiPlayer:
 
     def data_swap(self, data: tuple) -> tuple:
 
-        received = self.tcp(Constant.LINK_PLAY_AUTHENTICATION +
+        received = self.tcp(Constant.LINKPLAY_AUTHENTICATION +
                             '|' + '|'.join([str(x) for x in data]))
 
         self.data_recv = received.split('|')

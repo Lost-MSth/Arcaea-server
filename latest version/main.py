@@ -142,15 +142,15 @@ def main():
     except:
         app.logger.warning('Initialization error!')
 
-    if Config.LINK_PLAY_HOST and Config.SET_LINK_PLAY_SERVER_AS_SUB_PROCESS:
+    if Config.LINKPLAY_HOST and Config.SET_LINKPLAY_SERVER_AS_SUB_PROCESS:
         from linkplay_server import link_play
         process = [Process(target=link_play, args=(
-            Config.LINK_PLAY_HOST, int(Config.LINK_PLAY_UDP_PORT), int(Config.LINK_PLAY_TCP_PORT)))]
+            Config.LINKPLAY_HOST, int(Config.LINKPLAY_UDP_PORT), int(Config.LINKPLAY_TCP_PORT)))]
         [p.start() for p in process]
         app.logger.info("Link Play UDP server is running on " +
-                        Config.LINK_PLAY_HOST + ':' + str(Config.LINK_PLAY_UDP_PORT) + " ...")
+                        Config.LINKPLAY_HOST + ':' + str(Config.LINKPLAY_UDP_PORT) + " ...")
         app.logger.info("Link Play TCP server is running on " +
-                        Config.LINK_PLAY_HOST + ':' + str(Config.LINK_PLAY_TCP_PORT) + " ...")
+                        Config.LINKPLAY_HOST + ':' + str(Config.LINKPLAY_TCP_PORT) + " ...")
         tcp_server_run()
         [p.join() for p in process]
     else:

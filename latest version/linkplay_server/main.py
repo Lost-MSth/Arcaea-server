@@ -1,4 +1,5 @@
 import base64
+import logging
 import random
 import socketserver
 import threading
@@ -18,6 +19,9 @@ room_code_dict = {}  # 'room_code': Room
 player_dict = {}  # 'player_id' : Player
 clean_timer = 0
 lock = threading.RLock()
+
+logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+                    level=logging.INFO)
 
 
 def random_room_code():
@@ -102,7 +106,7 @@ class UDP_handler(socketserver.BaseRequestHandler):
 
             plaintext = decrypt(user['key'], b'', iv, ciphertext, tag)
         except Exception as e:
-            print(e)
+            logging.error(e)
             return None
         # print(binascii.b2a_hex(plaintext))
 
@@ -135,11 +139,14 @@ class TCP_handler(socketserver.StreamRequestHandler):
         data = message.split('|')
         if data[0] != Config.AUTHENTICATION:
             self.wfile.write(b'No authentication')
+            logging.warning('TCP-%s-No authentication' %
+                            self.client_address[0])
             return None
 
         global clean_timer
         now = round(time.time() * 1000)
         if now - clean_timer >= Config.TIME_LIMIT:
+            logging.info('Start cleaning memory...')
             clean_timer = now
             memory_clean(now)
 
@@ -186,6 +193,7 @@ def data_swap(data: list) -> str:
                                  'player_index': 0,
                                  'player_id': player_id}
 
+        logging.info('TCP-Create room `%s` by player `%s`' % (room_code, name))
         return '|'.join([str(x) for x in (0, room_code, room_id, token, base64.b64encode(key).decode('utf-8'), player_id)])
 
     elif data[0] == '2':
@@ -230,6 +238,7 @@ def data_swap(data: list) -> str:
                                  'player_index': player_index,
                                  'player_id': player_id}
 
+        logging.info('TCP-Player `%s` joins room `%s`' % (name, room_code))
         return '|'.join([str(x) for x in (0, room_code, room.room_id, token, base64.b64encode(key).decode('utf-8'), player_id, base64.b64encode(room.song_unlock).decode('utf-8'))])
 
     elif data[0] == '3':
@@ -238,6 +247,7 @@ def data_swap(data: list) -> str:
         token = int(data[1])
         if token in link_play_data:
             r = link_play_data[token]
+            logging.info('TCP-Room `%s` info update' % room_code)
             return '|'.join([str(x) for x in (0, r['room'].room_code, r['room'].room_id, base64.b64encode(r['key']).decode('utf-8'), r['room'].players[r['player_index']].player_id, base64.b64encode(r['room'].song_unlock).decode('utf-8'))])
         else:
             return '108'

@@ -1,6 +1,3 @@
-from telnetlib import AUTHENTICATION
-
-
 class Config:
     '''
         Link Play server configuration
