@@ -62,14 +62,16 @@ def download(file_path):
             x.song_id, x.file_name = file_path.split('/', 1)
             x.select_for_check()
             if x.is_limited:
-                raise ArcError('You have reached the download limit.', 903)
-            if x.is_valid:
-                x.insert_user_download()
-                # response = make_response()
-                # response.headers['Content-Type'] = 'application/octet-stream'
-                # response.headers['X-Accel-Redirect'] = '/nginx_download/' + file_path
-                # return response
-                return send_from_directory(Constant.SONG_FILE_FOLDER_PATH, file_path, as_attachment=True, conditional=True)
+                raise ArcError(
+                    'You have reached the download limit.', 903, status=403)
+            if not x.is_valid:
+                raise ArcError('Expired token.', status=403)
+            x.insert_user_download()
+            # response = make_response()
+            # response.headers['Content-Type'] = 'application/octet-stream'
+            # response.headers['X-Accel-Redirect'] = '/nginx_download/' + file_path
+            # return response
+            return send_from_directory(Constant.SONG_FILE_FOLDER_PATH, file_path, as_attachment=True, conditional=True)
         except ArcError as e:
             if Config.ALLOW_WARNING_LOG:
                 app.logger.warning(format_exc())

@@ -93,7 +93,7 @@ class UserDownload:
 
         x = self.c.fetchone()
         if not x:
-            raise NoAccess('The token `%s` is not valid.' % self.token)
+            raise NoAccess('The token `%s` is not valid.' % self.token, status=403)
         self.user = User()
         self.user.user_id = x[0]
         self.token_time = x[1]
