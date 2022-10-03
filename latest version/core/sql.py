@@ -19,7 +19,7 @@ class Connect:
         self.file_path = file_path
 
     def __enter__(self):
-        self.conn = sqlite3.connect(self.file_path)
+        self.conn = sqlite3.connect(self.file_path, timeout=10)
         self.c = self.conn.cursor()
         return self.c
 

@@ -3,6 +3,8 @@ from functools import lru_cache
 from json import loads
 from time import time
 
+from flask import url_for
+
 from .constant import Constant
 from .error import NoAccess
 from .user import User
@@ -118,7 +120,6 @@ class UserDownload:
                 prefix += '/'
             return prefix + self.song_id + '/' + self.file_name + '?t=' + self.token
         else:
-            from flask import url_for
             return url_for('download', file_path=self.song_id + '/' + self.file_name, t=self.token, _external=True)
 
     @property

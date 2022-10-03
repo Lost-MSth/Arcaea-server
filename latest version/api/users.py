@@ -90,6 +90,7 @@ def users_user_b30_get(user, user_id):
         x = UserScoreList(c, UserInfo(c, user_id))
         x.query.limit = 30
         x.select_from_user()
+        x.select_song_name()
         r = x.to_dict_list()
         rating_sum = sum([i.rating for i in x.scores])
         return success_return({'user_id': user_id, 'b30_ptt': rating_sum / 30, 'data': r})

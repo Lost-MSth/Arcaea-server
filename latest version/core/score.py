@@ -128,7 +128,7 @@ class Score:
         return self.rating
 
     def to_dict(self) -> dict:
-        return {
+        r = {
             "rating": self.rating,
             "modifier": self.modifier,
             "time_played": self.time_played,
@@ -142,6 +142,9 @@ class Score:
             "difficulty": self.song.difficulty,
             "song_id": self.song.song_id
         }
+        if self.song.song_name is not None:
+            r["song_name"] = self.song.song_name
+        return r
 
 
 class UserScore(Score):
@@ -569,3 +572,12 @@ class UserScoreList:
         x = Sql(self.c).select('best_score', query=self.query)
 
         self.scores = [UserScore(self.c, self.user).from_list(i) for i in x]
+
+    def select_song_name(self) -> None:
+        '''为所有成绩中的song_id查询song_name'''
+        if self.scores is None:
+            return
+        for score in self.scores:
+            self.c.execute(
+                '''select name from chart where song_id = ?''', (score.song.song_id,))
+            score.song.song_name = self.c.fetchone()[0]

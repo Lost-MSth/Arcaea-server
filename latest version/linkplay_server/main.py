@@ -65,30 +65,27 @@ def clear_room(room):
 
 def memory_clean(now):
     # 内存清理
-    lock.acquire()
+    with lock:
+        clean_room_list = []
+        clean_player_list = []
+        for token in link_play_data:
+            room = link_play_data[token]['room']
+            if now - room.timestamp >= Config.TIME_LIMIT:
+                clean_room_list.append(room.room_id)
 
-    clean_room_list = []
-    clean_player_list = []
-    for token in link_play_data:
-        room = link_play_data[token]['room']
-        if now - room.timestamp >= Config.TIME_LIMIT:
-            clean_room_list.append(room.room_id)
+            if now - room.players[link_play_data[token]['player_index']].last_timestamp // 1000 >= Config.TIME_LIMIT:
+                clean_player_list.append(token)
 
-        if now - room.players[link_play_data[token]['player_index']].last_timestamp // 1000 >= Config.TIME_LIMIT:
-            clean_player_list.append(token)
+        for room_id in room_id_dict:
+            if now - room_id_dict[room_id].timestamp >= Config.TIME_LIMIT:
+                clean_room_list.append(room_id)
 
-    for room_id in room_id_dict:
-        if now - room_id_dict[room_id].timestamp >= Config.TIME_LIMIT:
-            clean_room_list.append(room_id)
+        for room_id in clean_room_list:
+            if room_id in room_id_dict:
+                clear_room(room_id_dict[room_id])
 
-    for room_id in clean_room_list:
-        if room_id in room_id_dict:
-            clear_room(room_id_dict[room_id])
-
-    for token in clean_player_list:
-        clear_player(token)
-
-    lock.release()
+        for token in clean_player_list:
+            clear_player(token)
 
 
 class UDP_handler(socketserver.BaseRequestHandler):
@@ -163,35 +160,37 @@ def data_swap(data: list) -> str:
         song_unlock = base64.b64decode(data[2])
 
         key = urandom(16)
-        room_id = unique_random(room_id_dict)
+        with lock:
+            room_id = unique_random(room_id_dict)
 
-        room = Room()
-        room.room_id = room_id
-        room_id_dict[room_id] = room
+            room = Room()
+            room.room_id = room_id
+            room_id_dict[room_id] = room
 
-        player_id = unique_random(player_dict, 3)
-        player = Player()
-        player.player_id = player_id
-        player.set_player_name(name)
-        player_dict[player_id] = player
+            player_id = unique_random(player_dict, 3)
+            player = Player()
+            player.player_id = player_id
+            player.set_player_name(name)
+            player_dict[player_id] = player
 
-        player.song_unlock = song_unlock
-        room.song_unlock = song_unlock
-        room.host_id = player_id
-        room.players[0] = player
-        room.player_num = 1
+            player.song_unlock = song_unlock
+            room.song_unlock = song_unlock
+            room.host_id = player_id
+            room.players[0] = player
+            room.player_num = 1
 
-        room_code = unique_random(room_code_dict, random_func=random_room_code)
-        room.room_code = room_code
-        room_code_dict[room_code] = room
+            room_code = unique_random(
+                room_code_dict, random_func=random_room_code)
+            room.room_code = room_code
+            room_code_dict[room_code] = room
 
-        token = room_id
-        player.token = token
+            token = room_id
+            player.token = token
 
-        link_play_data[token] = {'key': key,
-                                 'room': room,
-                                 'player_index': 0,
-                                 'player_id': player_id}
+            link_play_data[token] = {'key': key,
+                                     'room': room,
+                                     'player_index': 0,
+                                     'player_id': player_id}
 
         logging.info('TCP-Create room `%s` by player `%s`' % (room_code, name))
         return '|'.join([str(x) for x in (0, room_code, room_id, token, base64.b64encode(key).decode('utf-8'), player_id)])
@@ -201,42 +200,43 @@ def data_swap(data: list) -> str:
         # data = ['2', name, song_unlock, room_code]
         # song_unlock: base64 str
         room_code = data[3].upper()
+        with lock:
+            if room_code not in room_code_dict:
+                # 房间号错误
+                return '1202'
+            room = room_code_dict[room_code]
 
-        if room_code not in room_code_dict:
-            # 房间号错误
-            return '1202'
-
-        room = room_code_dict[room_code]
-        if room.player_num == 4:
-            # 满人
-            return '1201'
-        elif room.state != 2:
-            # 无法加入
-            return '1205'
+            if room.player_num == 4:
+                # 满人
+                return '1201'
+            elif room.state != 2:
+                # 无法加入
+                return '1205'
 
         name = data[1]
         song_unlock = base64.b64decode(data[2])
 
         key = urandom(16)
-        token = unique_random(link_play_data)
-        player_id = unique_random(player_dict, 3)
+        with lock:
+            token = unique_random(link_play_data)
+            player_id = unique_random(player_dict, 3)
 
-        player = Player()
-        player.player_id = player_id
-        player.set_player_name(name)
-        player.token = token
-        player_dict[player_id] = player
-        player.song_unlock = song_unlock
-        room.update_song_unlock()
-        for i in range(4):
-            if room.players[i].player_id == 0:
-                room.players[i] = player
-                player_index = i
-                break
-        link_play_data[token] = {'key': key,
-                                 'room': room,
-                                 'player_index': player_index,
-                                 'player_id': player_id}
+            player = Player()
+            player.player_id = player_id
+            player.set_player_name(name)
+            player.token = token
+            player_dict[player_id] = player
+            player.song_unlock = song_unlock
+            room.update_song_unlock()
+            for i in range(4):
+                if room.players[i].player_id == 0:
+                    room.players[i] = player
+                    player_index = i
+                    break
+            link_play_data[token] = {'key': key,
+                                     'room': room,
+                                     'player_index': player_index,
+                                     'player_id': player_id}
 
         logging.info('TCP-Player `%s` joins room `%s`' % (name, room_code))
         return '|'.join([str(x) for x in (0, room_code, room.room_id, token, base64.b64encode(key).decode('utf-8'), player_id, base64.b64encode(room.song_unlock).decode('utf-8'))])
@@ -245,12 +245,13 @@ def data_swap(data: list) -> str:
         # 房间信息更新
         # data = ['3', token]
         token = int(data[1])
-        if token in link_play_data:
-            r = link_play_data[token]
-            logging.info('TCP-Room `%s` info update' % room_code)
-            return '|'.join([str(x) for x in (0, r['room'].room_code, r['room'].room_id, base64.b64encode(r['key']).decode('utf-8'), r['room'].players[r['player_index']].player_id, base64.b64encode(r['room'].song_unlock).decode('utf-8'))])
-        else:
-            return '108'
+        with lock:
+            if token in link_play_data:
+                r = link_play_data[token]
+                logging.info('TCP-Room `%s` info update' % room_code)
+                return '|'.join([str(x) for x in (0, r['room'].room_code, r['room'].room_id, base64.b64encode(r['key']).decode('utf-8'), r['room'].players[r['player_index']].player_id, base64.b64encode(r['room'].song_unlock).decode('utf-8'))])
+            else:
+                return '108'
 
 
 def link_play(ip: str = Config.HOST, udp_port: int = Config.UDP_PORT, tcp_port: int = Config.TCP_PORT):
