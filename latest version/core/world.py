@@ -158,17 +158,17 @@ class Map:
         self.is_legacy = raw_dict.get('is_legacy')
         self.is_beyond = raw_dict.get('is_beyond')
         self.beyond_health = raw_dict.get('beyond_health')
-        self.character_affinity = raw_dict.get('character_affinity')
-        self.affinity_multiplier = raw_dict.get('affinity_multiplier')
+        self.character_affinity = raw_dict.get('character_affinity', [])
+        self.affinity_multiplier = raw_dict.get('affinity_multiplier', [])
         self.chapter = raw_dict.get('chapter')
-        self.available_from = raw_dict.get('available_from')
-        self.available_to = raw_dict.get('available_to')
+        self.available_from = raw_dict.get('available_from', -1)
+        self.available_to = raw_dict.get('available_to', 9999999999999)
         self.is_repeatable = raw_dict.get('is_repeatable')
-        self.require_id = raw_dict.get('require_id')
-        self.require_type = raw_dict.get('require_type')
-        self.require_value = raw_dict.get('require_value')
+        self.require_id = raw_dict.get('require_id', '')
+        self.require_type = raw_dict.get('require_type', '')
+        self.require_value = raw_dict.get('require_value', 1)
         self.coordinate = raw_dict.get('coordinate')
-        self.custom_bg = raw_dict.get('custom_bg')
+        self.custom_bg = raw_dict.get('custom_bg', '')
         self.stamina_cost = raw_dict.get('stamina_cost')
         self.steps = [Step().from_dict(s) for s in raw_dict.get('steps')]
         return self
@@ -199,7 +199,7 @@ class UserMap(Map):
     @property
     def rewards_for_climbing(self) -> list:
         rewards = []
-        for i in range(self.prev_position, self.curr_position+1):
+        for i in range(self.prev_position+1, self.curr_position+1):
             step = self.steps[i]
             if step.items:
                 rewards.append(
@@ -209,7 +209,7 @@ class UserMap(Map):
 
     def rewards_for_climbing_to_dict(self) -> list:
         rewards = []
-        for i in range(self.prev_position, self.curr_position+1):
+        for i in range(self.prev_position+1, self.curr_position+1):
             step = self.steps[i]
             if step.items:
                 rewards.append(

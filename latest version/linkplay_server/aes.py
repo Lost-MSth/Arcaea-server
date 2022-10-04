@@ -1,11 +1,11 @@
-import os
+from os import urandom
 from cryptography.hazmat.primitives.ciphers import (
     Cipher, algorithms, modes
 )
 
 
 def encrypt(key, plaintext, associated_data):
-    iv = os.urandom(12)
+    iv = urandom(12)
     encryptor = Cipher(
         algorithms.AES(key),
         modes.GCM(iv, min_tag_length=12),

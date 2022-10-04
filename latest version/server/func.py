@@ -1,7 +1,11 @@
-from flask import jsonify
-from core.error import ArcError
+from functools import wraps
+from traceback import format_exc
 
-default_error = ArcError('Unknown Error')
+from core.error import ArcError
+from flask import current_app, jsonify
+from setting import Config
+
+default_error = ArcError('Unknown Error', status=500)
 
 
 def error_return(e: ArcError = default_error):  # 错误返回
@@ -56,7 +60,7 @@ def error_return(e: ArcError = default_error):  # 错误返回
     if e.extra_data:
         r['extra'] = e.extra_data
 
-    return jsonify(r)
+    return jsonify(r), e.status
 
 
 def success_return(value=None):
@@ -64,3 +68,21 @@ def success_return(value=None):
     if value is not None:
         r['value'] = value
     return jsonify(r)
+
+
+def arc_try(view):
+    '''替代try/except，记录`ArcError`为warning'''
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        try:
+            data = view(*args, **kwargs)
+            if data is None:
+                return error_return()
+            else:
+                return data
+        except ArcError as e:
+            if Config.ALLOW_WARNING_LOG:
+                current_app.logger.warning(format_exc())
+            return error_return(e)
+
+    return wrapped_view

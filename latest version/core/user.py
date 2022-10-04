@@ -450,6 +450,10 @@ class UserInfo(User):
             favorite_character_id = self.favorite_character.character_id
         else:
             favorite_character_id = -1
+
+        if self.character.character_id not in character_list:
+            self.character.character_id = 0
+
         return {
             "is_aprilfools": Config.IS_APRILFOOLS,
             "curr_available_maps": self.curr_available_maps_list,
@@ -477,7 +481,7 @@ class UserInfo(User):
             "world_songs": self.world_songs,
             "singles": self.singles,
             "packs": self.packs,
-            "characters": self.characters_list,
+            "characters": character_list,
             "cores": self.cores,
             "recent_score": self.recent_score_list,
             "max_friend": Constant.MAX_FRIEND_COUNT,
@@ -615,24 +619,23 @@ class UserInfo(User):
         with Connect() as c2:
             c2.execute('''select song_id, rating_ftr, rating_byn from chart''')
             x = c2.fetchall()
-        if x:
-            song_list_ftr = [self.user_id]
-            song_list_byn = [self.user_id]
-            for i in x:
-                if i[1] > 0:
-                    song_list_ftr.append(i[0])
-                if i[2] > 0:
-                    song_list_byn.append(i[0])
 
+        song_list_ftr = [self.user_id]
+        song_list_byn = [self.user_id]
+        for i in x:
+            if i[1] > 0:
+                song_list_ftr.append(i[0])
+            if i[2] > 0:
+                song_list_byn.append(i[0])
+
+        score_sum = 0
         if len(song_list_ftr) >= 2:
             self.c.execute('''select sum(score) from best_score where user_id=? and difficulty=2 and song_id in ({0})'''.format(
                 ','.join(['?']*(len(song_list_ftr)-1))), tuple(song_list_ftr))
 
             x = self.c.fetchone()
             if x[0] is not None:
-                score_sum = x[0]
-            else:
-                score_sum = 0
+                score_sum += x[0]
 
         if len(song_list_byn) >= 2:
             self.c.execute('''select sum(score) from best_score where user_id=? and difficulty=3 and song_id in ({0})'''.format(
@@ -641,8 +644,6 @@ class UserInfo(User):
             x = self.c.fetchone()
             if x[0] is not None:
                 score_sum += x[0]
-            else:
-                score_sum += 0
 
         self.c.execute('''update user set world_rank_score = :b where user_id = :a''', {
             'a': self.user_id, 'b': score_sum})

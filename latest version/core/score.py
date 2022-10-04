@@ -128,7 +128,7 @@ class Score:
         return self.rating
 
     def to_dict(self) -> dict:
-        return {
+        r = {
             "rating": self.rating,
             "modifier": self.modifier,
             "time_played": self.time_played,
@@ -142,6 +142,9 @@ class Score:
             "difficulty": self.song.difficulty,
             "song_id": self.song.song_id
         }
+        if self.song.song_name is not None:
+            r["song_name"] = self.song.song_name
+        return r
 
 
 class UserScore(Score):
@@ -222,8 +225,9 @@ class UserPlay(UserScore):
         else:
             r = {}
         r['user_rating'] = self.user.rating_ptt
+        r['finale_challenge_higher'] = self.rating > self.ptt.value
         r['global_rank'] = self.user.global_rank
-        r['finale_play_value'] = 0  # emmmm
+        r['finale_play_value'] = self.rating * 5  # emmmm
         return r
 
     @property
@@ -285,7 +289,7 @@ class UserPlay(UserScore):
             self.c.execute('''select prog_boost from user where user_id=:a''', {
                            'a': self.user.user_id})
             x = self.c.fetchone()
-            if x and x[0] == 1:
+            if x and x[0] == 300:
                 self.prog_boost_multiply = 300
 
         self.clear_play_state()
@@ -565,7 +569,15 @@ class UserScoreList:
 
         self.query.query_append({'user_id': self.user.user_id})
         self.query.sort += [{'column': 'rating', 'order': 'DESC'}]
-        print(self.query.sort)
         x = Sql(self.c).select('best_score', query=self.query)
 
         self.scores = [UserScore(self.c, self.user).from_list(i) for i in x]
+
+    def select_song_name(self) -> None:
+        '''为所有成绩中的song_id查询song_name'''
+        if self.scores is None:
+            return
+        for score in self.scores:
+            self.c.execute(
+                '''select name from chart where song_id = ?''', (score.song.song_id,))
+            score.song.song_name = self.c.fetchone()[0]

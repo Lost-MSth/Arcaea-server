@@ -8,6 +8,7 @@ class Chart:
         self.c = c
         self.set_chart(song_id, difficulty)
         self.defnum: int = None
+        self.song_name: str = None
 
     def to_dict(self) -> dict:
         return {

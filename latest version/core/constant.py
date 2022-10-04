@@ -21,20 +21,29 @@ class Constant:
 
     MAX_FRIEND_COUNT = 50
 
+    MY_RANK_MAX_LOCAL_POSITION = 5
+    MY_RANK_MAX_GLOBAL_POSITION = 9999
+
     # You can change this to make another PTT mechanism.
     BEST30_WEIGHT = 1 / 40
     RECENT10_WEIGHT = 1 / 40
 
     WORLD_MAP_FOLDER_PATH = './database/map/'
     SONG_FILE_FOLDER_PATH = './database/songs/'
+    SONGLIST_FILE_PATH = './database/songs/songlist'
     SQLITE_DATABASE_PATH = './database/arcaea_database.db'
 
     DOWNLOAD_TIMES_LIMIT = Config.DOWNLOAD_TIMES_LIMIT
     DOWNLOAD_TIME_GAP_LIMIT = Config.DOWNLOAD_TIME_GAP_LIMIT
     DOWNLOAD_LINK_PREFIX = Config.DOWNLOAD_LINK_PREFIX
 
-    LINK_PLAY_UNLOCK_LENGTH = 512  # Units: bytes
-    LINK_PLAY_TIMEOUT = 10  # Units: seconds
+    LINKPLAY_UNLOCK_LENGTH = 512  # Units: bytes
+    LINKPLAY_TIMEOUT = 5  # Units: seconds
+
+    LINKPLAY_HOST = '127.0.0.1' if Config.SET_LINKPLAY_SERVER_AS_SUB_PROCESS else Config.LINKPLAY_HOST
+    LINKPLAY_TCP_PORT = Config.LINKPLAY_TCP_PORT
+    LINKPLAY_UDP_PORT = Config.LINKPLAY_UDP_PORT
+    LINKPLAY_AUTHENTICATION = Config.LINKPLAY_AUTHENTICATION
 
     COURSE_STAMINA_COST = 4
 

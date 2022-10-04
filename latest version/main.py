@@ -4,8 +4,9 @@ import os
 import sys
 from logging.config import dictConfig
 from multiprocessing import Process, set_start_method
+from traceback import format_exc
 
-from flask import Flask, request, send_from_directory
+from flask import Flask, make_response, request, send_from_directory
 
 import api
 import server
@@ -13,14 +14,20 @@ import server.init
 import web.index
 import web.login
 from core.constant import Constant
-from core.download import UserDownload, initialize_songfile
+from core.download import (UserDownload, get_only_3_song_ids,
+                           initialize_songfile)
 from core.error import ArcError
 from core.sql import Connect
 from server.func import error_return
 from setting import Config
 
 app = Flask(__name__)
-wsgi_app = app.wsgi_app
+
+# from werkzeug.middleware.proxy_fix import ProxyFix
+# app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+# from flask_cors import CORS
+# CORS(app, supports_credentials=True)
+
 
 os.chdir(sys.path[0])  # 更改工作路径，以便于愉快使用相对路径
 
@@ -51,24 +58,37 @@ def download(file_path):
     with Connect() as c:
         try:
             x = UserDownload(c)
-            x.file_path = file_path
-            x.select_from_token(request.args.get('t'))
+            x.token = request.args.get('t')
+            x.song_id, x.file_name = file_path.split('/', 1)
+            x.select_for_check()
             if x.is_limited:
-                raise ArcError('You have reached the download limit.', 903)
-            if x.is_valid:
-                x.insert_user_download()
-                return send_from_directory(Constant.SONG_FILE_FOLDER_PATH, file_path, as_attachment=True)
+                raise ArcError(
+                    'You have reached the download limit.', 903, status=403)
+            if not x.is_valid:
+                raise ArcError('Expired token.', status=403)
+            x.insert_user_download()
+            # response = make_response()
+            # response.headers['Content-Type'] = 'application/octet-stream'
+            # response.headers['X-Accel-Redirect'] = '/nginx_download/' + file_path
+            # return response
+            return send_from_directory(Constant.SONG_FILE_FOLDER_PATH, file_path, as_attachment=True, conditional=True)
         except ArcError as e:
+            if Config.ALLOW_WARNING_LOG:
+                app.logger.warning(format_exc())
             return error_return(e)
     return error_return()
 
 
 def tcp_server_run():
-    if Config.SSL_CERT and Config.SSL_KEY:
-        app.run(Config.HOST, Config.PORT, ssl_context=(
-            Config.SSL_CERT, Config.SSL_KEY))
+    if False:
+        from gevent.pywsgi import WSGIServer
+        WSGIServer(("127.0.0.1", 5000), app).serve_forever()
     else:
-        app.run(Config.HOST, Config.PORT)
+        if Config.SSL_CERT and Config.SSL_KEY:
+            app.run(Config.HOST, Config.PORT, ssl_context=(
+                Config.SSL_CERT, Config.SSL_KEY))
+        else:
+            app.run(Config.HOST, Config.PORT)
 
 
 def main():
@@ -100,8 +120,8 @@ def main():
             }
         }
     }
-    if Config.ALLOW_LOG_INFO:
-        log_dict['root']['handlers'] = ['wsgi', 'info_file', 'error_file']
+    if Config.ALLOW_INFO_LOG:
+        log_dict['root']['handlers'].append('info_file')
         log_dict['handlers']['info_file'] = {
             "class": "logging.handlers.RotatingFileHandler",
             "maxBytes": 1024 * 1024,
@@ -110,6 +130,17 @@ def main():
             "level": "INFO",
             "formatter": "default",
             "filename": "./log/info.log"
+        }
+    if Config.ALLOW_WARNING_LOG:
+        log_dict['root']['handlers'].append('warning_file')
+        log_dict['handlers']['warning_file'] = {
+            "class": "logging.handlers.RotatingFileHandler",
+            "maxBytes": 1024 * 1024,
+            "backupCount": 1,
+            "encoding": "utf-8",
+            "level": "WARNING",
+            "formatter": "default",
+            "filename": "./log/warning.log"
         }
 
     dictConfig(log_dict)
@@ -122,17 +153,20 @@ def main():
     app.logger.info("Start to initialize song data...")
     try:
         initialize_songfile()
+        get_only_3_song_ids()
         app.logger.info('Complete!')
     except:
         app.logger.warning('Initialization error!')
 
-    if Config.UDP_PORT and Config.UDP_PORT != '':
-        from server.multiplayer import conn2
-        from udpserver.udp_main import link_play
+    if Config.LINKPLAY_HOST and Config.SET_LINKPLAY_SERVER_AS_SUB_PROCESS:
+        from linkplay_server import link_play
         process = [Process(target=link_play, args=(
-            conn2, Config.HOST, int(Config.UDP_PORT)))]
+            Config.LINKPLAY_HOST, int(Config.LINKPLAY_UDP_PORT), int(Config.LINKPLAY_TCP_PORT)))]
         [p.start() for p in process]
-        app.logger.info("UDP server is running...")
+        app.logger.info("Link Play UDP server is running on " +
+                        Config.LINKPLAY_HOST + ':' + str(Config.LINKPLAY_UDP_PORT) + " ...")
+        app.logger.info("Link Play TCP server is running on " +
+                        Config.LINKPLAY_HOST + ':' + str(Config.LINKPLAY_TCP_PORT) + " ...")
         tcp_server_run()
         [p.join() for p in process]
     else:

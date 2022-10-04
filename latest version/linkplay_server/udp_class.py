@@ -1,4 +1,4 @@
-from .udp_config import Config
+from .config import Config
 
 
 def b(value, length=1):
@@ -38,7 +38,7 @@ class Player:
         self.last_timestamp = 0
         self.extra_command_queue = []
 
-        self.song_unlock = b'\x00' * Config.LINK_PLAY_UNLOCK_LENGTH
+        self.song_unlock: bytes = b'\x00' * Config.LINK_PLAY_UNLOCK_LENGTH
 
         self.start_command_num = 0
 

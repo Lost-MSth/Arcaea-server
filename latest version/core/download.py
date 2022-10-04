@@ -1,6 +1,9 @@
 import os
 from functools import lru_cache
+from json import loads
 from time import time
+
+from flask import url_for
 
 from .constant import Constant
 from .error import NoAccess
@@ -25,6 +28,22 @@ def initialize_songfile():
     del x
 
 
+@lru_cache()
+def get_only_3_song_ids():
+    '''初始化只能下载byd相关的歌曲id'''
+    if not os.path.isfile(Constant.SONGLIST_FILE_PATH):
+        return []
+    only_3_song_ids = []
+    data = []
+    with open(Constant.SONGLIST_FILE_PATH, 'r', encoding='utf-8') as f:
+        data = loads(f.read())['songs']
+    for x in data:
+        if 'remote_dl' not in x or 'remote_dl' in x and not x['remote_dl']:
+            if any(i['ratingClass'] == 3 for i in x['difficulties']):
+                only_3_song_ids.append(x['id'])
+    return only_3_song_ids
+
+
 class UserDownload:
     '''
         用户下载类\ 
@@ -38,7 +57,6 @@ class UserDownload:
         self.song_id: str = None
         self.file_name: str = None
 
-        self.file_path: str = None
         self.token: str = None
         self.token_time: int = None
 
@@ -49,6 +67,8 @@ class UserDownload:
     @property
     def is_limited(self) -> bool:
         '''是否达到用户最大下载量'''
+        if self.user is None:
+            self.select_for_check()
         self.c.execute(
             '''select count(*) from user_download where user_id = :a''', {'a': self.user.user_id})
         y = self.c.fetchone()
@@ -57,27 +77,26 @@ class UserDownload:
     @property
     def is_valid(self) -> bool:
         '''链接是否有效且未过期'''
-        return int(time()) - self.token_time <= Constant.DOWNLOAD_TIME_GAP_LIMIT and self.song_id+'/'+self.file_name == self.file_path
+        if self.token_time is None:
+            self.select_for_check()
+        return int(time()) - self.token_time <= Constant.DOWNLOAD_TIME_GAP_LIMIT
 
     def insert_user_download(self) -> None:
         '''记录下载信息'''
         self.c.execute('''insert into user_download values(:a,:b,:c)''', {
-                       'a': self.user.user_id, 'b': self.token, 'c': int(time())})
+                       'a': self.user.user_id, 'c': self.token, 'b': int(time())})
 
-    def select_from_token(self, token: str = None) -> None:
-        if token is not None:
-            self.token = token
-        self.c.execute('''select * from download_token where token = :t limit 1''',
-                       {'t': self.token})
+    def select_for_check(self) -> None:
+        '''利用token、song_id、file_name查询其它信息'''
+        self.c.execute('''select user_id, time from download_token where song_id=? and file_name=? and token = ? limit 1;''',
+                       (self.song_id, self.file_name, self.token))
 
         x = self.c.fetchone()
         if not x:
-            raise NoAccess('The token `%s` is not valid.' % self.token)
+            raise NoAccess('The token `%s` is not valid.' % self.token, status=403)
         self.user = User()
         self.user.user_id = x[0]
-        self.song_id = x[1]
-        self.file_name = x[2]
-        self.token_time = x[4]
+        self.token_time = x[1]
 
     def generate_token(self) -> None:
         self.token_time = int(time())
@@ -101,7 +120,6 @@ class UserDownload:
                 prefix += '/'
             return prefix + self.song_id + '/' + self.file_name + '?t=' + self.token
         else:
-            from flask import url_for
             return url_for('download', file_path=self.song_id + '/' + self.file_name, t=self.token, _external=True)
 
     @property
@@ -137,6 +155,8 @@ class DownloadList(UserDownload):
         re = {}
         for i in dir_list:
             if os.path.isfile(os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg']:
+                if song_id in get_only_3_song_ids() and i not in ['3.aff', '3.ogg']:
+                    continue
                 x = UserDownload(self.c, self.user)
                 # self.downloads.append(x) # 这实际上没有用
                 x.song_id = song_id

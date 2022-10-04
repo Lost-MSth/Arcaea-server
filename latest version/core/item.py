@@ -51,7 +51,7 @@ class UserItem(Item):
                        (self.user.user_id, self.item_id, self.item_type))
         x = self.c.fetchone()
         if x:
-            self.amount = x[0] if x[0] else 1
+            self.amount = x[0] if x[0] is not None else 1
         else:
             self.amount = 0
 
@@ -248,7 +248,7 @@ class ProgBoost(UserItem):
             世界模式prog_boost\ 
             parameters: `user` - `UserOnline`类或子类的实例
         '''
-        user.update_user_one_column('prog_boost', 1)
+        user.update_user_one_column('prog_boost', 300)
 
 
 class Stamina6(UserItem):
@@ -382,7 +382,7 @@ class UserItemList:
         self.items: list = []
         for i in x:
             if len(i) > 1:
-                amount = i[1] if i[1] else 0
+                amount = i[1] if i[1] is not None else 1
             else:
                 amount = 1
             self.items.append(ItemFactory.from_dict(

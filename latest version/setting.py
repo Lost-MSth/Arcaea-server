@@ -30,29 +30,30 @@ class Config():
     Allowed game versions
     If it is blank, all are allowed.
     '''
-    ALLOW_APPVERSION = ['3.12.6', '3.12.6c', '4.0.255', '4.0.255c']
+    ALLOW_APPVERSION = ['3.12.6', '3.12.6c',
+                        '4.0.256', '4.0.256c', '4.1.0', '4.1.0c']
     '''
     --------------------
     '''
 
     '''
     --------------------
-    联机功能的端口号，若为空，则默认不开启联机功能
-    Port of your link play server
-    If it is blank, link play will be unavailable.
+    联机功能相关设置，请确保与Link Play服务器端的设置一致
+    Setting of your link play server
+    Please ensure that the settings on the side of Link Play server are consistent.
     '''
-    UDP_PORT = '10900'
-    '''
-    --------------------
-    '''
-
-    '''
-    --------------------
-    联机功能地址，留空则自动获取
-    Link Play address
-    If left blank, it will be obtained automatically.
-    '''
-    LINK_PLAY_HOST = ''  # ***.com
+    # SET_LINKPLAY_SERVER_AS_SUB_PROCESS: 是否同时在本地启动Link Play服务器
+    # SET_LINKPLAY_SERVER_AS_SUB_PROCESS: If it is `True`, the link play server will run with the main server locally at the same time.
+    SET_LINKPLAY_SERVER_AS_SUB_PROCESS = True
+    # LINKPLAY_HOST: 对主服务器来说的Link Play服务器的地址
+    # LINKPLAY_HOST: The address of the linkplay server based on the main server. If it is blank, the link play feature will be disabled.
+    LINKPLAY_HOST = '0.0.0.0'
+    LINKPLAY_UDP_PORT = 10900
+    LINKPLAY_TCP_PORT = 10901
+    LINKPLAY_AUTHENTICATION = 'my_link_play_server'
+    # LINKPLAY_DISPLAY_HOST: 对客户端来说的Link Play服务器地址，如果为空，则自动获取
+    # LINKPLAY_DISPLAY_HOST: The address of the linkplay server based on the client. If it is blank, the host of link play server for the client will be obtained automatically.
+    LINKPLAY_DISPLAY_HOST = ''
     '''
     --------------------
     '''
@@ -75,7 +76,7 @@ class Config():
     愚人节模式开关
     Switch of April Fool's Day
     '''
-    IS_APRILFOOLS = False
+    IS_APRILFOOLS = True
     '''
     --------------------
     '''
@@ -186,7 +187,8 @@ class Config():
     是否记录详细的服务器日志
     If recording detailed server logs is enabled
     '''
-    ALLOW_LOG_INFO = False
+    ALLOW_INFO_LOG = False
+    ALLOW_WARNING_LOG = False
     '''
     --------------------
     '''

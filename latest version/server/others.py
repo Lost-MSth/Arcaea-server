@@ -10,7 +10,7 @@ from flask import Blueprint, jsonify, request
 from werkzeug.datastructures import ImmutableMultiDict
 
 from .auth import auth_required
-from .func import error_return, success_return
+from .func import arc_try, error_return, success_return
 from .present import present_info
 from .purchase import bundle_pack, bundle_bundle
 from .score import song_score_friend
@@ -27,21 +27,18 @@ def game_info():
 
 @bp.route('/serve/download/me/song', methods=['GET'])  # 歌曲下载
 @auth_required(request)
+@arc_try
 def download_song(user_id):
     with Connect() as c:
-        try:
-            x = DownloadList(c, UserOnline(c, user_id))
-            x.song_ids = request.args.getlist('sid')
-            x.url_flag = json.loads(request.args.get('url', 'true'))
-            x.clear_user_download()
-            if x.is_limited and x.url_flag:
-                raise ArcError('You have reached the download limit.', 903)
+        x = DownloadList(c, UserOnline(c, user_id))
+        x.song_ids = request.args.getlist('sid')
+        x.url_flag = json.loads(request.args.get('url', 'true'))
+        x.clear_user_download()
+        if x.is_limited and x.url_flag:
+            raise ArcError('You have reached the download limit.', 903)
 
-            x.add_songs()
-            return success_return(x.urls)
-        except ArcError as e:
-            return error_return(e)
-    return error_return()
+        x.add_songs()
+        return success_return(x.urls)
 
 
 @bp.route('/finale/progress', methods=['GET'])
@@ -85,16 +82,19 @@ def aggregate():
                 {key: value[0] for key, value in parse_qs(urlparse(endpoint).query).items()})
 
             resp_t = map_dict[urlparse(endpoint).path]()
+            if isinstance(resp_t, tuple):
+                # The response may be a tuple, if it is an error response
+                resp_t = resp_t[0]
 
             if hasattr(resp_t, "response"):
                 resp_t = resp_t.response[0].decode().rstrip('\n')
             resp = json.loads(resp_t)
 
             if hasattr(resp, 'get') and resp.get('success') is False:
-                finally_response = {'success': False, 'error_code': 7, 'extra': {
-                    "id": i['id'], 'error_code': resp.get('error_code')}}
+                finally_response = {'success': False, 'error_code': resp.get(
+                    'error_code'), 'id': i['id']}
                 if "extra" in resp:
-                    finally_response['extra']['extra'] = resp['extra']
+                    finally_response['extra'] = resp['extra']
                 #request = request_
                 return jsonify(finally_response)
 

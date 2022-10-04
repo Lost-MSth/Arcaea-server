@@ -1,0 +1,12 @@
+{
+  "songs": [
+    {
+      "id": "dement",
+      "difficulties": [
+        {
+          "ratingClass": 3
+        }
+      ]
+    }
+  ]
+}

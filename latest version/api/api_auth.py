@@ -1,8 +1,10 @@
-import functools
+from functools import wraps
+from traceback import format_exc
 
 from core.api_user import APIUser
 from core.error import ArcError, NoAccess, PostError
 from core.sql import Connect
+from flask import current_app
 from setting import Config
 
 from .api_code import error_return
@@ -11,10 +13,11 @@ from .api_code import error_return
 def role_required(request, powers=[]):
     '''api token验证，写成了修饰器'''
     def decorator(view):
-        @functools.wraps(view)
+        @wraps(view)
         def wrapped_view(*args, **kwargs):
             try:
-                request.json  # 检查请求json格式
+                if request.data:
+                    request.json  # 检查请求json格式
             except:
                 return error_return(PostError('Payload must be a valid json', api_error_code=-1), 400)
 
@@ -56,10 +59,13 @@ def request_json_handle(request, required_keys=[], optional_keys=[]):
     '''
 
     def decorator(view):
-        @functools.wraps(view)
+        @wraps(view)
         def wrapped_view(*args, **kwargs):
 
             data = {}
+            if not request.data:
+                return view(data, *args, **kwargs)
+
             for key in required_keys:
                 if key not in request.json:
                     return error_return(PostError('Missing parameter: ' + key, api_error_code=-100))
@@ -73,3 +79,21 @@ def request_json_handle(request, required_keys=[], optional_keys=[]):
 
         return wrapped_view
     return decorator
+
+
+def api_try(view):
+    '''替代try/except，记录`ArcError`为warning'''
+    @wraps(view)
+    def wrapped_view(*args, **kwargs):
+        try:
+            data = view(*args, **kwargs)
+            if data is None:
+                return error_return()
+            else:
+                return data
+        except ArcError as e:
+            if Config.ALLOW_WARNING_LOG:
+                current_app.logger.warning(format_exc())
+            return error_return(e, e.status)
+
+    return wrapped_view
