@@ -67,12 +67,33 @@ It is just so interesting. What it can do is under exploration.
 > Tips: When updating, please keep the original database in case of data loss. 
 
 
-### Version 2.9.1
-- 适用于Arcaea 4.0.255版本 For Arcaea 4.0.255
-- 新搭档 **光&对立(Reunion)** 已解锁 Unlock the character **Hikari & Tairitsu(Reunion)**.
-- 修复角色数值问题 Fix a bug that the characters have wrong values.
-- 修复用户物品相关问题 Fix a bug about users' items.
+### Version 2.10.0
+- 适用于Arcaea 4.1.0版本 For Arcaea 4.1.0
+- 新搭档 **咲姬** 已解锁 Unlock the character **Saki**.
+- 新搭档 **刹那** 已解锁 Unlock the character **Setsuna**.
+- 完善了日志系统 Improve the log system.
+- 现在可以利用`songlist`确保`3.aff`以外文件不被下载 Now you can use `songlist` to ensure that files other than `3.aff` should not be downloaded. [#60](https://github.com/Lost-MSth/Arcaea-server/issues/60)
+- 适配v4.0.0以下版本的客户端云存档 Ensure that the clients under v4.0.0 can upload the cloud save.
+- 优化数据库索引 Optimize database indices.
+- 尝试确保LinkPlay服务器的线程安全，现在此功能将作为独立服务端 Try to ensure thread safety in LinkPlay server. Now this function will be served as an independent server.
+- 对API接口的分数列表添加歌曲名 Add song names for getting the score list in API.
+- 为下载错误增添HTTP状态码 Add HTTP status code when meeting download error.
 
+- 修复iOS客户端因世界模式地图数据闪退的问题 Fix a bug when world maps' data don't have some unnecessary parts the client of iOS may break down.
+- 修复API接口无数据`GET`请求导致报错的问题 Fix a bug that `GET` requests without data will report an error in API. [#50](https://github.com/Lost-MSth/Arcaea-server/issues/50)
+- 修复`aggregate`请求无法捕获内部错误的问题 Fix a bug that `aggregate` requests will get an error when the inner function raises an error.
+- 修复因错误设置主键导致课程模式谱面无法相同的问题 Fix a bug that the charts of a course cannot be the same because of the incorrect primary keys.
+- 修复无谱面数据时世界排名分计算出错的问题 Fix a bug that global ranking scores cannot be calculated if there are no chart in the database. [#61](https://github.com/Lost-MSth/Arcaea-server/issues/61)
+- 修复条件满足但隐藏段位依然无法解锁的问题 Fix a bug that the hidden courses cannot appear even if their requirements are satisfied.
+- 修复Finale挑战中某些无法解锁的问题 Fix a bug that something of the finale challenge cannot be unlocked.
+- 修复用户物品数量无法为0的问题，此问题导致了一些购买操作异常 Fix a bug that the users' items will not be zero, which will disturb some purchase operations.
+- 修复角色等级能超过最大等级的问题 Fix a bug that the level of the character can exceed the max level.
+- 修复使用`以太之滴`升级角色时应答不正确的问题 Fix a bug that the response is incorrect when upgrading the characters by `generic core`.
+- 修复`源韵强化`数值显示不正确的问题 Fix a bug that the `prog boost` shows the incorrect value.
+- 修复世界模式奖励可能被重复发放的问题 Fix a bug that the rewards can be get repeatedly in World Mode.
+- 修复世界Boss的第二管血量无法削减的问题 Fix a bug that second tube of blood of the world boss won't change.
+- 修复我的排名显示不正确的问题 Fix a bug that `my rank` doesn't work correctly.
+- 修复在歌曲结束后无法及时轮换房主的问题 Fix a bug that the room host will be changed late when finishing a song.
 
 
 ## 运行环境与依赖 Running environment and requirements

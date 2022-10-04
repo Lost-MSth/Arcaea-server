@@ -5,7 +5,7 @@ from core.error import ArcError
 from flask import current_app, jsonify
 from setting import Config
 
-default_error = ArcError('Unknown Error')
+default_error = ArcError('Unknown Error', status=500)
 
 
 def error_return(e: ArcError = default_error):  # 错误返回
