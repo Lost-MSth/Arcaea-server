@@ -76,7 +76,7 @@ class UserRegister(User):
 
     def set_email(self, email: str):
         # 邮箱格式懒得多判断
-        if 4 <= len(email) <= 32 and '@' in email and '.' in email:
+        if 4 <= len(email) <= 64 and '@' in email and '.' in email:
             self.c.execute(
                 '''select exists(select * from user where email = :email)''', {'email': email})
             if self.c.fetchone() == (0,):

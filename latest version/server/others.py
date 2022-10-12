@@ -12,7 +12,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 from .auth import auth_required
 from .func import arc_try, error_return, success_return
 from .present import present_info
-from .purchase import bundle_pack, bundle_bundle
+from .purchase import bundle_bundle, bundle_pack
 from .score import song_score_friend
 from .user import user_me
 from .world import world_all
@@ -33,8 +33,7 @@ def download_song(user_id):
         x = DownloadList(c, UserOnline(c, user_id))
         x.song_ids = request.args.getlist('sid')
         x.url_flag = json.loads(request.args.get('url', 'true'))
-        x.clear_user_download()
-        if x.is_limited and x.url_flag:
+        if x.url_flag and x.is_limited:
             raise ArcError('You have reached the download limit.', 903)
 
         x.add_songs()

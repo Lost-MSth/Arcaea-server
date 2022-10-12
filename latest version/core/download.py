@@ -7,6 +7,7 @@ from flask import url_for
 
 from .constant import Constant
 from .error import NoAccess
+from .limiter import ArcLimiter
 from .user import User
 from .util import get_file_md5, md5
 
@@ -50,6 +51,9 @@ class UserDownload:
         properties: `user` - `User`类或子类的实例
     '''
 
+    limiter = ArcLimiter(
+        str(Constant.DOWNLOAD_TIMES_LIMIT) + '/day', 'download')
+
     def __init__(self, c=None, user=None) -> None:
         self.c = c
         self.user = user
@@ -60,19 +64,13 @@ class UserDownload:
         self.token: str = None
         self.token_time: int = None
 
-    def clear_user_download(self) -> None:
-        self.c.execute(
-            '''delete from user_download where user_id = :a and time <= :b''', {'a': self.user.user_id, 'b': int(time()) - 24*3600})
-
     @property
     def is_limited(self) -> bool:
         '''是否达到用户最大下载量'''
         if self.user is None:
             self.select_for_check()
-        self.c.execute(
-            '''select count(*) from user_download where user_id = :a''', {'a': self.user.user_id})
-        y = self.c.fetchone()
-        return y is not None and y[0] > Constant.DOWNLOAD_TIMES_LIMIT
+
+        return not self.limiter.test(str(self.user.user_id))
 
     @property
     def is_valid(self) -> bool:
@@ -81,10 +79,9 @@ class UserDownload:
             self.select_for_check()
         return int(time()) - self.token_time <= Constant.DOWNLOAD_TIME_GAP_LIMIT
 
-    def insert_user_download(self) -> None:
-        '''记录下载信息'''
-        self.c.execute('''insert into user_download values(:a,:b,:c)''', {
-                       'a': self.user.user_id, 'c': self.token, 'b': int(time())})
+    def download_hit(self) -> bool:
+        '''下载次数+1，返回成功与否bool值'''
+        return self.limiter.hit(str(self.user.user_id))
 
     def select_for_check(self) -> None:
         '''利用token、song_id、file_name查询其它信息'''
@@ -93,7 +90,8 @@ class UserDownload:
 
         x = self.c.fetchone()
         if not x:
-            raise NoAccess('The token `%s` is not valid.' % self.token, status=403)
+            raise NoAccess('The token `%s` is not valid.' %
+                           self.token, status=403)
         self.user = User()
         self.user.user_id = x[0]
         self.token_time = x[1]

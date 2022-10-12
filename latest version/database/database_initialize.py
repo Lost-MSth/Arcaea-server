@@ -4,7 +4,7 @@ import json
 
 # 数据库初始化文件，删掉arcaea_database.db文件后运行即可，谨慎使用
 
-ARCAEA_SERVER_VERSION = 'v2.10.0'
+ARCAEA_SERVER_VERSION = 'v2.10.0.1'
 
 
 def main(path='./'):
@@ -207,11 +207,11 @@ def main(path='./'):
     time int,
     primary key(user_id, song_id, file_name)
     );''')
-    c.execute('''create table if not exists user_download(user_id int,
-    time int,
-    token text,
-    primary key(user_id, time, token)
-    );''')
+    # c.execute('''create table if not exists user_download(user_id int,
+    # time int,
+    # token text,
+    # primary key(user_id, time, token)
+    # );''')
     c.execute('''create table if not exists item(item_id text,
     type text,
     is_available int,
@@ -283,20 +283,18 @@ def main(path='./'):
     primary key(code, item_id, type)
     );''')
 
-    c.execute('''create table if not exists role(role_id int primary key,
-    role_name text,
+    c.execute('''create table if not exists role(role_id text primary key,
     caption text
     );''')
     c.execute('''create table if not exists user_role(user_id int,
-    role_id int,
+    role_id text,
     primary key(user_id, role_id)
     );''')
-    c.execute('''create table if not exists power(power_id int primary key,
-    power_name text,
+    c.execute('''create table if not exists power(power_id text primary key,
     caption text
     );''')
-    c.execute('''create table if not exists role_power(role_id int,
-    power_id int,
+    c.execute('''create table if not exists role_power(role_id text,
+    power_id text,
     primary key(role_id, power_id)
     );''')
     c.execute('''create table if not exists api_login(user_id int,
@@ -365,22 +363,22 @@ def main(path='./'):
                   48, 65, 45, 55, 44, 25, 46, 44, 33, 45, 45, 37, 25, 27, 50, 20, 45, 63, 21, 47, 61, 47, 65, 80, 38, 30, 49, 15, 34, 45, 45, 38, 67, 120, 44, 33]
 
     frag20 = [78, 80, 90, 75, 70, 79, 70, 79, 65, 40, 50, 80, 90, 82, 0, 61, 67, 92, 85, 50, 86, 52,
-              65, 85, 67, 88, 64, 0.5, 95, 70, 95, 50, 80, 87, 71, 50, 85, 0, 80, 75, 50, 70, 70, 90, 65, 80, 61, 50, 68, 60, 90, 67, 50, 60, 51, 50, 34, 85]
+              65, 85, 67, 88, 64, 0.5, 95, 70, 95, 50, 80, 87, 71, 50, 85, 0, 80, 75, 50, 70, 70, 90, 65, 80, 61, 50, 68, 60, 90, 67, 50, 60, 51, 50, 35, 85]
 
     prog20 = [61, 80, 70, 75, 90, 70, 90, 102, 84, 78, 105, 67, 63, 68, 0, 99, 80, 66, 46, 83, 40, 73,
-              80, 90, 93, 50, 86, 78, 89, 98, 75, 80, 50, 64, 55, 100, 90, 110, 80, 50, 74, 90, 70, 70, 56, 80, 79, 55, 65, 59, 90, 50, 90, 90, 75, 210, 34, 86]
+              80, 90, 93, 50, 86, 78, 89, 98, 75, 80, 50, 64, 55, 100, 90, 110, 80, 50, 74, 90, 70, 70, 56, 80, 79, 55, 65, 59, 90, 50, 90, 90, 75, 210, 35, 86]
 
     overdrive20 = [61, 80, 47, 75, 70, 70, 95, 79, 65, 31, 50, 59, 90, 58, 0, 78, 50, 70, 62, 49, 64,
-                   46, 73, 95, 67, 84, 70, 78, 69, 70, 50, 80, 80, 63, 25, 50, 72, 55, 50, 95, 55, 70, 90, 70, 99, 80, 61, 40, 69, 62, 51, 90, 67, 60, 100, 200, 84, 50]
+                   46, 73, 95, 67, 84, 70, 78, 69, 70, 50, 80, 80, 63, 25, 50, 72, 55, 50, 95, 55, 70, 90, 70, 99, 80, 61, 40, 69, 62, 51, 90, 67, 60, 100, 200, 85, 50]
 
     frag30 = [88, 90, 100, 75, 80, 89, 70, 79, 65, 40, 50, 90, 100, 92, 0, 61, 67, 92, 85, 50, 86, 62,
-              65, 85, 67, 88, 74, 0.5, 105, 80, 95, 50, 80, 87, 71, 50, 95, 0, 80, 75, 50, 70, 80, 100, 65, 80, 61, 50, 68, 60, 90, 67, 50, 60, 51, 50, 34, 85]
+              65, 85, 67, 88, 74, 0.5, 105, 80, 95, 50, 80, 87, 71, 50, 95, 0, 80, 75, 50, 70, 80, 100, 65, 80, 61, 50, 68, 60, 90, 67, 50, 60, 51, 50, 35, 85]
 
     prog30 = [71, 90, 80, 75, 100, 80, 90, 102, 84, 78, 105, 77, 73, 78, 0, 99, 80, 66, 46, 93, 40, 83,
-              80, 90, 93, 50, 96, 88, 99, 108, 75, 80, 50, 64, 55, 100, 100, 110, 80, 50, 74, 90, 80, 80, 56, 80, 79, 55, 65, 59, 90, 50, 90, 90, 75, 210, 34, 86]
+              80, 90, 93, 50, 96, 88, 99, 108, 75, 80, 50, 64, 55, 100, 100, 110, 80, 50, 74, 90, 80, 80, 56, 80, 79, 55, 65, 59, 90, 50, 90, 90, 75, 210, 35, 86]
 
     overdrive30 = [71, 90, 57, 75, 80, 80, 95, 79, 65, 31, 50, 69, 100, 68, 0, 78, 50, 70, 62, 59, 64,
-                   56, 73, 95, 67, 84, 80, 88, 79, 80, 50, 80, 80, 63, 25, 50, 82, 55, 50, 95, 55, 70, 100, 80, 99, 80, 61, 40, 69, 62, 51, 90, 67, 60, 100, 200, 84, 50]
+                   56, 73, 95, 67, 84, 80, 88, 79, 80, 50, 80, 80, 63, 25, 50, 82, 55, 50, 95, 55, 70, 100, 80, 99, 80, 61, 40, 69, 62, 51, 90, 67, 60, 100, 200, 85, 50]
 
     char_type = [1, 0, 0, 0, 0, 0, 0, 2, 0, 1, 2, 0, 0, 0, 2, 3, 1, 0, 0, 0, 1,
                  0, 0, 0, 0, 0, 0, 0, 2, 2, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 3, 0, 2]
@@ -420,28 +418,26 @@ def main(path='./'):
                                                                                          'shirahime', 38, 33, 28, 66, 58, 50, 66, 58, 50, 'frags_preferred_song', 0, 0, '', 0))
 
     for i in char_core:
-        for j in char_core[i]:
-            c.execute('''insert into char_item values(?,?,'core',?)''',
-                      (i, j['core_id'], j['amount']))
+        c.executemany('''insert into char_item values(?,?,'core',?)''', [
+                      (i, j['core_id'], j['amount']) for j in char_core[i]])
     cores = ['core_hollow', 'core_desolate', 'core_chunithm', 'core_crimson',
              'core_ambivalent', 'core_scarlet', 'core_groove', 'core_generic', 'core_binary', 'core_colorful', 'core_course_skip_purchase']
-
-    for i in cores:
-        c.execute('''insert into item values(?,"core",1,'')''', (i,))
+    c.executemany('''insert into item values(?,"core",1,'')''',
+                  [(i,) for i in cores])
 
     world_songs = ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster",
                    "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano", "vandalism", "nexttoyou3", "lostcivilization3", "turbocharger", "bookmaker3", "laqryma3", "kyogenkigo", "hivemind", "seclusion", "quonwacca3", "bluecomet", "energysynergymatrix", "gengaozo", "lastendconductor3", "antithese3", "qualia3", "kanagawa3", "heavensdoor3", "pragmatism3", "nulctrl", "avril", "ddd", "merlin3", "omakeno3", "nekonote", "sanskia", 'altair', 'mukishitsu', 'trapcrow', 'redandblue3', 'ignotus3', 'singularity3', 'dropdead3', 'arcahv']
-    for i in world_songs:
-        c.execute('''insert into item values(?,"world_song",1,'')''', (i,))
+    c.executemany('''insert into item values(?,"world_song",1,'')''', [
+                  (i,) for i in world_songs])
 
     world_unlocks = ["scenery_chap1", "scenery_chap2",
                      "scenery_chap3", "scenery_chap4", "scenery_chap5", "scenery_chap6", "scenery_chap7"]
-    for i in world_unlocks:
-        c.execute('''insert into item values(?,"world_unlock",1,'')''', (i,))
+    c.executemany('''insert into item values(?,"world_unlock",1,'')''', [
+                  (i,) for i in world_unlocks])
 
     course_banners = ['course_banner_' + str(i) for i in range(1, 12)]
-    for i in course_banners:
-        c.execute('''insert into item values(?,"course_banner",1,'')''', (i,))
+    c.executemany('''insert into item values(?,"course_banner",1,'')''', [
+                  (i,) for i in course_banners])
 
     c.execute('''insert into item values(?,?,?,?)''',
               ('fragment', 'fragment', 1, ''))
@@ -523,29 +519,29 @@ def main(path='./'):
             x.insert_all()
 
         # api权限与权限组初始化
-    role = ['admin', 'user', 'selecter']
-    role_caption = ['管理员', '用户', '查询接口']
+    role = ['system', 'admin', 'user', 'selecter']
+    role_caption = ['系统', '管理员', '用户', '查询接口']
 
-    power = ['select', 'select_me', 'change', 'change_me', 'grant',
+    power = ['system', 'select', 'select_me', 'change', 'change_me', 'grant',
              'grant_inf', 'select_song_rank', 'select_song_info']
-    power_caption = ['总体查询权限', '自我查询权限', '总体修改权限',
+    power_caption = ['系统权限', '总体查询权限', '自我查询权限', '总体修改权限',
                      '自我修改权限', '授权权限', '下级授权权限', '歌曲排行榜查询权限', '歌曲信息查询权限']
 
-    role_power = {'0': [0, 1, 3, 5, 6, 7],
-                  '1': [1, 3, 6, 7],
-                  '2': [0]
+    role_power = {'system': power,
+                  'admin': ['select', 'select_me', 'change_me', 'grant_inf', 'select_song_rank', 'select_song_info'],
+                  'user': ['select_me', 'change_me', 'select_song_rank', 'select_song_info'],
+                  'selector': ['select']
                   }
 
-    for i in range(0, len(role)):
-        c.execute('''insert into role values(:a,:b,:c)''', {
-            'a': i, 'b': role[i], 'c': role_caption[i]})
-    for i in range(0, len(power)):
-        c.execute('''insert into power values(:a,:b,:c)''', {
-            'a': i, 'b': power[i], 'c': power_caption[i]})
+    c.executemany('''insert into role values(?,?)''', [
+        (role[i], role_caption[i]) for i in range(len(role))])
+
+    c.executemany('''insert into power values(?,?)''', [
+                  (power[i], power_caption[i]) for i in range(len(power))])
+
     for i in role_power:
-        for j in role_power[i]:
-            c.execute('''insert into role_power values(:a,:b)''',
-                      {'a': int(i), 'b': j})
+        c.executemany('''insert into role_power values(?,?)''',
+                      [(i, j) for j in role_power[i]])
 
     conn.commit()
     conn.close()

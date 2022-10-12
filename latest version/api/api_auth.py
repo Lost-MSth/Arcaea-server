@@ -26,10 +26,7 @@ def role_required(request, powers=[]):
 
             user = APIUser()
             if Config.API_TOKEN == request.headers['Token'] and Config.API_TOKEN != '':
-                user.user_id = 0
-            elif powers == []:
-                # 无powers则非本地权限（API_TOKEN规定的）无法访问
-                return error_return(NoAccess('No permission', api_error_code=-1), 403)
+                user.set_role_system()
             else:
                 with Connect() as c:
                     try:
@@ -38,7 +35,7 @@ def role_required(request, powers=[]):
                             request.headers['Token'])
                         user.select_role_and_powers()
 
-                        if not any([y in [x.power_name for x in user.role.powers] for y in powers]):
+                        if not any(user.role.has_power(y) for y in powers):
                             return error_return(NoAccess('No permission', api_error_code=-1), 403)
                     except ArcError as e:
                         return error_return(e, 401)

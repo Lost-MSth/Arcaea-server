@@ -54,11 +54,10 @@ def auth_required(request):
                 try:
                     user = UserAuth(c)
                     user.token = headers['Authorization'][7:]
-                    return view(user.token_get_id(), *args, **kwargs)
+                    user_id = user.token_get_id()
                 except ArcError as e:
                     return error_return(e)
-
-            return error_return()
+            return view(user_id, *args, **kwargs)
 
         return wrapped_view
     return decorator

@@ -63,10 +63,10 @@ def download(file_path):
             x.select_for_check()
             if x.is_limited:
                 raise ArcError(
-                    'You have reached the download limit.', 903, status=403)
+                    'You have reached the download limit.', 903, status=429)
             if not x.is_valid:
                 raise ArcError('Expired token.', status=403)
-            x.insert_user_download()
+            x.download_hit()
             # response = make_response()
             # response.headers['Content-Type'] = 'application/octet-stream'
             # response.headers['X-Accel-Redirect'] = '/nginx_download/' + file_path
