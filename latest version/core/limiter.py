@@ -7,12 +7,12 @@ class ArcLimiter:
     strategy = strategies.FixedWindowRateLimiter(storage)
 
     def __init__(self, limit_str: str = None, namespace: str = None):
-        self._limits = None
+        self._limits: list = None
         self.limits = limit_str
         self.namespace = namespace
 
     @property
-    def limits(self):
+    def limits(self) -> list:
         return self._limits
 
     @limits.setter

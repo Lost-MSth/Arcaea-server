@@ -1,7 +1,8 @@
 import os
 from shutil import copy, copy2
+
 from core.sql import Connect
-from database.database_initialize import main, ARCAEA_SERVER_VERSION
+from database.database_initialize import ARCAEA_SERVER_VERSION, main
 from web.system import update_database
 
 

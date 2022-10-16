@@ -2,7 +2,9 @@ from hashlib import sha256
 from os import urandom
 from time import time
 
-from .error import NoAccess, NoData, UserBan
+from .config_manager import Config
+from .error import NoAccess, NoData, RateLimit, UserBan
+from .limiter import ArcLimiter
 from .user import UserOnline
 
 
@@ -57,6 +59,8 @@ class Role:
 
 
 class APIUser(UserOnline):
+    limiter = ArcLimiter(Config.API_LOGIN_RATE_LIMIT, 'api_login')
+
     def __init__(self, c=None, user_id=None) -> None:
         super().__init__(c, user_id)
         self.api_token: str = None
@@ -109,6 +113,9 @@ class APIUser(UserOnline):
             self.password = password
         if ip is not None:
             self.ip = ip
+        if not self.limiter.hit(name):
+            raise RateLimit('Too many login attempts', api_error_code=-205)
+
         self.c.execute('''select user_id, password from user where name = :a''', {
                        'a': self.name})
         x = self.c.fetchone()

@@ -7,8 +7,9 @@ from .character import UserCharacter, UserCharacterList
 from .config_manager import Config
 from .constant import Constant
 from .error import (ArcError, DataExist, FriendError, InputError, NoAccess,
-                    NoData, UserBan)
+                    NoData, RateLimit, UserBan)
 from .item import UserItemList
+from .limiter import ArcLimiter
 from .score import Score
 from .sql import Connect
 from .world import Map, UserMap, UserStamina
@@ -143,6 +144,8 @@ class UserRegister(User):
 
 class UserLogin(User):
     # 密码和token的加密方式为 SHA-256
+    limiter = ArcLimiter(Config.GAME_LOGIN_RATE_LIMIT, 'game_login')
+
     def __init__(self, c) -> None:
         super().__init__()
         self.c = c
@@ -218,6 +221,9 @@ class UserLogin(User):
             self.set_device_id(device_id)
         if ip:
             self.set_ip(ip)
+
+        if not self.limiter.hit(name):
+            raise RateLimit('Too many login attempts.', 123)
 
         self.c.execute('''select user_id, password, ban_flag from user where name = :name''', {
                        'name': self.name})

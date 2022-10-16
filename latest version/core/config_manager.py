@@ -6,6 +6,10 @@ class Config:
     HOST = '0.0.0.0'
     PORT = 80
 
+    USE_GEVENT_WSGI = False
+    USE_PROXY_FIX = False
+    USE_CORS = False
+
     GAME_API_PREFIX = '/join/21'
 
     ALLOW_APPVERSION = []  # list[str]
@@ -35,6 +39,9 @@ class Config:
     API_TOKEN = ''
 
     DOWNLOAD_LINK_PREFIX = ''
+
+    DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT = False
+    NGINX_X_ACCEL_REDIRECT_PREFIX = '/nginx_download/'
 
     DOWNLOAD_TIMES_LIMIT = 3000
     DOWNLOAD_TIME_GAP_LIMIT = 1000
@@ -68,6 +75,9 @@ class Config:
     SONG_FILE_FOLDER_PATH = './database/songs/'
     SONGLIST_FILE_PATH = './database/songs/songlist'
     SQLITE_DATABASE_PATH = './database/arcaea_database.db'
+
+    GAME_LOGIN_RATE_LIMIT = '30/5 minutes'
+    API_LOGIN_RATE_LIMIT = '10/5 minutes'
 
 
 class ConfigManager:
