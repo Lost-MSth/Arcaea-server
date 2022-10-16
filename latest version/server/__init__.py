@@ -1,5 +1,5 @@
+from core.config_manager import Config
 from flask import Blueprint
-from setting import Config
 
 from . import (auth, course, friend, multiplayer, others, present, purchase,
                score, user, world)

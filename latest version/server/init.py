@@ -25,10 +25,6 @@ def check_before_run(app):
 
     f = True
 
-    if not os.path.exists('setting.py'):
-        app.logger.warning('File `setting.py` is missing.')
-        f = False
-
     if not os.path.exists('database'):
         app.logger.warning('Folder `database` is missing.')
         f = False

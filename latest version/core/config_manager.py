@@ -1,0 +1,81 @@
+class Config:
+    '''
+    Default config
+    '''
+
+    HOST = '0.0.0.0'
+    PORT = 80
+
+    GAME_API_PREFIX = '/join/21'
+
+    ALLOW_APPVERSION = []  # list[str]
+
+    SET_LINKPLAY_SERVER_AS_SUB_PROCESS = True
+
+    LINKPLAY_HOST = '0.0.0.0'
+    LINKPLAY_UDP_PORT = 10900
+    LINKPLAY_TCP_PORT = 10901
+    LINKPLAY_AUTHENTICATION = 'my_link_play_server'
+    LINKPLAY_DISPLAY_HOST = ''
+
+    SSL_CERT = ''
+    SSL_KEY = ''
+
+    IS_APRILFOOLS = True
+
+    WORLD_RANK_MAX = 200
+
+    AVAILABLE_MAP = []  # list[str]
+
+    USERNAME = 'admin'
+    PASSWORD = 'admin'
+
+    SECRET_KEY = '1145141919810'
+
+    API_TOKEN = ''
+
+    DOWNLOAD_LINK_PREFIX = ''
+
+    DOWNLOAD_TIMES_LIMIT = 3000
+    DOWNLOAD_TIME_GAP_LIMIT = 1000
+
+    LOGIN_DEVICE_NUMBER_LIMIT = 1
+    ALLOW_LOGIN_SAME_DEVICE = False
+    ALLOW_BAN_MULTIDEVICE_USER_AUTO = True
+
+    ALLOW_INFO_LOG = False
+    ALLOW_WARNING_LOG = False
+
+    DEFAULT_MEMORIES = 0
+
+    UPDATE_WITH_NEW_CHARACTER_DATA = True
+
+    CHARACTER_FULL_UNLOCK = True
+    WORLD_SONG_FULL_UNLOCK = True
+    WORLD_SCENERY_FULL_UNLOCK = True
+
+    SAVE_FULL_UNLOCK = False
+
+    # ------------------------------------------
+
+    # You can change this to make another PTT mechanism.
+    BEST30_WEIGHT = 1 / 40
+    RECENT10_WEIGHT = 1 / 40
+
+    MAX_FRIEND_COUNT = 50
+
+    WORLD_MAP_FOLDER_PATH = './database/map/'
+    SONG_FILE_FOLDER_PATH = './database/songs/'
+    SONGLIST_FILE_PATH = './database/songs/songlist'
+    SQLITE_DATABASE_PATH = './database/arcaea_database.db'
+
+
+class ConfigManager:
+
+    @staticmethod
+    def load(config):
+        for k, v in config.__dict__.items():
+            if k.startswith('__') or k.endswith('__'):
+                continue
+            if hasattr(Config, k):
+                setattr(Config, k, v)

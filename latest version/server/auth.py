@@ -1,11 +1,11 @@
 import base64
 from functools import wraps
 
+from core.config_manager import Config
 from core.error import ArcError, NoAccess
 from core.sql import Connect
 from core.user import UserAuth, UserLogin
 from flask import Blueprint, jsonify, request
-from setting import Config
 
 from .func import arc_try, error_return
 

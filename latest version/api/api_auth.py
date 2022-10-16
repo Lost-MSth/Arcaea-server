@@ -2,10 +2,10 @@ from functools import wraps
 from traceback import format_exc
 
 from core.api_user import APIUser
+from core.config_manager import Config
 from core.error import ArcError, NoAccess, PostError
 from core.sql import Connect
 from flask import current_app
-from setting import Config
 
 from .api_code import error_return
 

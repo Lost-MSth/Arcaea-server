@@ -1,10 +1,8 @@
 import json
 from time import time
 
-from setting import Config
-
-from core.constant import Constant
-
+from .config_manager import Config
+from .constant import Constant
 from .error import InputError
 from .util import md5
 

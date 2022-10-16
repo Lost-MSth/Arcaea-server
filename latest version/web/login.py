@@ -1,9 +1,9 @@
-#import sqlite3
-from flask import (Blueprint, flash, g, redirect,
-                   render_template, request, session, url_for)
 import functools
-from setting import Config
 import hashlib
+
+from core.config_manager import Config
+from flask import (Blueprint, flash, g, redirect, render_template, request,
+                   session, url_for)
 
 bp = Blueprint('login', __name__, url_prefix='/web')
 

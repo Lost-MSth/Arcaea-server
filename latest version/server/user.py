@@ -1,11 +1,11 @@
 from core.character import UserCharacter
+from core.config_manager import Config
 from core.error import ArcError, NoAccess
 from core.item import ItemCore
 from core.save import SaveData
 from core.sql import Connect
 from core.user import User, UserLogin, UserOnline, UserRegister
 from flask import Blueprint, request
-from setting import Config
 
 from .auth import auth_required
 from .func import arc_try, success_return

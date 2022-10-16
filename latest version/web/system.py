@@ -1,9 +1,10 @@
-import os
-from core.sql import Connect
-import time
 import hashlib
+import os
+import time
 from random import Random
-from setting import Config
+
+from core.config_manager import Config
+from core.sql import Connect
 
 
 def int2b(x):
@@ -216,10 +217,10 @@ def update_database():
                 update_one_table(c1, c2, 'api_login')
                 update_one_table(c1, c2, 'chart')
                 update_one_table(c1, c2, 'user_course')
-                update_one_table(c1, c2, 'course')
-                update_one_table(c1, c2, 'course_item')
-                update_one_table(c1, c2, 'course_chart')
-                update_one_table(c1, c2, 'course_requirement')
+                # update_one_table(c1, c2, 'course')
+                # update_one_table(c1, c2, 'course_item')
+                # update_one_table(c1, c2, 'course_chart')
+                # update_one_table(c1, c2, 'course_requirement')
 
                 update_one_table(c1, c2, 'user_char')
 

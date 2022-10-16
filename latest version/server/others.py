@@ -2,7 +2,7 @@ import json
 from urllib.parse import parse_qs, urlparse
 
 from core.download import DownloadList
-from core.error import ArcError
+from core.error import RateLimit
 from core.sql import Connect
 from core.system import GameInfo
 from core.user import UserOnline
@@ -34,7 +34,7 @@ def download_song(user_id):
         x.song_ids = request.args.getlist('sid')
         x.url_flag = json.loads(request.args.get('url', 'true'))
         if x.url_flag and x.is_limited:
-            raise ArcError('You have reached the download limit.', 903)
+            raise RateLimit('You have reached the download limit.', 903)
 
         x.add_songs()
         return success_return(x.urls)

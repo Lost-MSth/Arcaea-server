@@ -2,11 +2,18 @@
 
 import os
 import sys
+from importlib import import_module
 from logging.config import dictConfig
 from multiprocessing import Process, set_start_method
 from traceback import format_exc
 
 from flask import Flask, make_response, request, send_from_directory
+
+from core.config_manager import Config, ConfigManager
+
+if os.path.exists('config.py') or os.path.exists('config'):
+    ConfigManager.load(import_module('config').Config)
+
 
 import api
 import server
@@ -16,10 +23,9 @@ import web.login
 from core.constant import Constant
 from core.download import (UserDownload, get_only_3_song_ids,
                            initialize_songfile)
-from core.error import ArcError
+from core.error import ArcError, NoAccess, RateLimit
 from core.sql import Connect
 from server.func import error_return
-from setting import Config
 
 app = Flask(__name__)
 
@@ -30,6 +36,7 @@ app = Flask(__name__)
 
 
 os.chdir(sys.path[0])  # 更改工作路径，以便于愉快使用相对路径
+
 
 app.config.from_mapping(SECRET_KEY=Config.SECRET_KEY)
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -62,10 +69,9 @@ def download(file_path):
             x.song_id, x.file_name = file_path.split('/', 1)
             x.select_for_check()
             if x.is_limited:
-                raise ArcError(
-                    'You have reached the download limit.', 903, status=429)
+                raise RateLimit('You have reached the download limit.', 903)
             if not x.is_valid:
-                raise ArcError('Expired token.', status=403)
+                raise NoAccess('Expired token.')
             x.download_hit()
             # response = make_response()
             # response.headers['Content-Type'] = 'application/octet-stream'

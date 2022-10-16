@@ -207,11 +207,6 @@ def main(path='./'):
     time int,
     primary key(user_id, song_id, file_name)
     );''')
-    # c.execute('''create table if not exists user_download(user_id int,
-    # time int,
-    # token text,
-    # primary key(user_id, time, token)
-    # );''')
     c.execute('''create table if not exists item(item_id text,
     type text,
     is_available int,

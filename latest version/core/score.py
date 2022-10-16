@@ -580,4 +580,5 @@ class UserScoreList:
         for score in self.scores:
             self.c.execute(
                 '''select name from chart where song_id = ?''', (score.song.song_id,))
-            score.song.song_name = self.c.fetchone()[0]
+            x = self.c.fetchone()
+            score.song.song_name = x[0] if x else ''

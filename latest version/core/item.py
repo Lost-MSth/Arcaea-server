@@ -1,5 +1,5 @@
+from .config_manager import Config
 from .error import InputError, ItemNotEnough, ItemUnavailable, NoData
-from setting import Config
 
 
 class Item:

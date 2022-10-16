@@ -3,9 +3,8 @@ import hashlib
 import time
 from os import urandom
 
-from setting import Config
-
 from .character import UserCharacter, UserCharacterList
+from .config_manager import Config
 from .constant import Constant
 from .error import (ArcError, DataExist, FriendError, InputError, NoAccess,
                     NoData, UserBan)
