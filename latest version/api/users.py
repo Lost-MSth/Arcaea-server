@@ -51,7 +51,7 @@ def users_get(data, user):
             'name': x.name,
             'join_date': x.join_date,
             'user_code': x.user_code,
-            'rating_ptt': x.rating_ptt/100,
+            'rating_ptt': x.rating_ptt,
             'character_id': x.character.character_id,
             'is_char_uncapped': x.character.is_uncapped,
             'is_char_uncapped_override': x.character.is_uncapped_override,

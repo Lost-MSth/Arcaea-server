@@ -1,5 +1,7 @@
 from functools import wraps
 from traceback import format_exc
+from base64 import b64decode
+from json import loads
 
 from core.api_user import APIUser
 from core.config_manager import Config
@@ -60,17 +62,24 @@ def request_json_handle(request, required_keys=[], optional_keys=[]):
         def wrapped_view(*args, **kwargs):
 
             data = {}
-            if not request.data:
-                return view(data, *args, **kwargs)
+            if request.data:
+                json_data = request.json
+            else:
+                if request.method == 'GET' and 'query' in request.args:
+                    # 处理axios没法GET传data的问题
+                    json_data = loads(
+                        b64decode(request.args['query']).decode())
+                else:
+                    return view(data, *args, **kwargs)
 
             for key in required_keys:
-                if key not in request.json:
+                if key not in json_data:
                     return error_return(PostError('Missing parameter: ' + key, api_error_code=-100))
-                data[key] = request.json[key]
+                data[key] = json_data[key]
 
             for key in optional_keys:
-                if key in request.json:
-                    data[key] = request.json[key]
+                if key in json_data:
+                    data[key] = json_data[key]
 
             return view(data, *args, **kwargs)
 

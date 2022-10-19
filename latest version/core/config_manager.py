@@ -83,7 +83,7 @@ class Config:
 class ConfigManager:
 
     @staticmethod
-    def load(config):
+    def load(config) -> None:
         for k, v in config.__dict__.items():
             if k.startswith('__') or k.endswith('__'):
                 continue
