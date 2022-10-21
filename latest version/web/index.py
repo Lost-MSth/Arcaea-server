@@ -2,7 +2,8 @@ import os
 import time
 
 import server.arcscore
-from core.download import initialize_songfile, get_only_3_song_ids
+from core.download import get_only_3_song_ids, initialize_songfile
+from core.init import FileChecker
 from core.rank import RankList
 from core.sql import Connect
 from flask import Blueprint, flash, redirect, render_template, request, url_for
@@ -270,7 +271,8 @@ def update_database():
             file.save(os.path.join(UPLOAD_FOLDER, filename))
             flash('上传成功 Success upload.')
             try:
-                web.system.update_database()
+                FileChecker.update_database(
+                    os.path.join(UPLOAD_FOLDER, filename))
                 flash('数据更新成功 Success update data.')
             except:
                 flash('数据更新失败 Cannot update data.')
@@ -699,7 +701,7 @@ def change_item():
             c.execute(
                 '''select exists(select * from item where item_id=:a and type=:b)''', {'a': item_id, 'b': item_type})
             if c.fetchone() == (0,):
-                c.execute('''insert into item values(?,?,?,'')''',
+                c.execute('''insert into item values(?,?,?)''',
                           (item_id, item_type, is_available))
                 flash('物品添加成功 Successfully add the item.')
             else:

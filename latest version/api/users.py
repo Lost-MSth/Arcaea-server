@@ -37,7 +37,7 @@ def users_get(data, user):
     B = ['user_id', 'name', 'user_code', 'join_date',
          'rating_ptt', 'time_played', 'ticket', 'world_rank_score']
     with Connect() as c:
-        query = Query(A, A, B).from_data(data)
+        query = Query(A, A, B).from_dict(data)
         x = Sql(c).select('user', query=query)
         r = []
         for i in x:
@@ -111,7 +111,7 @@ def users_user_best_get(data, user, user_id):
 
     with Connect() as c:
         x = UserScoreList(c, UserInfo(c, user_id))
-        x.query.from_data(data)
+        x.query.from_dict(data)
         x.select_from_user()
         r = x.to_dict_list()
         return success_return({'user_id': user_id, 'data': r})

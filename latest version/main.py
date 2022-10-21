@@ -18,13 +18,13 @@ if os.path.exists('config.py') or os.path.exists('config'):
 
 import api
 import server
-import server.init
 import web.index
 import web.login
 from core.constant import Constant
 from core.download import (UserDownload, get_only_3_song_ids,
                            initialize_songfile)
 from core.error import ArcError, NoAccess, RateLimit
+from core.init import FileChecker
 from core.sql import Connect
 from server.func import error_return
 
@@ -161,7 +161,7 @@ def main():
 
     dictConfig(log_dict)
 
-    if not server.init.check_before_run(app):
+    if not FileChecker(app).check_before_run():
         app.logger.error('Something wrong. The server will not run.')
         input('Press ENTER key to exit.')
         sys.exit()

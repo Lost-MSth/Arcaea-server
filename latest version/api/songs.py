@@ -30,7 +30,7 @@ def songs_get(data, user):
     B = ['song_id', 'name', 'rating_pst',
          'rating_prs', 'rating_ftr', 'rating_byn']
     with Connect() as c:
-        query = Query(A, A, B).from_data(data)
+        query = Query(A, A, B).from_dict(data)
         x = Sql(c).select('chart', query=query)
         r = []
         for i in x:

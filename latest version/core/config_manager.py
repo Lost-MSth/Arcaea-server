@@ -75,6 +75,8 @@ class Config:
     SONG_FILE_FOLDER_PATH = './database/songs/'
     SONGLIST_FILE_PATH = './database/songs/songlist'
     SQLITE_DATABASE_PATH = './database/arcaea_database.db'
+    SQLITE_DATABASE_BACKUP_FOLDER_PATH = './database/backup/'
+    DATABASE_INIT_PATH = './database/init/'
 
     GAME_LOGIN_RATE_LIMIT = '30/5 minutes'
     API_LOGIN_RATE_LIMIT = '10/5 minutes'

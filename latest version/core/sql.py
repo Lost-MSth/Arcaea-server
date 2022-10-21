@@ -12,8 +12,8 @@ class Connect:
 
     def __init__(self, file_path=Constant.SQLITE_DATABASE_PATH):
         """
-            数据库连接，默认连接arcaea_database.db\ 
-            接受：文件路径\ 
+            数据库连接，默认连接arcaea_database.db\
+            接受：文件路径\
             返回：sqlite3连接操作对象
         """
         self.file_path = file_path
@@ -143,7 +143,7 @@ class Query:
         self.fuzzy_query = fuzzy_query
         self.sort = sort
 
-    def from_data(self, d: dict) -> 'Query':
+    def from_dict(self, d: dict) -> 'Query':
         self.set_value(d.get('limit', -1), d.get('offset', 0),
                        d.get('query', {}), d.get('fuzzy_query', {}), d.get('sort', []))
         return self
@@ -157,9 +157,9 @@ class Sql:
     def __init__(self, c=None) -> None:
         self.c = c
 
-    def select(self, table_name: str, target_column: 'list' = [], query: 'Query' = None) -> list:
-        '''单表内行查询单句sql语句，返回fetchall数据'''
-
+    @staticmethod
+    def get_select_sql(table_name: str, target_column: list = [], query: 'Query' = None):
+        '''拼接单表内行查询单句sql语句，返回语句和参数列表'''
         sql = 'select '
         sql_list = []
         if len(target_column) >= 2:
@@ -173,8 +173,7 @@ class Sql:
             sql += '* from ' + table_name
 
         if query is None:
-            self.c.execute(sql)
-            return self.c.fetchall()
+            return sql, sql_list
 
         where_key = []
         where_like_key = []
@@ -215,5 +214,140 @@ class Sql:
             sql_list.append(query.limit)
             sql_list.append(query.offset)
 
+        return sql, sql_list
+
+    @staticmethod
+    def get_insert_sql(table_name: str, key: list = [], value_len: int = None, insert_type: str = None) -> str:
+        '''拼接insert语句，请注意只返回sql语句，insert_type为replace或ignore'''
+        insert_type = 'replace' if insert_type in [
+            'replace', 'R', 'r', 'REPLACE'] else 'ignore'
+        return ('insert into ' if insert_type is None else 'insert or ' + insert_type + ' into ') + table_name + ('(' + ','.join(key) + ')' if key else '') + ' values(' + ','.join(['?'] * (len(key) if value_len is None else value_len)) + ')'
+
+    @staticmethod
+    def get_delete_sql(table_name: str, query: 'Query' = None):
+        '''拼接删除语句，query中只有query(where =)会被处理'''
+        sql = 'delete from ' + table_name
+        sql_list = []
+
+        if query is not None and query.query:
+            sql += ' where '
+            where_key = []
+            for i in query.query:
+                where_key.append(i)
+                sql_list.append(query.query[i])
+            sql += where_key[0] + '=?'
+
+            if len(where_key) >= 1:
+                for i in range(1, len(where_key)):
+                    sql += ' and ' + where_key[i] + '=?'
+
+        return sql, sql_list
+
+    def select(self, table_name: str, target_column: list = [], query: 'Query' = None) -> list:
+        '''单表内行select单句sql语句，返回fetchall数据'''
+        sql, sql_list = self.get_select_sql(table_name, target_column, query)
         self.c.execute(sql, sql_list)
         return self.c.fetchall()
+
+    def select_exists(self, table_name: str, target_column: list = [], query: 'Query' = None) -> bool:
+        '''单表内行select exists单句sql语句，返回bool值'''
+        sql, sql_list = self.get_select_sql(table_name, target_column, query)
+        self.c.execute('select exists(' + sql + ')', sql_list)
+        return self.c.fetchone() == (1,)
+
+    def insert(self, table_name: str, key: list, value: tuple, insert_type: str = None) -> None:
+        '''单行插入或覆盖插入，key传[]则为全部列，insert_type为replace或ignore'''
+        self.c.execute(self.get_insert_sql(
+            table_name, key, len(value), insert_type), value)
+
+    def insert_many(self, table_name: str, key: list, value_list: list, insert_type: str = None) -> None:
+        '''多行插入或覆盖插入，key传[]则为全部列，insert_type为replace或ignore'''
+        if not value_list:
+            return
+        self.c.executemany(self.get_insert_sql(
+            table_name, key, len(value_list[0]), insert_type), value_list)
+
+    def delete(self, table_name: str, query: 'Query' = None) -> None:
+        '''删除，query中只有query(where =)会被处理'''
+        sql, sql_list = self.get_delete_sql(table_name, query)
+        self.c.execute(sql, sql_list)
+
+    def get_table_info(self, table_name: str):
+        '''得到表结构，返回主键列表和字段名列表'''
+        pk = []
+        name = []
+
+        self.c.execute('''pragma table_info ("%s")''' % table_name)  # 这里无法参数化
+        x = self.c.fetchall()
+        if x:
+            for i in x:
+                name.append(i[1])
+                if i[5] != 0:
+                    pk.append(i[1])
+
+        return pk, name
+
+
+class DatabaseMigrator:
+
+    def __init__(self, c1_path: str, c2_path: str) -> None:
+        self.c1_path = c1_path
+        self.c2_path = c2_path
+
+    @staticmethod
+    def update_one_table(c1, c2, table_name: str) -> bool:
+        '''从c1向c2更新数据表，c1中存在的信息不变，即c2中的冲突信息会被覆盖'''
+        c1.execute(
+            '''select * from sqlite_master where type = 'table' and name = :a''', {'a': table_name})
+        c2.execute(
+            '''select * from sqlite_master where type = 'table' and name = :a''', {'a': table_name})
+        if not c1.fetchone() or not c2.fetchone():
+            return False
+
+        sql1 = Sql(c1)
+        sql2 = Sql(c2)
+        db1_pk, db1_name = sql1.get_table_info(table_name)
+        db2_pk, db2_name = sql2.get_table_info(table_name)
+        if db1_pk != db2_pk:
+            return False
+
+        sql2.insert_many(table_name, [], sql1.select(
+            table_name, list(filter(lambda x: x in db2_name, db1_name))), insert_type='replace')
+
+        return True
+
+    @staticmethod
+    def update_user_char_full(c) -> None:
+        '''用character表数据更新user_char_full'''
+        c.execute('''select character_id, max_level, is_uncapped from character''')
+        x = c.fetchall()
+        c.execute('''select user_id from user''')
+        y = c.fetchall()
+        c.execute('''delete from user_char_full''')
+        for i in x:
+            exp = 25000 if i[1] == 30 else 10000
+            c.executemany('''insert into user_char_full values(?,?,?,?,?,?)''', [
+                          (j[0], i[0], i[1], exp, i[2], 0) for j in y])
+
+    @staticmethod
+    def update_user_epilogue(c) -> None:
+        '''给用户添加epilogue包'''
+        c.execute('''select user_id from user''')
+        Sql(c).insert_many('user_item', [], [(i[0], 'epilogue', 'pack', 1)
+                                             for i in c.fetchall()], insert_type='ignore')
+
+    def update_database(self) -> None:
+        '''
+        将c1数据库不存在数据加入或覆盖到c2数据库上
+        对于c2，更新一些表，并用character数据更新user_char_full
+        '''
+        with Connect(self.c2_path) as c2:
+            with Connect(self.c1_path) as c1:
+                [self.update_one_table(c1, c2, i)
+                 for i in Constant.DATABASE_MIGRATE_TABLES]
+
+                if not Constant.UPDATE_WITH_NEW_CHARACTER_DATA:
+                    self.update_one_table(c1, c2, 'character')
+
+            self.update_user_char_full(c2)  # 更新user_char_full
+            self.update_user_epilogue(c2)  # 更新user的epilogue

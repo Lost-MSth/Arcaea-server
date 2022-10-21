@@ -130,8 +130,10 @@ class UserRegister(User):
 
     def register(self):
         now = int(time.time() * 1000)
-        self._build_user_code()
-        self._build_user_id()
+        if self.user_code is None:
+            self._build_user_code()
+        if self.user_id is None:
+            self._build_user_id()
         self._insert_user_char()
 
         self.c.execute('''insert into user(user_id, name, password, join_date, user_code, rating_ptt, 
