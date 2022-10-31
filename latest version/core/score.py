@@ -258,7 +258,7 @@ class UserPlay(UserScore):
 
     def get_play_state(self) -> None:
         '''检查token，当然这里不管有没有，是用来判断世界模式和课题模式的'''
-        if self.token == '1145141919810':
+        if self.song_token == '1145141919810':
             # 硬编码检查，绕过数据库
             self.is_world_mode = False
             self.course_play_state = -1

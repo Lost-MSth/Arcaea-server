@@ -144,7 +144,7 @@ class DatabaseInit:
 
     def init(self) -> None:
         sys.path.append(os.path.join(sys.path[0], self.init_folder_path))
-        self.init_data = import_module('data').InitData
+        self.init_data = import_module('arc_data').InitData
 
         with Connect(self.db_path) as c:
             self.c = c
