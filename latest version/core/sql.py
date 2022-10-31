@@ -12,8 +12,8 @@ class Connect:
 
     def __init__(self, file_path=Constant.SQLITE_DATABASE_PATH):
         """
-            数据库连接，默认连接arcaea_database.db\
-            接受：文件路径\
+            数据库连接，默认连接arcaea_database.db\ 
+            接受：文件路径\ 
             返回：sqlite3连接操作对象
         """
         self.file_path = file_path

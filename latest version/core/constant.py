@@ -1,6 +1,6 @@
 from .config_manager import Config
 
-ARCAEA_SERVER_VERSION = 'v2.10.0.2'
+ARCAEA_SERVER_VERSION = 'v2.10.0.3'
 
 
 class Constant:

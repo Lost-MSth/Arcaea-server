@@ -1,13 +1,7 @@
 # encoding: utf-8
 
 import os
-import sys
 from importlib import import_module
-from logging.config import dictConfig
-from multiprocessing import Process, set_start_method
-from traceback import format_exc
-
-from flask import Flask, make_response, request, send_from_directory
 
 from core.config_manager import Config, ConfigManager
 
@@ -15,6 +9,18 @@ if os.path.exists('config.py') or os.path.exists('config'):
     # 导入用户自定义配置
     ConfigManager.load(import_module('config').Config)
 
+if Config.USE_GEVENT_WSGI:
+    # 异步
+    from gevent import monkey
+    monkey.patch_all()
+
+
+import sys
+from logging.config import dictConfig
+from multiprocessing import Process, set_start_method
+from traceback import format_exc
+
+from flask import Flask, make_response, request, send_from_directory
 
 import api
 import server
@@ -98,7 +104,7 @@ def tcp_server_run():
         host_port = (Config.HOST, Config.PORT)
         app.logger.info('Running gevent WSGI server... (%s:%s)' % host_port)
         from gevent.pywsgi import WSGIServer
-        WSGIServer(host_port, app).serve_forever()
+        WSGIServer(host_port, app, log=app.logger).serve_forever()
     else:
         if Config.SSL_CERT and Config.SSL_KEY:
             app.run(Config.HOST, Config.PORT, ssl_context=(

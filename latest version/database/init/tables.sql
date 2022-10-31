@@ -315,3 +315,6 @@ primary key(course_id, item_id, type)
 
 create index if not exists best_score_1 on best_score (song_id, difficulty);
 create index if not exists download_token_1 on download_token (song_id, file_name);
+
+PRAGMA journal_mode = WAL;
+PRAGMA default_cache_size = 8000;
