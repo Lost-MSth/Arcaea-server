@@ -9,7 +9,7 @@ from core.config_manager import Config
 from core.constant import ARCAEA_SERVER_VERSION
 from core.course import Course
 from core.purchase import Purchase
-from core.sql import Connect, DatabaseMigrator
+from core.sql import Connect, DatabaseMigrator, MemoryDatabase
 from core.user import UserRegister
 from core.util import try_rename
 
@@ -173,7 +173,7 @@ class FileChecker:
             self.app.logger.warning('Folder `%s` is missing.' % folder_path)
         return f
 
-    def chech_update_database(self) -> bool:
+    def check_update_database(self) -> bool:
         if not self.check_file(Config.SQLITE_DATABASE_PATH):
             # 新建数据库
             try:
@@ -241,4 +241,5 @@ class FileChecker:
 
     def check_before_run(self) -> bool:
         '''运行前检查，返回布尔值'''
-        return self.check_folder(Config.SONG_FILE_FOLDER_PATH) & self.chech_update_database()
+        MemoryDatabase()  # 初始化内存数据库
+        return self.check_folder(Config.SONG_FILE_FOLDER_PATH) & self.check_update_database()

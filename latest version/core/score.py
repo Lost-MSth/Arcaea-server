@@ -155,9 +155,10 @@ class UserScore(Score):
         super().__init__()
         self.c = c
         self.user = user
-        self.rank = None
+        self.rank = None # 成绩排名，给Ranklist用的
 
     def select_score(self) -> None:
+        '''查询成绩以及用户搭档信息，单次查询可用，不要集体循环查询'''
         self.c.execute('''select * from best_score where user_id = :a and song_id = :b and difficulty = :c''',
                        {'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty})
         x = self.c.fetchone()

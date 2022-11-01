@@ -73,7 +73,7 @@ def favicon():
 
 @app.route('/download/<path:file_path>', methods=['GET'])  # 下载
 def download(file_path):
-    with Connect() as c:
+    with Connect(in_memory=True) as c:
         try:
             x = UserDownload(c)
             x.token = request.args.get('t')

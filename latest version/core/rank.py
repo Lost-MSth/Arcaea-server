@@ -1,6 +1,7 @@
 from .constant import Constant
 from .score import UserScore
 from .song import Chart
+from .sql import Query, Sql
 from .user import UserInfo
 
 
@@ -26,24 +27,27 @@ class RankList:
             得到top分数表
         '''
         if self.limit >= 0:
-            self.c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit''', {
+            self.c.execute('''select * from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit''', {
                 'song_id': self.song.song_id, 'difficulty': self.song.difficulty, 'limit': self.limit})
         else:
-            self.c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC''', {
+            self.c.execute('''select * from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC''', {
                 'song_id': self.song.song_id, 'difficulty': self.song.difficulty})
 
         x = self.c.fetchall()
         if not x:
             return None
 
+        user_info_list = Sql(self.c).select('user', ['name', 'character_id', 'is_skill_sealed', 'is_char_uncapped',
+                                                     'is_char_uncapped_override', 'favorite_character'], Query().from_args({'user_id': [i[0] for i in x]}))
         rank = 0
         self.list = []
-        for i in x:
+        for i, j in zip(x, user_info_list):
             rank += 1
-            y = UserScore(self.c, UserInfo(self.c, i[0]))
+            y = UserScore(self.c, UserInfo(self.c, i[0])).from_list(i)
             y.song = self.song
-            y.select_score()
             y.rank = rank
+            y.user.from_list_about_character(j)
+
             self.list.append(y)
 
     def select_friend(self, user=None, limit=Constant.MAX_FRIEND_COUNT) -> None:
@@ -54,20 +58,25 @@ class RankList:
         if user:
             self.user = user
 
-        self.c.execute('''select user_id from best_score where user_id in (select :user_id union select user_id_other from friend where user_id_me = :user_id) and song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit''', {
-            'user_id': self.user.user_id, 'song_id': self.song.song_id, 'difficulty': self.song.difficulty, 'limit': self.limit})
+        user_ids = [self.user.user_id] + [x[0] for x in self.user.friend_ids]
+
+        self.c.execute(f'''select * from best_score where user_id in ({','.join(['?'] * len(user_ids))}) and song_id = ? and difficulty = ? order by score DESC, time_played DESC limit ?''', user_ids + [
+                       self.song.song_id, self.song.difficulty, self.limit])
         x = self.c.fetchall()
         if not x:
             return None
 
+        user_info_list = Sql(self.c).select('user', ['name', 'character_id', 'is_skill_sealed', 'is_char_uncapped',
+                                                     'is_char_uncapped_override', 'favorite_character'], Query().from_args({'user_id': [i[0] for i in x]}))
         rank = 0
         self.list = []
-        for i in x:
+        for i, j in zip(x, user_info_list):
             rank += 1
-            y = UserScore(self.c, UserInfo(self.c, i[0]))
+            y = UserScore(self.c, UserInfo(self.c, i[0])).from_list(i)
             y.song = self.song
-            y.select_score()
             y.rank = rank
+            y.user.from_list_about_character(j)
+
             self.list.append(y)
 
     @staticmethod
@@ -118,19 +127,24 @@ class RankList:
 
         sql_limit, sql_offset, need_myself = self.get_my_rank_parameter(
             my_rank, int(self.c.fetchone()[0]), self.limit)
-        self.c.execute('''select user_id from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
+        self.c.execute('''select * from best_score where song_id = :song_id and difficulty = :difficulty order by score DESC, time_played DESC limit :limit offset :offset''', {
             'song_id': self.song.song_id, 'difficulty': self.song.difficulty, 'limit': sql_limit, 'offset': sql_offset})
         x = self.c.fetchall()
+
         if x:
+            user_info_list = Sql(self.c).select('user', ['name', 'character_id', 'is_skill_sealed', 'is_char_uncapped',
+                                                         'is_char_uncapped_override', 'favorite_character'], Query().from_args({'user_id': [i[0] for i in x]}))
             rank = sql_offset if sql_offset > 0 else 0
             self.list = []
-            for i in x:
+            for i, j in zip(x, user_info_list):
                 rank += 1
-                y = UserScore(self.c, UserInfo(self.c, i[0]))
+                y = UserScore(self.c, UserInfo(self.c, i[0])).from_list(i)
                 y.song = self.song
-                y.select_score()
                 y.rank = rank
+                y.user.from_list_about_character(j)
+
                 self.list.append(y)
+
             if need_myself:
                 y = UserScore(self.c, UserInfo(self.c, self.user.user_id))
                 y.song = self.song

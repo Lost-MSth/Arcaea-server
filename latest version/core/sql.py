@@ -10,16 +10,21 @@ from .error import ArcError, InputError
 class Connect:
     # 数据库连接类，上下文管理
 
-    def __init__(self, file_path=Constant.SQLITE_DATABASE_PATH):
+    def __init__(self, file_path: str = Constant.SQLITE_DATABASE_PATH, in_memory: bool = False):
         """
             数据库连接，默认连接arcaea_database.db\ 
             接受：文件路径\ 
             返回：sqlite3连接操作对象
         """
         self.file_path = file_path
+        self.in_memory = in_memory
 
     def __enter__(self):
-        self.conn = sqlite3.connect(self.file_path, timeout=10)
+        if self.in_memory:
+            self.conn = sqlite3.connect(
+                'file:arc_tmp?mode=memory&cache=shared', uri=True, timeout=10)
+        else:
+            self.conn = sqlite3.connect(self.file_path, timeout=10)
         self.c = self.conn.cursor()
         return self.c
 
@@ -46,14 +51,17 @@ class Query:
     '''查询参数类'''
 
     def __init__(self, query_able: list = None, quzzy_query_able: list = None, sort_able: list = None) -> None:
-        self.query_able: list = query_able
-        self.quzzy_query_able: list = quzzy_query_able
+        self.query_able: list = query_able  # None表示不限制
+        self.quzzy_query_able: list = quzzy_query_able  # None表示不限制
         self.sort_able: list = sort_able
 
         self.__limit: int = -1
         self.__offset: int = 0
-        self.__query: dict = {}  # {'name': 'admin'}
+
+        # {'name': 'admin'} or {'name': ['admin', 'user']}
+        self.__query: dict = {}
         self.__fuzzy_query: dict = {}  # {'name': 'dmi'}
+
         # [{'column': 'user_id', 'order': 'ASC'}, ...]
         self.__sort: list = []
 
@@ -148,6 +156,10 @@ class Query:
                        d.get('query', {}), d.get('fuzzy_query', {}), d.get('sort', []))
         return self
 
+    def from_args(self, query: dict, limit: int = -1, offset: int = 0, sort: list = [], fuzzy_query: dict = {}) -> 'Query':
+        self.set_value(limit, offset, query, fuzzy_query, sort)
+        return self
+
 
 class Sql:
     '''
@@ -160,54 +172,35 @@ class Sql:
     @staticmethod
     def get_select_sql(table_name: str, target_column: list = [], query: 'Query' = None):
         '''拼接单表内行查询单句sql语句，返回语句和参数列表'''
-        sql = 'select '
         sql_list = []
-        if len(target_column) >= 2:
-            sql += target_column[0]
-            for i in range(1, len(target_column)):
-                sql += ',' + target_column[i]
-            sql += ' from ' + table_name
-        elif len(target_column) == 1:
-            sql += target_column[0] + ' from ' + table_name
+        if not target_column:
+            sql = f'select * from {table_name}'
         else:
-            sql += '* from ' + table_name
+            sql = f"select {', '.join(target_column)} from {table_name}"
 
         if query is None:
             return sql, sql_list
 
         where_key = []
-        where_like_key = []
-        for i in query.query:
-            where_key.append(i)
-            sql_list.append(query.query[i])
-
-        for i in query.fuzzy_query:
-            where_like_key.append(i)
-            sql_list.append('%' + query.fuzzy_query[i] + '%')
-
-        if where_key or where_like_key:
-            sql += ' where '
-            if where_key:
-                sql += where_key[0] + '=?'
-                if len(where_key) >= 2:
-                    for i in range(1, len(where_key)):
-                        sql += ' and ' + where_key[i] + '=?'
-                if where_like_key:
-                    for i in where_like_key:
-                        sql += ' and ' + i + ' like ?'
+        for k, v in query.query.items():
+            if isinstance(v, list):
+                where_key.append(f"{k} in ({','.join(['?'] * len(v))})")
+                sql_list.extend(v)
             else:
-                sql += where_like_key[0] + ' like ?'
+                where_key.append(f'{k}=?')
+                sql_list.append(v)
 
-                if len(where_like_key) >= 2:
-                    for i in range(1, len(where_key)):
-                        sql += ' and ' + where_key[i] + ' like ?'
+        for k, v in query.fuzzy_query.items():
+            where_key.append(f'{k} like ?')
+            sql_list.append(f'%{v}%')
+
+        if where_key:
+            sql += ' where '
+            sql += ' and '.join(where_key)
 
         if query.sort:
             sql += ' order by ' + \
-                query.sort[0]['column'] + ' ' + query.sort[0]['order']
-            for i in range(1, len(query.sort)):
-                sql += ', ' + query.sort[i]['column'] + \
-                    ' ' + query.sort[i]['order']
+                ', '.join([x['column'] + ' ' + x['order'] for x in query.sort])
 
         if query.limit >= 0:
             sql += ' limit ? offset ?'
@@ -225,21 +218,29 @@ class Sql:
 
     @staticmethod
     def get_delete_sql(table_name: str, query: 'Query' = None):
-        '''拼接删除语句，query中只有query(where =)会被处理'''
-        sql = 'delete from ' + table_name
+        '''拼接删除语句，query中只有query和fuzzy_query会被处理'''
+        sql = f'delete from {table_name}'
+
+        if query is None:
+            return sql, []
+
         sql_list = []
+        where_key = []
+        for k, v in query.query.items():
+            if isinstance(v, list):
+                where_key.append(f"{k} in ({','.join(['?'] * len(v))})")
+                sql_list.extend(v)
+            else:
+                where_key.append(f'{k}=?')
+                sql_list.append(v)
 
-        if query is not None and query.query:
+        for k, v in query.fuzzy_query.items():
+            where_key.append(f'{k} like ?')
+            sql_list.append(f'%{v}%')
+
+        if where_key:
             sql += ' where '
-            where_key = []
-            for i in query.query:
-                where_key.append(i)
-                sql_list.append(query.query[i])
-            sql += where_key[0] + '=?'
-
-            if len(where_key) >= 1:
-                for i in range(1, len(where_key)):
-                    sql += ' and ' + where_key[i] + '=?'
+            sql += ' and '.join(where_key)
 
         return sql, sql_list
 
@@ -268,7 +269,7 @@ class Sql:
             table_name, key, len(value_list[0]), insert_type), value_list)
 
     def delete(self, table_name: str, query: 'Query' = None) -> None:
-        '''删除，query中只有query(where =)会被处理'''
+        '''删除，query中只有query和fuzzy_query会被处理'''
         sql, sql_list = self.get_delete_sql(table_name, query)
         self.c.execute(sql, sql_list)
 
@@ -351,3 +352,20 @@ class DatabaseMigrator:
 
             self.update_user_char_full(c2)  # 更新user_char_full
             self.update_user_epilogue(c2)  # 更新user的epilogue
+
+
+class MemoryDatabase:
+    conn = sqlite3.connect('file:arc_tmp?mode=memory&cache=shared', uri=True)
+
+    def __init__(self):
+        self.c = self.conn.cursor()
+        self.c.execute('''PRAGMA journal_mode = OFF''')
+        self.c.execute('''PRAGMA synchronous = 0''')
+        self.c.execute('''create table if not exists download_token(user_id int, 
+        song_id text,file_name text,token text,time int,primary key(user_id, song_id, file_name));''')
+        self.c.execute(
+            '''create index if not exists download_token_1 on download_token (song_id, file_name);''')
+        self.conn.commit()
+
+    def atexit(self):
+        self.conn.close()

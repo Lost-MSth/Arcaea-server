@@ -54,8 +54,8 @@ class UserDownload:
     limiter = ArcLimiter(
         str(Constant.DOWNLOAD_TIMES_LIMIT) + '/day', 'download')
 
-    def __init__(self, c=None, user=None) -> None:
-        self.c = c
+    def __init__(self, c_m=None, user=None) -> None:
+        self.c_m = c_m
         self.user = user
 
         self.song_id: str = None
@@ -85,10 +85,10 @@ class UserDownload:
 
     def select_for_check(self) -> None:
         '''利用token、song_id、file_name查询其它信息'''
-        self.c.execute('''select user_id, time from download_token where song_id=? and file_name=? and token = ? limit 1;''',
-                       (self.song_id, self.file_name, self.token))
+        self.c_m.execute('''select user_id, time from download_token where song_id=? and file_name=? and token = ? limit 1;''',
+                         (self.song_id, self.file_name, self.token))
 
-        x = self.c.fetchone()
+        x = self.c_m.fetchone()
         if not x:
             raise NoAccess('The token `%s` is not valid.' %
                            self.token, status=403)
@@ -103,7 +103,7 @@ class UserDownload:
 
     def insert_download_token(self) -> None:
         '''将数据插入数据库，让这个下载链接可用'''
-        self.c.execute('''insert into download_token values(:a,:b,:c,:d,:e)''', {
+        self.c_m.execute('''insert or replace into download_token values(:a,:b,:c,:d,:e)''', {
             'a': self.user.user_id, 'b': self.song_id, 'c': self.file_name, 'd': self.token, 'e': self.token_time})
 
     @property
@@ -131,8 +131,8 @@ class DownloadList(UserDownload):
         properties: `user` - `User`类或子类的实例
     '''
 
-    def __init__(self, c=None, user=None) -> None:
-        super().__init__(c, user)
+    def __init__(self, c_m=None, user=None) -> None:
+        super().__init__(c_m, user)
 
         self.song_ids: list = None
         self.url_flag: bool = None
@@ -140,13 +140,12 @@ class DownloadList(UserDownload):
         self.downloads: list = []
         self.urls: dict = {}
 
-    def clear_download_token_from_song(self, song_id: str) -> None:
-        self.c.execute('''delete from download_token where user_id=:a and song_id=:b''', {
-            'a': self.user.user_id, 'b': song_id})
+    def clear_download_token(self) -> None:
+        '''清除过期下载链接'''
+        self.c_m.execute('''delete from download_token where time<?''',
+                         (int(time()) - Constant.DOWNLOAD_TIME_GAP_LIMIT,))
 
     def add_one_song(self, song_id: str) -> None:
-        if self.url_flag:
-            self.clear_download_token_from_song(song_id)
         dir_list = os.listdir(os.path.join(
             Constant.SONG_FILE_FOLDER_PATH, song_id))
 
@@ -155,7 +154,7 @@ class DownloadList(UserDownload):
             if os.path.isfile(os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg']:
                 if song_id in get_only_3_song_ids() and i not in ['3.aff', '3.ogg']:
                     continue
-                x = UserDownload(self.c, self.user)
+                x = UserDownload(self.c_m, self.user)
                 # self.downloads.append(x) # 这实际上没有用
                 x.song_id = song_id
                 x.file_name = i

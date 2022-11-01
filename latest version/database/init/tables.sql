@@ -184,13 +184,6 @@ stamina_multiply int,
 fragment_multiply int,
 prog_boost_multiply int
 );
-create table if not exists download_token(user_id int,
-song_id text,
-file_name text,
-token text,
-time int,
-primary key(user_id, song_id, file_name)
-);
 create table if not exists item(item_id text,
 type text,
 is_available int,
@@ -314,7 +307,6 @@ primary key(course_id, item_id, type)
 );
 
 create index if not exists best_score_1 on best_score (song_id, difficulty);
-create index if not exists download_token_1 on download_token (song_id, file_name);
 
 PRAGMA journal_mode = WAL;
 PRAGMA default_cache_size = 8000;

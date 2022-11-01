@@ -98,8 +98,8 @@ It is just so interesting. What it can do is under exploration.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows/Linux/Mac OS/Android...
-- Python 3
-- Flask module >= 2.0, Cryptography module >= 35.0.0, limits >= 2.7.0
+- Python >= 3.6
+- Flask module >= 2.0, Cryptography module >= 3.0.0, limits >= 2.7.0
 - Charles, IDA, proxy app... (optional)
 
 <!--

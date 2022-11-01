@@ -378,39 +378,41 @@ class UserInfo(User):
         return self.favorite_character
 
     @property
+    def friend_ids(self) -> list:
+        self.c.execute('''select user_id_other from friend where user_id_me = :user_id''', {
+            'user_id': self.user_id})
+        return self.c.fetchall()
+
+    @property
     def friends(self) -> list:
         # 得到用户的朋友列表
         if self.__friends is None:
-            self.c.execute('''select user_id_other from friend where user_id_me = :user_id''', {
-                'user_id': self.user_id})
-            x = self.c.fetchall()
             s = []
-            if x != [] and x[0][0] is not None:
-                for i in x:
-                    self.c.execute('''select exists(select * from friend where user_id_me = :x and user_id_other = :y)''',
-                                   {'x': i[0], 'y': self.user_id})
+            for i in self.friend_ids:
+                self.c.execute('''select exists(select * from friend where user_id_me = :x and user_id_other = :y)''',
+                               {'x': i[0], 'y': self.user_id})
 
-                    is_mutual = True if self.c.fetchone() == (1,) else False
+                is_mutual = True if self.c.fetchone() == (1,) else False
 
-                    you = UserOnline(self.c, i[0])
-                    you.select_user()
-                    character = you.character if you.favorite_character is None else you.favorite_character
-                    character.select_character_uncap_condition(you)
+                you = UserOnline(self.c, i[0])
+                you.select_user()
+                character = you.character if you.favorite_character is None else you.favorite_character
+                character.select_character_uncap_condition(you)
 
-                    rating = you.rating_ptt if not you.is_hide_rating else -1
+                rating = you.rating_ptt if not you.is_hide_rating else -1
 
-                    s.append({
-                        "is_mutual": is_mutual,
-                        "is_char_uncapped_override": character.is_uncapped_override,
-                        "is_char_uncapped": character.is_uncapped,
-                        "is_skill_sealed": you.is_skill_sealed,
-                        "rating": rating,
-                        "join_date": you.join_date,
-                        "character": character.character_id,
-                        "recent_score": you.recent_score_list,
-                        "name": you.name,
-                        "user_id": you.user_id
-                    })
+                s.append({
+                    "is_mutual": is_mutual,
+                    "is_char_uncapped_override": character.is_uncapped_override,
+                    "is_char_uncapped": character.is_uncapped,
+                    "is_skill_sealed": you.is_skill_sealed,
+                    "rating": rating,
+                    "join_date": you.join_date,
+                    "character": character.character_id,
+                    "recent_score": you.recent_score_list,
+                    "name": you.name,
+                    "user_id": you.user_id
+                })
             s.sort(key=lambda item: item["recent_score"][0]["time_played"] if len(
                 item["recent_score"]) > 0 else 0, reverse=True)
             self.__friends = s
@@ -568,16 +570,8 @@ class UserInfo(User):
         self.stamina = UserStamina(self.c, self)
         self.stamina.set_value(x[0], x[1])
 
-    def select_user_about_character(self) -> None:
-        '''
-            查询user表有关角色的信息
-        '''
-        self.c.execute('''select name, character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, favorite_character from user where user_id = :a''', {
-            'a': self.user_id})
-        x = self.c.fetchone()
-        if not x:
-            raise NoData('No user.', 108, -3)
-
+    def from_list_about_character(self, x: list) -> None:
+        '''从数据库user表获取搭档信息'''
         self.name = x[0]
         self.character = UserCharacter(self.c, x[1], self)
         self.is_skill_sealed = x[2] == 1
@@ -585,6 +579,18 @@ class UserInfo(User):
         self.character.is_uncapped_override = x[4] == 1
         self.favorite_character = None if x[5] == - \
             1 else UserCharacter(self.c, x[5], self)
+
+    def select_user_about_character(self) -> None:
+        '''
+            查询user表有关搭档的信息
+        '''
+        self.c.execute('''select name, character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, favorite_character from user where user_id = :a''', {
+            'a': self.user_id})
+        x = self.c.fetchone()
+        if not x:
+            raise NoData('No user.', 108, -3)
+
+        self.from_list_about_character(x)
 
     def select_user_about_world_play(self) -> None:
         '''
