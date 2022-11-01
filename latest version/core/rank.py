@@ -37,16 +37,18 @@ class RankList:
         if not x:
             return None
 
-        user_info_list = Sql(self.c).select('user', ['name', 'character_id', 'is_skill_sealed', 'is_char_uncapped',
+        user_info_list = Sql(self.c).select('user', ['user_id', 'name', 'character_id', 'is_skill_sealed', 'is_char_uncapped',
                                                      'is_char_uncapped_override', 'favorite_character'], Query().from_args({'user_id': [i[0] for i in x]}))
+        user_info_dict = {i[0]: i[1:] for i in user_info_list}
+
         rank = 0
         self.list = []
-        for i, j in zip(x, user_info_list):
+        for i in x:
             rank += 1
             y = UserScore(self.c, UserInfo(self.c, i[0])).from_list(i)
             y.song = self.song
             y.rank = rank
-            y.user.from_list_about_character(j)
+            y.user.from_list_about_character(user_info_dict[i[0]])
 
             self.list.append(y)
 
@@ -66,16 +68,17 @@ class RankList:
         if not x:
             return None
 
-        user_info_list = Sql(self.c).select('user', ['name', 'character_id', 'is_skill_sealed', 'is_char_uncapped',
+        user_info_list = Sql(self.c).select('user', ['user_id', 'name', 'character_id', 'is_skill_sealed', 'is_char_uncapped',
                                                      'is_char_uncapped_override', 'favorite_character'], Query().from_args({'user_id': [i[0] for i in x]}))
+        user_info_dict = {i[0]: i[1:] for i in user_info_list}
         rank = 0
         self.list = []
-        for i, j in zip(x, user_info_list):
+        for i in x:
             rank += 1
             y = UserScore(self.c, UserInfo(self.c, i[0])).from_list(i)
             y.song = self.song
             y.rank = rank
-            y.user.from_list_about_character(j)
+            y.user.from_list_about_character(user_info_dict[i[0]])
 
             self.list.append(y)
 
@@ -132,16 +135,17 @@ class RankList:
         x = self.c.fetchall()
 
         if x:
-            user_info_list = Sql(self.c).select('user', ['name', 'character_id', 'is_skill_sealed', 'is_char_uncapped',
+            user_info_list = Sql(self.c).select('user', ['user_id', 'name', 'character_id', 'is_skill_sealed', 'is_char_uncapped',
                                                          'is_char_uncapped_override', 'favorite_character'], Query().from_args({'user_id': [i[0] for i in x]}))
+            user_info_dict = {i[0]: i[1:] for i in user_info_list}
             rank = sql_offset if sql_offset > 0 else 0
             self.list = []
-            for i, j in zip(x, user_info_list):
+            for i in x:
                 rank += 1
                 y = UserScore(self.c, UserInfo(self.c, i[0])).from_list(i)
                 y.song = self.song
                 y.rank = rank
-                y.user.from_list_about_character(j)
+                y.user.from_list_about_character(user_info_dict[i[0]])
 
                 self.list.append(y)
 
