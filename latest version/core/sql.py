@@ -1,5 +1,6 @@
 import sqlite3
 import traceback
+from atexit import register
 
 from flask import current_app
 
@@ -367,5 +368,7 @@ class MemoryDatabase:
             '''create index if not exists download_token_1 on download_token (song_id, file_name);''')
         self.conn.commit()
 
-    def atexit(self):
-        self.conn.close()
+
+@register
+def atexit():
+    MemoryDatabase.conn.close()

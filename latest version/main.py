@@ -9,7 +9,7 @@ if os.path.exists('config.py') or os.path.exists('config'):
     # 导入用户自定义配置
     ConfigManager.load(import_module('config').Config)
 
-if Config.USE_GEVENT_WSGI:
+if Config.DEPLOY_MODE == 'gevent':
     # 异步
     from gevent import monkey
     monkey.patch_all()
@@ -99,12 +99,19 @@ def download(file_path):
 
 
 def tcp_server_run():
-    if Config.USE_GEVENT_WSGI:
+    if Config.DEPLOY_MODE == 'gevent':
         # 异步 gevent WSGI server
         host_port = (Config.HOST, Config.PORT)
         app.logger.info('Running gevent WSGI server... (%s:%s)' % host_port)
         from gevent.pywsgi import WSGIServer
         WSGIServer(host_port, app, log=app.logger).serve_forever()
+    elif Config.DEPLOY_MODE == 'waitress':
+        # waitress WSGI server
+        from waitress import serve
+        import logging
+        logger = logging.getLogger('waitress')
+        logger.setLevel(logging.INFO)
+        serve(app, host=Config.HOST, port=Config.PORT)
     else:
         if Config.SSL_CERT and Config.SSL_KEY:
             app.run(Config.HOST, Config.PORT, ssl_context=(

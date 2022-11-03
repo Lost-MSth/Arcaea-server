@@ -6,7 +6,7 @@ class Config:
     HOST = '0.0.0.0'
     PORT = 80
 
-    USE_GEVENT_WSGI = False
+    DEPLOY_MODE = 'flask_multithread'
     USE_PROXY_FIX = False
     USE_CORS = False
 

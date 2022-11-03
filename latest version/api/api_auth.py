@@ -27,12 +27,12 @@ def role_required(request, powers=[]):
                 return error_return(PostError('No token', api_error_code=-1), 401)
 
             user = APIUser()
-            if Config.API_TOKEN == request.headers['Token'] and Config.API_TOKEN != '':
-                user.set_role_system()
-            else:
-                with Connect() as c:
+            with Connect() as c:
+                user.c = c
+                if Config.API_TOKEN == request.headers['Token'] and Config.API_TOKEN != '':
+                    user.set_role_system()
+                else:
                     try:
-                        user.c = c
                         user.select_user_id_from_api_token(
                             request.headers['Token'])
                         user.select_role_and_powers()
