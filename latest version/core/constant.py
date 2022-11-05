@@ -1,4 +1,6 @@
-from setting import Config
+from .config_manager import Config
+
+ARCAEA_SERVER_VERSION = 'v2.10.0.3'
 
 
 class Constant:
@@ -8,6 +10,8 @@ class Constant:
     MAX_STAMINA = 12
 
     STAMINA_RECOVER_TICK = 1800000
+
+    COURSE_STAMINA_COST = 4
 
     CORE_EXP = 250
 
@@ -19,19 +23,18 @@ class Constant:
     AYU_UNCAP_BONUS_PROGRESS = 5
     SKILL_FATALIS_WORLD_LOCKED_TIME = 3600000
 
-    MAX_FRIEND_COUNT = 50
+    MAX_FRIEND_COUNT = Config.MAX_FRIEND_COUNT
 
     MY_RANK_MAX_LOCAL_POSITION = 5
     MY_RANK_MAX_GLOBAL_POSITION = 9999
 
-    # You can change this to make another PTT mechanism.
-    BEST30_WEIGHT = 1 / 40
-    RECENT10_WEIGHT = 1 / 40
+    BEST30_WEIGHT = Config.BEST30_WEIGHT
+    RECENT10_WEIGHT = Config.RECENT10_WEIGHT
 
-    WORLD_MAP_FOLDER_PATH = './database/map/'
-    SONG_FILE_FOLDER_PATH = './database/songs/'
-    SONGLIST_FILE_PATH = './database/songs/songlist'
-    SQLITE_DATABASE_PATH = './database/arcaea_database.db'
+    WORLD_MAP_FOLDER_PATH = Config.WORLD_MAP_FOLDER_PATH
+    SONG_FILE_FOLDER_PATH = Config.SONG_FILE_FOLDER_PATH
+    SONGLIST_FILE_PATH = Config.SONGLIST_FILE_PATH
+    SQLITE_DATABASE_PATH = Config.SQLITE_DATABASE_PATH
 
     DOWNLOAD_TIMES_LIMIT = Config.DOWNLOAD_TIMES_LIMIT
     DOWNLOAD_TIME_GAP_LIMIT = Config.DOWNLOAD_TIME_GAP_LIMIT
@@ -44,8 +47,6 @@ class Constant:
     LINKPLAY_TCP_PORT = Config.LINKPLAY_TCP_PORT
     LINKPLAY_UDP_PORT = Config.LINKPLAY_UDP_PORT
     LINKPLAY_AUTHENTICATION = Config.LINKPLAY_AUTHENTICATION
-
-    COURSE_STAMINA_COST = 4
 
     # Well, I can't say a word when I see this.
     FINALE_SWITCH = [
@@ -93,3 +94,8 @@ class Constant:
         (0X5D6FC5, 0xab97ef), (0X237206D, 0xdfef2), (0XA3DEE,
                                                      0x6CB300), (0XA35687B, 0xE456CDEA)
     ]
+
+    DATABASE_MIGRATE_TABLES = ['user', 'friend', 'best_score', 'recent30', 'user_world', 'item', 'user_item', 'purchase', 'purchase_item', 'user_save',
+                               'login', 'present', 'user_present', 'present_item', 'redeem', 'user_redeem', 'redeem_item', 'api_login', 'chart', 'user_course', 'user_char']
+
+    UPDATE_WITH_NEW_CHARACTER_DATA = Config.UPDATE_WITH_NEW_CHARACTER_DATA

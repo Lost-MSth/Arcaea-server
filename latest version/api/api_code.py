@@ -20,6 +20,7 @@ CODE_MSG = {
     -202: 'User is banned',
     -203: 'Username exists',
     -204: 'Email address exists',
+    -205: 'Too many login attempts',
     -999: 'Unknown error'
 }
 

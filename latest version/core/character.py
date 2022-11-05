@@ -1,6 +1,6 @@
-from setting import Config
-from .error import ArcError, InputError, NoData, ItemNotEnough
+from .config_manager import Config
 from .constant import Constant
+from .error import ArcError, InputError, ItemNotEnough, NoData
 from .item import Item, ItemCore
 
 

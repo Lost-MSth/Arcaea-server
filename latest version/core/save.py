@@ -1,10 +1,8 @@
 import json
 from time import time
 
-from setting import Config
-
-from core.constant import Constant
-
+from .config_manager import Config
+from .constant import Constant
 from .error import InputError
 from .util import md5
 
@@ -101,9 +99,7 @@ class SaveData:
             parameter: `user` - `User`类或子类的实例
         '''
         self.createdAt = int(time() * 1000)
-        self.c.execute('''delete from user_save where user_id=:a''', {
-                       'a': user.user_id})
-        self.c.execute('''insert into user_save values(:a,:b,:c,:d,:e,:f,:g,:h,:i,:j)''', {
+        self.c.execute('''insert or replace into user_save values(:a,:b,:c,:d,:e,:f,:g,:h,:i,:j)''', {
             'a': user.user_id, 'b': json.dumps({'': self.scores_data}), 'c': json.dumps({'': self.clearlamps_data}), 'd': json.dumps({'': self.clearedsongs_data}), 'e': json.dumps({'': self.unlocklist_data}), 'f': json.dumps({'val': self.installid_data}), 'g': json.dumps({'val': self.devicemodelname_data}), 'h': json.dumps({'': self.story_data}), 'i': self.createdAt, 'j': self.finalestate_data})
 
     def set_value(self, key: str, value: str, checksum: str) -> None:

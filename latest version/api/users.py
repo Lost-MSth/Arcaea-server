@@ -2,6 +2,7 @@ from core.error import InputError, NoAccess, NoData
 from core.score import Potential, UserScoreList
 from core.sql import Connect, Query, Sql
 from core.user import UserInfo, UserRegister
+from core.api_user import APIUser
 from flask import Blueprint, request
 
 from .api_auth import api_try, request_json_handle, role_required
@@ -15,7 +16,7 @@ bp = Blueprint('users', __name__, url_prefix='/users')
 @role_required(request, ['change'])
 @request_json_handle(request, ['name', 'password', 'email'])
 @api_try
-def users_post(data, _):
+def users_post(data, user):
     '''注册一个用户'''
     with Connect() as c:
         new_user = UserRegister(c)
@@ -36,7 +37,7 @@ def users_get(data, user):
     B = ['user_id', 'name', 'user_code', 'join_date',
          'rating_ptt', 'time_played', 'ticket', 'world_rank_score']
     with Connect() as c:
-        query = Query(A, A, B).from_data(data)
+        query = Query(A, A, B).from_dict(data)
         x = Sql(c).select('user', query=query)
         r = []
         for i in x:
@@ -50,7 +51,7 @@ def users_get(data, user):
             'name': x.name,
             'join_date': x.join_date,
             'user_code': x.user_code,
-            'rating_ptt': x.rating_ptt/100,
+            'rating_ptt': x.rating_ptt,
             'character_id': x.character.character_id,
             'is_char_uncapped': x.character.is_uncapped,
             'is_char_uncapped_override': x.character.is_uncapped_override,
@@ -67,7 +68,7 @@ def users_user_get(user, user_id):
     if user_id <= 0:
         return error_return(InputError(api_error_code=-4))
     # 查别人需要select权限
-    if user_id != user.user_id and user.user_id != 0 and not user.role.has_power('select'):
+    if user_id != user.user_id and not user.role.has_power('select'):
         return error_return(NoAccess('No permission', api_error_code=-1), 403)
 
     with Connect() as c:
@@ -83,7 +84,7 @@ def users_user_b30_get(user, user_id):
     if user_id <= 0:
         return error_return(InputError(api_error_code=-4))
     # 查别人需要select权限
-    if user_id != user.user_id and user.user_id != 0 and not user.role.has_power('select'):
+    if user_id != user.user_id and not user.role.has_power('select'):
         return error_return(NoAccess('No permission', api_error_code=-1), 403)
 
     with Connect() as c:
@@ -105,12 +106,12 @@ def users_user_best_get(data, user, user_id):
     if user_id <= 0:
         return error_return(InputError(api_error_code=-4))
     # 查别人需要select权限
-    if user_id != user.user_id and user.user_id != 0 and not user.role.has_power('select'):
+    if user_id != user.user_id and not user.role.has_power('select'):
         return error_return(NoAccess('No permission', api_error_code=-1), 403)
 
     with Connect() as c:
         x = UserScoreList(c, UserInfo(c, user_id))
-        x.query.from_data(data)
+        x.query.from_dict(data)
         x.select_from_user()
         r = x.to_dict_list()
         return success_return({'user_id': user_id, 'data': r})
@@ -125,9 +126,30 @@ def users_user_r30_get(user, user_id):
     if user_id <= 0:
         return error_return(InputError(api_error_code=-4))
     # 查别人需要select权限
-    if user_id != user.user_id and user.user_id != 0 and not user.role.has_power('select'):
+    if user_id != user.user_id and not user.role.has_power('select'):
         return error_return(NoAccess('No permission', api_error_code=-1), 403)
 
     with Connect() as c:
         p = Potential(c, UserInfo(c, user_id))
         return success_return({'user_id': user_id, 'r10_ptt': p.recent_10 / 10, 'data': p.recent_30_to_dict_list()})
+
+
+@bp.route('/<int:user_id>/role', methods=['GET'])
+@role_required(request, ['select', 'select_me'])
+@api_try
+def users_user_role_get(user, user_id):
+    '''查询用户role和powers'''
+
+    if user_id <= 0:
+        return error_return(InputError(api_error_code=-4))
+
+    if user_id == user.user_id:
+        return success_return({'user_id': user.user_id, 'role': user.role.role_id, 'powers': [i.power_id for i in user.role.powers]})
+    # 查别人需要select权限
+    if not user.role.has_power('select'):
+        return error_return(NoAccess('No permission', api_error_code=-1), 403)
+
+    with Connect() as c:
+        x = APIUser(c, user_id)
+        x.select_role_and_powers()
+        return success_return({'user_id': x.user_id, 'role': x.role.role_id, 'powers': [i.power_id for i in x.role.powers]})

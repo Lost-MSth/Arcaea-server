@@ -53,6 +53,36 @@ class Purchase:
                 r['discount_reason'] = self.discount_reason
         return r
 
+    def from_dict(self, d: dict) -> 'Purchase':
+        self.purchase_name = d['name']
+        self.price = d['price']
+        self.orig_price = d['orig_price']
+        self.discount_from = d.get('discount_from', -1)
+        self.discount_to = d.get('discount_to', -1)
+        self.discount_reason = d.get('discount_reason', '')
+        for i in d.get('items', []):
+            self.items.append(ItemFactory.from_dict(i))
+
+        return self
+
+    def insert_all(self) -> None:
+        '''向数据库插入，包括item表和purchase_item表'''
+        self.c.execute('''insert into purchase values(?,?,?,?,?,?)''',
+                       (self.purchase_name, self.price, self.orig_price, self.discount_from, self.discount_to, self.discount_reason))
+        self.insert_items()
+
+    def insert_items(self) -> None:
+        '''向数据库插入物品，注意已存在的物品不会变更'''
+        for i in self.items:
+            self.c.execute(
+                '''select exists(select * from item where item_id=?)''', (i.item_id,))
+            if self.c.fetchone() == (0,):
+                self.c.execute('''insert into item values(?,?,?)''',
+                               (i.item_id, i.item_type, i.is_available))
+
+            self.c.execute('''insert into purchase_item values(?,?,?,?)''',
+                           (self.purchase_name, i.item_id, i.item_type, i.amount))
+
     def select(self, purchase_name: str = None) -> 'Purchase':
         '''
             用purchase_name查询信息

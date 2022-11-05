@@ -155,9 +155,10 @@ class UserScore(Score):
         super().__init__()
         self.c = c
         self.user = user
-        self.rank = None
+        self.rank = None # 成绩排名，给Ranklist用的
 
     def select_score(self) -> None:
+        '''查询成绩以及用户搭档信息，单次查询可用，不要集体循环查询'''
         self.c.execute('''select * from best_score where user_id = :a and song_id = :b and difficulty = :c''',
                        {'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty})
         x = self.c.fetchone()
@@ -258,13 +259,17 @@ class UserPlay(UserScore):
 
     def get_play_state(self) -> None:
         '''检查token，当然这里不管有没有，是用来判断世界模式和课题模式的'''
+        if self.song_token == '1145141919810':
+            # 硬编码检查，绕过数据库
+            self.is_world_mode = False
+            self.course_play_state = -1
+            return None
+
         self.c.execute(
             '''select * from songplay_token where token=:a ''', {'a': self.song_token})
         x = self.c.fetchone()
         if not x:
-            self.is_world_mode = False
-            self.course_play_state = -1
-            return None
+            raise NoData('No token data.')
         self.song.set_chart(x[2], x[3])
         if x[4]:
             self.course_play = CoursePlay(self.c, self.user, self)
@@ -375,12 +380,12 @@ class UserPlay(UserScore):
                 r30_id = 29
             elif self.song.song_id_difficulty in songs and n == 10:
                 i = 29
-                while self.ptt.s30[i] == self.song.song_id_difficulty:
+                while self.ptt.s30[i] == self.song.song_id_difficulty and i > 0:
                     i -= 1
                 r30_id = i
             elif self.song.song_id_difficulty not in songs and n == 9:
                 i = 29
-                while self.ptt.s30.count(self.ptt.s30[-1]) == 1:
+                while self.ptt.s30.count(self.ptt.s30[i]) == 1 and i > 0:
                     i -= 1
                 r30_id = i
             else:
@@ -580,4 +585,5 @@ class UserScoreList:
         for score in self.scores:
             self.c.execute(
                 '''select name from chart where song_id = ?''', (score.song.song_id,))
-            score.song.song_name = self.c.fetchone()[0]
+            x = self.c.fetchone()
+            score.song.song_name = x[0] if x else ''

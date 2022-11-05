@@ -67,6 +67,11 @@ It is just so interesting. What it can do is under exploration.
 > Tips: When updating, please keep the original database in case of data loss. 
 
 
+### **2022.11.5**
+**修复一长期BUG，影响到自2022.7.4以来所有版本（表现为数据库锁以及服务端运行缓慢），请拉取或下载`master`分支最新提交**
+
+**Fix a long-term bug that affects all versions since Jul/4/2022 (shown as database lock and slow running). Please pull or download the latest commit from the `master` branch.**
+
 ### Version 2.10.0
 - 适用于Arcaea 4.1.0版本 For Arcaea 4.1.0
 - 新搭档 **咲姬** 已解锁 Unlock the character **Saki**.
@@ -98,8 +103,8 @@ It is just so interesting. What it can do is under exploration.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows/Linux/Mac OS/Android...
-- Python 3
-- Flask module >= 2.0, Cryptography module >= 35.0.0
+- Python >= 3.6
+- Flask module >= 2.0, Cryptography module >= 3.0.0, limits >= 2.7.0
 - Charles, IDA, proxy app... (optional)
 
 <!--

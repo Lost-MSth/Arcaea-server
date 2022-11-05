@@ -1,9 +1,9 @@
 from functools import wraps
 from traceback import format_exc
 
+from core.config_manager import Config
 from core.error import ArcError
 from flask import current_app, jsonify
-from setting import Config
 
 default_error = ArcError('Unknown Error', status=500)
 

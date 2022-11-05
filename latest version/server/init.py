@@ -1,7 +1,8 @@
 import os
 from shutil import copy, copy2
+
 from core.sql import Connect
-from database.database_initialize import main, ARCAEA_SERVER_VERSION
+from database.database_initialize import ARCAEA_SERVER_VERSION, main
 from web.system import update_database
 
 
@@ -24,10 +25,6 @@ def check_before_run(app):
     # 运行前检查关键文件，返回布尔值，其实是因为有人经常忘了
 
     f = True
-
-    if not os.path.exists('setting.py'):
-        app.logger.warning('File `setting.py` is missing.')
-        f = False
 
     if not os.path.exists('database'):
         app.logger.warning('Folder `database` is missing.')

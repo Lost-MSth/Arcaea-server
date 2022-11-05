@@ -1,6 +1,7 @@
 class Config():
     '''
-    This is the setting file. You can change some parameters here.
+    This is the example setting file.
+    The user's setting file's name is `config.py`.
     '''
 
     '''
@@ -9,7 +10,7 @@ class Config():
     Host and port of your server
     '''
     HOST = '0.0.0.0'
-    PORT = '80'
+    PORT = 80
     '''
     --------------------
     '''

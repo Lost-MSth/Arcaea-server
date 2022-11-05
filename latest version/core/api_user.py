@@ -2,57 +2,49 @@ from hashlib import sha256
 from os import urandom
 from time import time
 
-from .error import NoAccess, NoData, UserBan
+from .config_manager import Config
+from .error import NoAccess, NoData, RateLimit, UserBan
+from .limiter import ArcLimiter
 from .user import UserOnline
 
 
 class Power:
     def __init__(self, c=None):
         self.c = c
-        self.power_id: int = None
-        self.power_name: str = None
+        self.power_id: str = None
         self.caption: str = None
 
     @classmethod
     def from_dict(cls, d: dict, c=None) -> 'Power':
         p = cls(c)
         p.power_id = d['power_id']
-        p.power_name = d['power_name']
         p.caption = d['caption']
         return p
-
-    def select_from_name(self, power_name: str) -> 'Power':
-        pass
 
 
 class Role:
     def __init__(self, c=None):
         self.c = c
-        self.role_id: int = None
-        self.role_name: str = None
+        self.role_id: str = None
         self.caption: str = None
 
         self.powers: list = None
 
-    def has_power(self, power_name: str) -> bool:
+    def has_power(self, power_id: str) -> bool:
         '''判断role是否有power'''
-        for i in self.powers:
-            if i.power_name == power_name:
-                return True
-        return False
+        return any(power_id == i.power_id for i in self.powers)
 
     def select_from_id(self, role_id: int = None) -> 'Role':
         '''用role_id查询role'''
         if role_id is not None:
             self.role_id = role_id
-        self.c.execute('''select role_name, caption from role where role_id = :a''',
+        self.c.execute('''select caption from role where role_id = :a''',
                        {'a': self.role_id})
         x = self.c.fetchone()
         if x is None:
             raise NoData('The role `%s` does not exist.' %
                          self.role_id, api_error_code=-200)
-        self.role_name = x[0]
-        self.caption = x[1]
+        self.caption = x[0]
         return self
 
     def select_powers(self) -> None:
@@ -63,16 +55,25 @@ class Role:
         x = self.c.fetchall()
         for i in x:
             self.powers.append(Power.from_dict(
-                {'power_id': i[0], 'power_name': i[1], 'caption': i[2]}, self.c))
+                {'power_id': i[0], 'caption': i[1]}, self.c))
 
 
 class APIUser(UserOnline):
+    limiter = ArcLimiter(Config.API_LOGIN_RATE_LIMIT, 'api_login')
+
     def __init__(self, c=None, user_id=None) -> None:
         super().__init__(c, user_id)
         self.api_token: str = None
         self.role: 'Role' = None
 
         self.ip: str = None
+
+    def set_role_system(self) -> None:
+        '''设置为最高权限用户，API接口'''
+        self.user_id = 0
+        self.role = Role(self.c)
+        self.role.role_id = 'system'
+        self.role.select_powers()
 
     def select_role(self) -> None:
         '''查询user的role'''
@@ -82,10 +83,9 @@ class APIUser(UserOnline):
         self.role = Role(self.c)
         if x is None:
             # 默认role为user
-            self.role.role_id = 1
+            self.role.role_id = 'user'
         else:
-            self.role.role_id = int(x[0])
-        self.role.select_from_id()
+            self.role.role_id = x[0]
 
     def select_role_and_powers(self) -> None:
         '''查询user的role，以及role的powers'''
@@ -113,6 +113,9 @@ class APIUser(UserOnline):
             self.password = password
         if ip is not None:
             self.ip = ip
+        if not self.limiter.hit(name):
+            raise RateLimit('Too many login attempts', api_error_code=-205)
+
         self.c.execute('''select user_id, password from user where name = :a''', {
                        'a': self.name})
         x = self.c.fetchone()

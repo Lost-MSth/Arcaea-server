@@ -1,6 +1,20 @@
 # encoding: utf-8
 
 import os
+from importlib import import_module
+
+from core.config_manager import Config, ConfigManager
+
+if os.path.exists('config.py') or os.path.exists('config'):
+    # 导入用户自定义配置
+    ConfigManager.load(import_module('config').Config)
+
+if Config.DEPLOY_MODE == 'gevent':
+    # 异步
+    from gevent import monkey
+    monkey.patch_all()
+
+
 import sys
 from logging.config import dictConfig
 from multiprocessing import Process, set_start_method
@@ -10,26 +24,30 @@ from flask import Flask, make_response, request, send_from_directory
 
 import api
 import server
-import server.init
 import web.index
 import web.login
 from core.constant import Constant
 from core.download import (UserDownload, get_only_3_song_ids,
                            initialize_songfile)
-from core.error import ArcError
+from core.error import ArcError, NoAccess, RateLimit
+from core.init import FileChecker
 from core.sql import Connect
 from server.func import error_return
-from setting import Config
 
 app = Flask(__name__)
 
-# from werkzeug.middleware.proxy_fix import ProxyFix
-# app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-# from flask_cors import CORS
-# CORS(app, supports_credentials=True)
+if Config.USE_PROXY_FIX:
+    # 代理修复
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+if Config.USE_CORS:
+    # 服务端跨域
+    from flask_cors import CORS
+    CORS(app, supports_credentials=True)
 
 
 os.chdir(sys.path[0])  # 更改工作路径，以便于愉快使用相对路径
+
 
 app.config.from_mapping(SECRET_KEY=Config.SECRET_KEY)
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -55,22 +73,23 @@ def favicon():
 
 @app.route('/download/<path:file_path>', methods=['GET'])  # 下载
 def download(file_path):
-    with Connect() as c:
+    with Connect(in_memory=True) as c:
         try:
             x = UserDownload(c)
             x.token = request.args.get('t')
             x.song_id, x.file_name = file_path.split('/', 1)
             x.select_for_check()
             if x.is_limited:
-                raise ArcError(
-                    'You have reached the download limit.', 903, status=403)
+                raise RateLimit('You have reached the download limit.', 903)
             if not x.is_valid:
-                raise ArcError('Expired token.', status=403)
-            x.insert_user_download()
-            # response = make_response()
-            # response.headers['Content-Type'] = 'application/octet-stream'
-            # response.headers['X-Accel-Redirect'] = '/nginx_download/' + file_path
-            # return response
+                raise NoAccess('Expired token.')
+            x.download_hit()
+            if Config.DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT:
+                # nginx X-Accel-Redirect
+                response = make_response()
+                response.headers['Content-Type'] = 'application/octet-stream'
+                response.headers['X-Accel-Redirect'] = Config.NGINX_X_ACCEL_REDIRECT_PREFIX + file_path
+                return response
             return send_from_directory(Constant.SONG_FILE_FOLDER_PATH, file_path, as_attachment=True, conditional=True)
         except ArcError as e:
             if Config.ALLOW_WARNING_LOG:
@@ -79,10 +98,29 @@ def download(file_path):
     return error_return()
 
 
+if Config.DEPLOY_MODE == 'waitress':
+    # 给waitress加个日志
+    @app.after_request
+    def after_request(response):
+        app.logger.info(
+            f'B {request.remote_addr} - - {request.method} {request.path} {response.status_code}')
+        return response
+
+
 def tcp_server_run():
-    if False:
+    if Config.DEPLOY_MODE == 'gevent':
+        # 异步 gevent WSGI server
+        host_port = (Config.HOST, Config.PORT)
+        app.logger.info('Running gevent WSGI server... (%s:%s)' % host_port)
         from gevent.pywsgi import WSGIServer
-        WSGIServer(("127.0.0.1", 5000), app).serve_forever()
+        WSGIServer(host_port, app, log=app.logger).serve_forever()
+    elif Config.DEPLOY_MODE == 'waitress':
+        # waitress WSGI server
+        from waitress import serve
+        import logging
+        logger = logging.getLogger('waitress')
+        logger.setLevel(logging.INFO)
+        serve(app, host=Config.HOST, port=Config.PORT)
     else:
         if Config.SSL_CERT and Config.SSL_KEY:
             app.run(Config.HOST, Config.PORT, ssl_context=(
@@ -145,7 +183,7 @@ def main():
 
     dictConfig(log_dict)
 
-    if not server.init.check_before_run(app):
+    if not FileChecker(app).check_before_run():
         app.logger.error('Something wrong. The server will not run.')
         input('Press ENTER key to exit.')
         sys.exit()

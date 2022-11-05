@@ -2,7 +2,7 @@ import json
 from urllib.parse import parse_qs, urlparse
 
 from core.download import DownloadList
-from core.error import ArcError
+from core.error import RateLimit
 from core.sql import Connect
 from core.system import GameInfo
 from core.user import UserOnline
@@ -12,7 +12,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 from .auth import auth_required
 from .func import arc_try, error_return, success_return
 from .present import present_info
-from .purchase import bundle_pack, bundle_bundle
+from .purchase import bundle_bundle, bundle_pack
 from .score import song_score_friend
 from .user import user_me
 from .world import world_all
@@ -29,13 +29,14 @@ def game_info():
 @auth_required(request)
 @arc_try
 def download_song(user_id):
-    with Connect() as c:
-        x = DownloadList(c, UserOnline(c, user_id))
+    with Connect(in_memory=True) as c:
+        x = DownloadList(c, UserOnline(None, user_id))
         x.song_ids = request.args.getlist('sid')
         x.url_flag = json.loads(request.args.get('url', 'true'))
-        x.clear_user_download()
-        if x.is_limited and x.url_flag:
-            raise ArcError('You have reached the download limit.', 903)
+        if x.url_flag and x.is_limited:
+            raise RateLimit('You have reached the download limit.', 903)
+        if x.url_flag:
+            x.clear_download_token()
 
         x.add_songs()
         return success_return(x.urls)

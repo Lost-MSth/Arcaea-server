@@ -1,5 +1,20 @@
+# log files
 *.log
+*.log.*
+
+# SSL cert
+*.pem
+*.key
+
+# sqlite3 database
+*.db
+*.db.bak*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# setting/config files
+latest version/config/
+latest version/config.py
