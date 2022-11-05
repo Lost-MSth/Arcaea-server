@@ -18,9 +18,9 @@ class Connect:
             返回：sqlite3连接操作对象
         """
         self.file_path = file_path
-        self.in_memory = in_memory
+        self.in_memory: bool = in_memory
 
-    def __enter__(self):
+    def __enter__(self) -> sqlite3.Cursor:
         if self.in_memory:
             self.conn = sqlite3.connect(
                 'file:arc_tmp?mode=memory&cache=shared', uri=True, timeout=10)
@@ -35,15 +35,13 @@ class Connect:
             if issubclass(exc_type, ArcError):
                 flag = False
             else:
-                if self.conn:
-                    self.conn.rollback()
+                self.conn.rollback()
 
                 current_app.logger.error(
                     traceback.format_exception(exc_type, exc_val, exc_tb))
 
-        if self.conn:
-            self.conn.commit()
-            self.conn.close()
+        self.conn.commit()
+        self.conn.close()
 
         return flag
 

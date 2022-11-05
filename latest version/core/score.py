@@ -380,12 +380,12 @@ class UserPlay(UserScore):
                 r30_id = 29
             elif self.song.song_id_difficulty in songs and n == 10:
                 i = 29
-                while self.ptt.s30[i] == self.song.song_id_difficulty:
+                while self.ptt.s30[i] == self.song.song_id_difficulty and i > 0:
                     i -= 1
                 r30_id = i
             elif self.song.song_id_difficulty not in songs and n == 9:
                 i = 29
-                while self.ptt.s30.count(self.ptt.s30[-1]) == 1:
+                while self.ptt.s30.count(self.ptt.s30[i]) == 1 and i > 0:
                     i -= 1
                 r30_id = i
             else:

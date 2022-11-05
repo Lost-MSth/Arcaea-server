@@ -98,6 +98,15 @@ def download(file_path):
     return error_return()
 
 
+if Config.DEPLOY_MODE == 'waitress':
+    # 给waitress加个日志
+    @app.after_request
+    def after_request(response):
+        app.logger.info(
+            f'B {request.remote_addr} - - {request.method} {request.path} {response.status_code}')
+        return response
+
+
 def tcp_server_run():
     if Config.DEPLOY_MODE == 'gevent':
         # 异步 gevent WSGI server

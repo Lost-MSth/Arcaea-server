@@ -629,9 +629,9 @@ class UserInfo(User):
 
     def update_global_rank(self) -> None:
         '''用户世界排名计算，有新增成绩则要更新'''
-        with Connect() as c2:
-            c2.execute('''select song_id, rating_ftr, rating_byn from chart''')
-            x = c2.fetchall()
+
+        self.c.execute('''select song_id, rating_ftr, rating_byn from chart''')
+        x = self.c.fetchall()
 
         song_list_ftr = [self.user_id]
         song_list_byn = [self.user_id]
