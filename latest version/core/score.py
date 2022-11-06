@@ -155,7 +155,7 @@ class UserScore(Score):
         super().__init__()
         self.c = c
         self.user = user
-        self.rank = None # 成绩排名，给Ranklist用的
+        self.rank = None  # 成绩排名，给Ranklist用的
 
     def select_score(self) -> None:
         '''查询成绩以及用户搭档信息，单次查询可用，不要集体循环查询'''
@@ -269,7 +269,10 @@ class UserPlay(UserScore):
             '''select * from songplay_token where token=:a ''', {'a': self.song_token})
         x = self.c.fetchone()
         if not x:
-            raise NoData('No token data.')
+            self.is_world_mode = False
+            self.course_play_state = -1
+            return None
+            # raise NoData('No token data.')
         self.song.set_chart(x[2], x[3])
         if x[4]:
             self.course_play = CoursePlay(self.c, self.user, self)
