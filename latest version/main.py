@@ -103,7 +103,7 @@ if Config.DEPLOY_MODE == 'waitress':
     @app.after_request
     def after_request(response):
         app.logger.info(
-            f'B {request.remote_addr} - - {request.method} {request.path} {response.status_code}')
+            f'{request.remote_addr} - - {request.method} {request.path} {response.status_code}')
         return response
 
 
@@ -116,8 +116,8 @@ def tcp_server_run():
         WSGIServer(host_port, app, log=app.logger).serve_forever()
     elif Config.DEPLOY_MODE == 'waitress':
         # waitress WSGI server
-        from waitress import serve
         import logging
+        from waitress import serve
         logger = logging.getLogger('waitress')
         logger.setLevel(logging.INFO)
         serve(app, host=Config.HOST, port=Config.PORT)

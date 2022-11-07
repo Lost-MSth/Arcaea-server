@@ -2,7 +2,7 @@ import os
 import time
 
 import server.arcscore
-from core.download import get_only_3_song_ids, initialize_songfile
+from core.download import DownloadList, initialize_songfile
 from core.init import FileChecker
 from core.rank import RankList
 from core.sql import Connect
@@ -290,8 +290,7 @@ def update_database():
 def update_song_hash():
     # 更新数据库内谱面文件hash值
     try:
-        get_only_3_song_ids.cache_clear()
-        get_only_3_song_ids()
+        DownloadList.clear_all_cache()
         initialize_songfile()
         flash('数据刷新成功 Success refresh data.')
     except:

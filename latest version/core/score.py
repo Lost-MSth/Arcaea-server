@@ -273,7 +273,7 @@ class UserPlay(UserScore):
             self.course_play_state = -1
             return None
             # raise NoData('No token data.')
-        self.song.set_chart(x[2], x[3])
+        # self.song.set_chart(x[2], x[3])
         if x[4]:
             self.course_play = CoursePlay(self.c, self.user, self)
             self.course_play.course_id = x[4]

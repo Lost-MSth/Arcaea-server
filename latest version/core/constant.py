@@ -96,6 +96,6 @@ class Constant:
     ]
 
     DATABASE_MIGRATE_TABLES = ['user', 'friend', 'best_score', 'recent30', 'user_world', 'item', 'user_item', 'purchase', 'purchase_item', 'user_save',
-                               'login', 'present', 'user_present', 'present_item', 'redeem', 'user_redeem', 'redeem_item', 'api_login', 'chart', 'user_course', 'user_char']
+                               'login', 'present', 'user_present', 'present_item', 'redeem', 'user_redeem', 'redeem_item', 'api_login', 'chart', 'user_course', 'user_char', 'user_role']
 
     UPDATE_WITH_NEW_CHARACTER_DATA = Config.UPDATE_WITH_NEW_CHARACTER_DATA
