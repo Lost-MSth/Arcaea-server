@@ -11,7 +11,7 @@ from .error import (ArcError, DataExist, FriendError, InputError, NoAccess,
 from .item import UserItemList
 from .limiter import ArcLimiter
 from .score import Score
-from .sql import Connect
+from .sql import Query, Sql
 from .world import Map, UserMap, UserStamina
 
 
@@ -32,17 +32,17 @@ def code_get_id(c, user_code: str) -> int:
 
 class User:
     def __init__(self) -> None:
-        self.name = None
-        self.email = None
-        self.password = None
-        self.user_id = None
-        self.user_code = None
+        self.name: str = None
+        self.email: str = None
+        self.password: str = None
+        self.user_id: int = None
+        self.user_code: str = None
 
         self.join_date = None
         self.rating_ptt: int = None  # 100 times
 
-        self.ticket = None
-        self.world_rank_score = None
+        self.ticket: int = None
+        self.world_rank_score: int = None
         self.ban_flag = None
 
     @property
@@ -63,7 +63,7 @@ class UserRegister(User):
             if self.c.fetchone() == (0,):
                 self.name = name
             else:
-                raise DataExist('Username exists.', 101, -203)
+                raise DataExist('Username exists.', 101, -210)
 
         else:
             raise InputError('Username is invalid.')
@@ -82,9 +82,21 @@ class UserRegister(User):
             if self.c.fetchone() == (0,):
                 self.email = email
             else:
-                raise DataExist('Email address exists.', 102, -204)
+                raise DataExist('Email address exists.', 102, -211)
         else:
             raise InputError('Email address is invalid.')
+
+    def set_user_code(self, user_code: str) -> None:
+        '''设置用户的user_code'''
+        if len(user_code) == 9 and user_code.isdigit():
+            self.c.execute(
+                '''select exists(select * from user where user_code = ?)''', (user_code, ))
+            if self.c.fetchone() == (0,):
+                self.user_code = user_code
+            else:
+                raise DataExist('User code exists.', 103, -212)
+        else:
+            raise InputError('User code is invalid.')
 
     def _build_user_code(self):
         # 生成9位的user_code，用的自然是随机
@@ -225,7 +237,7 @@ class UserLogin(User):
             self.set_ip(ip)
 
         if not self.limiter.hit(name):
-            raise RateLimit('Too many login attempts.', 123)
+            raise RateLimit('Too many login attempts.', 123, -203)
 
         self.c.execute('''select user_id, password, ban_flag from user where name = :name''', {
                        'name': self.name})
@@ -283,7 +295,7 @@ class UserAuth(User):
 
 class UserInfo(User):
     def __init__(self, c, user_id=None) -> None:
-        super().__init__()
+        User.__init__(self)
         self.c = c
         self.user_id = user_id
         self.character = None
@@ -733,3 +745,21 @@ class UserOnline(UserInfo):
         self.favorite_character = UserCharacter(self.c, character_id, self)
         self.c.execute('''update user set favorite_character = :a where user_id = :b''',
                        {'a': self.favorite_character.character_id, 'b': self.user_id})
+
+
+class UserChanger(UserInfo, UserRegister):
+
+    def __init__(self, c, user_id=None) -> None:
+        super().__init__(c, user_id)
+
+    def update_columns(self, columns: list = None, d: dict = None) -> None:
+        if columns is not None:
+            d = {}
+            for column in columns:
+                if column == 'password':
+                    d[column] = self.hash_pwd
+                else:
+                    d[column] = self.__dict__[column]
+
+        Sql(self.c).update('user', d, Query().from_args(
+            {'user_id': self.user_id}))

@@ -6,21 +6,23 @@ default_error = ArcError('Unknown Error')
 
 CODE_MSG = {
     0: '',
-    -1: 'See status code',
+    -1: 'See status code', # 基础错误
     -2: 'No data',
     -3: 'No data or user',
     -4: 'No user_id',
-    -100: 'Wrong post data',
+    -5: 'No user_id or user',
+    -100: 'Wrong post data', # 1xx数据错误
     -101: 'Wrong data type',
     -102: 'Wrong query parameter',
     -103: 'Wrong sort parameter',
     -104: 'Wrong sort order parameter',
-    -200: 'No permission',
+    -200: 'No permission', # 2xx用户相关错误
     -201: 'Wrong username or password',
     -202: 'User is banned',
-    -203: 'Username exists',
-    -204: 'Email address exists',
-    -205: 'Too many login attempts',
+    -203: 'Too many login attempts',
+    -210: 'Username exists',
+    -211: 'Email address exists',
+    -212: 'User code exists',
     -999: 'Unknown error'
 }
 

@@ -216,6 +216,36 @@ class Sql:
         return ('insert into ' if insert_type is None else 'insert or ' + insert_type + ' into ') + table_name + ('(' + ','.join(key) + ')' if key else '') + ' values(' + ','.join(['?'] * (len(key) if value_len is None else value_len)) + ')'
 
     @staticmethod
+    def get_update_sql(table_name: str, d: dict = {}, query: 'Query' = None) -> str:
+        if not d:
+            return None
+        sql_list = []
+        sql = f"update {table_name} set {','.join([f'{k}=?' for k in d.keys()])}"
+        sql_list.extend(d.values())
+
+        if query is None:
+            return sql, sql_list
+
+        where_key = []
+        for k, v in query.query.items():
+            if isinstance(v, list):
+                where_key.append(f"{k} in ({','.join(['?'] * len(v))})")
+                sql_list.extend(v)
+            else:
+                where_key.append(f'{k}=?')
+                sql_list.append(v)
+
+        for k, v in query.fuzzy_query.items():
+            where_key.append(f'{k} like ?')
+            sql_list.append(f'%{v}%')
+
+        if where_key:
+            sql += ' where '
+            sql += ' and '.join(where_key)
+
+        return sql, sql_list
+
+    @staticmethod
     def get_delete_sql(table_name: str, query: 'Query' = None):
         '''拼接删除语句，query中只有query和fuzzy_query会被处理'''
         sql = f'delete from {table_name}'
@@ -266,6 +296,13 @@ class Sql:
             return
         self.c.executemany(self.get_insert_sql(
             table_name, key, len(value_list[0]), insert_type), value_list)
+
+    def update(self, table_name: str, d: dict, query: 'Query' = None) -> None:
+        '''单表内行update单句sql语句'''
+        if not d:
+            return
+        sql, sql_list = self.get_update_sql(table_name, d, query)
+        self.c.execute(sql, sql_list)
 
     def delete(self, table_name: str, query: 'Query' = None) -> None:
         '''删除，query中只有query和fuzzy_query会被处理'''

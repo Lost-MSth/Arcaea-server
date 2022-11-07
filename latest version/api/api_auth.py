@@ -70,11 +70,11 @@ def request_json_handle(request, required_keys=[], optional_keys=[]):
                     json_data = loads(
                         b64decode(request.args['query']).decode())
                 else:
-                    return view(data, *args, **kwargs)
+                    json_data = {}
 
             for key in required_keys:
                 if key not in json_data:
-                    return error_return(PostError('Missing parameter: ' + key, api_error_code=-100))
+                    return error_return(PostError(f'Missing parameter: {key}', api_error_code=-100))
                 data[key] = json_data[key]
 
             for key in optional_keys:
