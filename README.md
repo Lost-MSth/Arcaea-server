@@ -67,39 +67,31 @@ It is just so interesting. What it can do is under exploration.
 > Tips: When updating, please keep the original database in case of data loss. 
 
 
-### **2022.11.5**
-**修复一长期BUG，影响到自2022.7.4以来所有版本（表现为数据库锁以及服务端运行缓慢），请拉取或下载`master`分支最新提交**
-
-**Fix a long-term bug that affects all versions since Jul/4/2022 (shown as database lock and slow running). Please pull or download the latest commit from the `master` branch.**
-
-### Version 2.10.0
-- 适用于Arcaea 4.1.0版本 For Arcaea 4.1.0
-- 新搭档 **咲姬** 已解锁 Unlock the character **Saki**.
-- 新搭档 **刹那** 已解锁 Unlock the character **Setsuna**.
-- 完善了日志系统 Improve the log system.
-- 现在可以利用`songlist`确保`3.aff`以外文件不被下载 Now you can use `songlist` to ensure that files other than `3.aff` should not be downloaded. [#60](https://github.com/Lost-MSth/Arcaea-server/issues/60)
-- 适配v4.0.0以下版本的客户端云存档 Ensure that the clients under v4.0.0 can upload the cloud save.
-- 优化数据库索引 Optimize database indices.
-- 尝试确保LinkPlay服务器的线程安全，现在此功能将作为独立服务端 Try to ensure thread safety in LinkPlay server. Now this function will be served as an independent server.
-- 对API接口的分数列表添加歌曲名 Add song names for getting the score list in API.
-- 为下载错误增添HTTP状态码 Add HTTP status code when meeting download error.
-
-- 修复iOS客户端因世界模式地图数据闪退的问题 Fix a bug when world maps' data don't have some unnecessary parts the client of iOS may break down.
-- 修复API接口无数据`GET`请求导致报错的问题 Fix a bug that `GET` requests without data will report an error in API. [#50](https://github.com/Lost-MSth/Arcaea-server/issues/50)
-- 修复`aggregate`请求无法捕获内部错误的问题 Fix a bug that `aggregate` requests will get an error when the inner function raises an error.
-- 修复因错误设置主键导致课程模式谱面无法相同的问题 Fix a bug that the charts of a course cannot be the same because of the incorrect primary keys.
-- 修复无谱面数据时世界排名分计算出错的问题 Fix a bug that global ranking scores cannot be calculated if there are no chart in the database. [#61](https://github.com/Lost-MSth/Arcaea-server/issues/61)
-- 修复条件满足但隐藏段位依然无法解锁的问题 Fix a bug that the hidden courses cannot appear even if their requirements are satisfied.
-- 修复Finale挑战中某些无法解锁的问题 Fix a bug that something of the finale challenge cannot be unlocked.
-- 修复用户物品数量无法为0的问题，此问题导致了一些购买操作异常 Fix a bug that the users' items will not be zero, which will disturb some purchase operations.
-- 修复角色等级能超过最大等级的问题 Fix a bug that the level of the character can exceed the max level.
-- 修复使用`以太之滴`升级角色时应答不正确的问题 Fix a bug that the response is incorrect when upgrading the characters by `generic core`.
-- 修复`源韵强化`数值显示不正确的问题 Fix a bug that the `prog boost` shows the incorrect value.
-- 修复世界模式奖励可能被重复发放的问题 Fix a bug that the rewards can be get repeatedly in World Mode.
-- 修复世界Boss的第二管血量无法削减的问题 Fix a bug that second tube of blood of the world boss won't change.
-- 修复我的排名显示不正确的问题 Fix a bug that `my rank` doesn't work correctly.
-- 修复在歌曲结束后无法及时轮换房主的问题 Fix a bug that the room host will be changed late when finishing a song.
-
+### Version 2.10.1
+- 适用于Arcaea 4.1.4版本 For Arcaea 4.1.4
+- 新搭档 **天音** 已解锁 Unlock the character **Amane**.
+- 为**天音**技能提供支持 Add support for the skill of **Amane**.
+- 现在配置文件可以是含有部分选项的文件或模块 At present the setting file can be a module or a file with some of options.
+- 添加`waitress`和`gevent`的部署方案支持，并支持日志记录 Add deployment mode `waitress` and `gevent`, and add support for the info log recording of them.
+- 为`songlist`添加解析器以指定可下载的文件 Add a parser for `songlist` to specify downloadable files.
+- 重构数据库初始化和数据迁移部分 Code refactoring for database initialization and migration.
+- 限制用户下载频率将使用第三方限制器，替代数据库 Add a custom limiter and use it for limiting users' download rate instead of using database.
+  > 现在需要`limits`模块  
+  > Now `limits` module is required.
+- 为登录和API登录添加限制器 Add limiter for login and API login.
+- `sqlite3`数据库调整为WAL模式并增大缓存 Change journal mode to WAL and enlarge cache size for `sqlite3` database.
+- 将下载token放入内存中而不是文件数据库中 Put download token in memory database instead of filesystem database.
+- 加速`best_score`表多次查询，表现为歌曲排行榜查询性能提升 Accelerate multiple querying in `best_score` table, which results in performance improvement of song ranklist query.
+- 优化歌曲下载部分 Make some optimization for downloading songs.
+- **修复更新recent 10时可能出现的死循环问题 Fix a bug that there is a endless loop in calculating recent 10 updating.** (due to 6fcca179182775615115cdb255b3a8223831a8a0)
+- 修复课题模式成绩没有rating的问题 Fix a bug that scores in course mode cannot calculate rating.
+- 修正搭档数值 Fix a character's value.
+- 邮箱长度最大限制提升到64 Change the email max length to 64.
+- 新增API接口来获取用户身份与权限 Add a method of API for getting users' roles and powers.
+- 新增API接口来修改用户信息 Add a method of API to change the user's info.
+- 为API的`GET`请求添加`query`参数支持 Add support for the `query` param in API's `GET` requests.
+- 修复API的`best30`接口曲目无数据导致出错的问题 Fix a bug that `best30` of API cannot have scores whose songs are not in database.
+- 修复API的`recent30`接口用户成绩数量不足导致出错的问题 Fix a bug that users with no recent scores cannot get `recent30` via API.
 
 ## 运行环境与依赖 Running environment and requirements
 - Windows/Linux/Mac OS/Android...
