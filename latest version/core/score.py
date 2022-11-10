@@ -495,6 +495,9 @@ class Potential:
         self.c.execute(
             '''select * from recent30 where user_id = :a''', {'a': self.user.user_id})
         x = self.c.fetchone()
+        if not x:
+            raise NoData(
+                f'No recent30 data for user `{self.user.user_id}`', api_error_code=-3)
         self.r30 = []
         self.s30 = []
         if not x:
@@ -529,11 +532,15 @@ class Potential:
     def recent_30_to_dict_list(self) -> list:
         if self.r30 is None:
             self.select_recent_30()
-        return [{
-            'song_id': self.s30[i][:-1],
-            'difficulty': int(self.s30[i][-1]),
-            'rating': self.r30[i]
-        } for i in range(len(self.r30))]
+        r = []
+        for x, y in zip(self.s30, self.r30):
+            if x:
+                r.append({
+                    'song_id': x[:-1],
+                    'difficulty': int(x[-1]),
+                    'rating': y
+                })
+        return r
 
     def recent_30_update(self, pop_index: int, rating: float, song_id_difficulty: str) -> None:
         self.r30.pop(pop_index)

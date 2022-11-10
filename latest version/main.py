@@ -27,8 +27,7 @@ import server
 import web.index
 import web.login
 from core.constant import Constant
-from core.download import (UserDownload, get_only_3_song_ids,
-                           initialize_songfile)
+from core.download import (UserDownload, initialize_songfile)
 from core.error import ArcError, NoAccess, RateLimit
 from core.init import FileChecker
 from core.sql import Connect
@@ -191,7 +190,6 @@ def main():
     app.logger.info("Start to initialize song data...")
     try:
         initialize_songfile()
-        get_only_3_song_ids()
         app.logger.info('Complete!')
     except:
         app.logger.warning('Initialization error!')

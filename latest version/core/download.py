@@ -29,20 +29,69 @@ def initialize_songfile():
     del x
 
 
-@lru_cache()
-def get_only_3_song_ids():
-    '''初始化只能下载byd相关的歌曲id'''
-    if not os.path.isfile(Constant.SONGLIST_FILE_PATH):
-        return []
-    only_3_song_ids = []
-    data = []
-    with open(Constant.SONGLIST_FILE_PATH, 'r', encoding='utf-8') as f:
-        data = loads(f.read())['songs']
-    for x in data:
-        if 'remote_dl' not in x or 'remote_dl' in x and not x['remote_dl']:
-            if any(i['ratingClass'] == 3 for i in x['difficulties']):
-                only_3_song_ids.append(x['id'])
-    return only_3_song_ids
+class SonglistParser:
+    '''songlist文件解析器'''
+
+    FILE_NAMES = ['0.aff', '1.aff', '2.aff', '3.aff',
+                  'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg']
+    songs: dict = {}  # {song_id: value, ...}
+    # value: bit 76543210
+    # 7: video_audio.ogg
+    # 6: video.mp4
+    # 5: 3.ogg
+    # 4: base.ogg
+    # 3: 3.aff
+    # 2: 2.aff
+    # 1: 1.aff
+    # 0: 0.aff
+
+    def __init__(self, path=Constant.SONGLIST_FILE_PATH) -> None:
+        self.path = path
+        self.data: list = []
+        self.parse()
+
+    @staticmethod
+    def is_available_file(song_id: str, file_name: str) -> list:
+        '''判断文件是否允许被下载'''
+        if song_id not in SonglistParser.songs:
+            # songlist没有，则只限制文件名
+            return file_name in SonglistParser.FILE_NAMES
+        rule = SonglistParser.songs[song_id]
+        for i in range(8):
+            if file_name == SonglistParser.FILE_NAMES[i] and rule & (1 << i) != 0:
+                return True
+        return False
+
+    def parse_one(self, song: dict) -> dict:
+        '''解析单个歌曲'''
+        if not 'id' in song:
+            return None
+        r = 0
+        if 'remote_dl' in song and song['remote_dl']:
+            r |= 16
+            for i in song.get('difficulties', []):
+                if i['ratingClass'] == 3 and i.get('audioOverride', False):
+                    r |= 32
+                r |= 1 << i['ratingClass']
+        else:
+            if any(i['ratingClass'] == 3 for i in song.get('difficulties', [])):
+                r |= 8
+
+        if 'additional_files' in song:
+            if 'video.mp4' in song['additional_files']:
+                r |= 64
+            if 'video_audio.ogg' in song['additional_files']:
+                r |= 128
+        return {song['id']: r}
+
+    def parse(self) -> None:
+        '''解析songlist文件'''
+        if not os.path.isfile(self.path):
+            return
+        with open(self.path, 'r', encoding='utf-8') as f:
+            self.data = loads(f.read()).get('songs', [])
+        for x in self.data:
+            self.songs.update(self.parse_one(x))
 
 
 class UserDownload:
@@ -144,9 +193,9 @@ class DownloadList(UserDownload):
     def clear_all_cache():
         '''清除所有歌曲文件有关缓存'''
         get_song_file_md5.cache_clear()
-        get_only_3_song_ids.cache_clear()
         DownloadList.get_one_song_file_names.cache_clear()
         DownloadList.get_all_song_ids.cache_clear()
+        SonglistParser()
 
     def clear_download_token(self) -> None:
         '''清除过期下载链接'''
@@ -164,9 +213,7 @@ class DownloadList(UserDownload):
         '''获取一个歌曲文件夹下的所有合法文件名，有lru缓存'''
         r = []
         for i in os.listdir(os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id)):
-            if os.path.isfile(os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id, i)) and i in ['0.aff', '1.aff', '2.aff', '3.aff', 'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg']:
-                if song_id in get_only_3_song_ids() and i not in ['3.aff', '3.ogg']:
-                    continue
+            if os.path.isfile(os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id, i)) and SonglistParser.is_available_file(song_id, i):
                 r.append(i)
         return r
 
