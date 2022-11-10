@@ -27,8 +27,7 @@ import server
 import web.index
 import web.login
 from core.constant import Constant
-from core.download import (UserDownload, get_only_3_song_ids,
-                           initialize_songfile)
+from core.download import (UserDownload, initialize_songfile)
 from core.error import ArcError, NoAccess, RateLimit
 from core.init import FileChecker
 from core.sql import Connect
@@ -103,7 +102,7 @@ if Config.DEPLOY_MODE == 'waitress':
     @app.after_request
     def after_request(response):
         app.logger.info(
-            f'B {request.remote_addr} - - {request.method} {request.path} {response.status_code}')
+            f'{request.remote_addr} - - {request.method} {request.path} {response.status_code}')
         return response
 
 
@@ -116,8 +115,8 @@ def tcp_server_run():
         WSGIServer(host_port, app, log=app.logger).serve_forever()
     elif Config.DEPLOY_MODE == 'waitress':
         # waitress WSGI server
-        from waitress import serve
         import logging
+        from waitress import serve
         logger = logging.getLogger('waitress')
         logger.setLevel(logging.INFO)
         serve(app, host=Config.HOST, port=Config.PORT)
@@ -191,7 +190,6 @@ def main():
     app.logger.info("Start to initialize song data...")
     try:
         initialize_songfile()
-        get_only_3_song_ids()
         app.logger.info('Complete!')
     except:
         app.logger.warning('Initialization error!')

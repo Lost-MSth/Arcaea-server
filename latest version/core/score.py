@@ -155,7 +155,7 @@ class UserScore(Score):
         super().__init__()
         self.c = c
         self.user = user
-        self.rank = None # 成绩排名，给Ranklist用的
+        self.rank = None  # 成绩排名，给Ranklist用的
 
     def select_score(self) -> None:
         '''查询成绩以及用户搭档信息，单次查询可用，不要集体循环查询'''
@@ -269,8 +269,11 @@ class UserPlay(UserScore):
             '''select * from songplay_token where token=:a ''', {'a': self.song_token})
         x = self.c.fetchone()
         if not x:
-            raise NoData('No token data.')
-        self.song.set_chart(x[2], x[3])
+            self.is_world_mode = False
+            self.course_play_state = -1
+            return None
+            # raise NoData('No token data.')
+        # self.song.set_chart(x[2], x[3])
         if x[4]:
             self.course_play = CoursePlay(self.c, self.user, self)
             self.course_play.course_id = x[4]
@@ -492,6 +495,9 @@ class Potential:
         self.c.execute(
             '''select * from recent30 where user_id = :a''', {'a': self.user.user_id})
         x = self.c.fetchone()
+        if not x:
+            raise NoData(
+                f'No recent30 data for user `{self.user.user_id}`', api_error_code=-3)
         self.r30 = []
         self.s30 = []
         if not x:
@@ -526,11 +532,15 @@ class Potential:
     def recent_30_to_dict_list(self) -> list:
         if self.r30 is None:
             self.select_recent_30()
-        return [{
-            'song_id': self.s30[i][:-1],
-            'difficulty': int(self.s30[i][-1]),
-            'rating': self.r30[i]
-        } for i in range(len(self.r30))]
+        r = []
+        for x, y in zip(self.s30, self.r30):
+            if x:
+                r.append({
+                    'song_id': x[:-1],
+                    'difficulty': int(x[-1]),
+                    'rating': y
+                })
+        return r
 
     def recent_30_update(self, pop_index: int, rating: float, song_id_difficulty: str) -> None:
         self.r30.pop(pop_index)

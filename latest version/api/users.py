@@ -1,7 +1,7 @@
 from core.error import InputError, NoAccess, NoData
 from core.score import Potential, UserScoreList
 from core.sql import Connect, Query, Sql
-from core.user import UserInfo, UserRegister
+from core.user import UserChanger, UserInfo, UserRegister
 from core.api_user import APIUser
 from flask import Blueprint, request
 
@@ -66,7 +66,7 @@ def users_get(data, user):
 def users_user_get(user, user_id):
     '''查询用户信息'''
     if user_id <= 0:
-        return error_return(InputError(api_error_code=-4))
+        return error_return(InputError(api_error_code=-110))
     # 查别人需要select权限
     if user_id != user.user_id and not user.role.has_power('select'):
         return error_return(NoAccess('No permission', api_error_code=-1), 403)
@@ -76,13 +76,45 @@ def users_user_get(user, user_id):
         return success_return(u.to_dict())
 
 
+@bp.route('/<int:user_id>', methods=['PUT'])
+@role_required(request, ['change'])
+@request_json_handle(request, optional_keys=['name', 'password', 'user_code', 'ticket', 'email'])
+@api_try
+def users_user_put(data, user, user_id):
+    '''修改一个用户'''
+    with Connect() as c:
+        u = UserChanger(c, user_id)
+        r = {}
+        r['user_id'] = user_id
+        if 'name' in data:
+            u.set_name(data['name'])
+            r['name'] = u.name
+        if 'password' in data:
+            u.set_password(data['password'])
+            r['password'] = u.hash_pwd
+        if 'email' in data:
+            u.set_email(data['email'])
+            r['email'] = u.email
+        if 'user_code' in data:
+            u.set_user_code(data['user_code'])
+            r['user_code'] = u.user_code
+        if 'ticket' in data:
+            if not isinstance(data['ticket'], int):
+                raise InputError('Ticket must be int')
+            u.ticket = data['ticket']
+            r['ticket'] = u.ticket
+        if r:
+            u.update_columns(d=r)
+        return success_return(r)
+
+
 @bp.route('/<int:user_id>/b30', methods=['GET'])
 @role_required(request, ['select', 'select_me'])
 @api_try
 def users_user_b30_get(user, user_id):
     '''查询用户b30'''
     if user_id <= 0:
-        return error_return(InputError(api_error_code=-4))
+        return error_return(InputError(api_error_code=-110))
     # 查别人需要select权限
     if user_id != user.user_id and not user.role.has_power('select'):
         return error_return(NoAccess('No permission', api_error_code=-1), 403)
@@ -91,6 +123,9 @@ def users_user_b30_get(user, user_id):
         x = UserScoreList(c, UserInfo(c, user_id))
         x.query.limit = 30
         x.select_from_user()
+        if not x.scores:
+            raise NoData(
+                f'No best30 data of user `{user_id}`', api_error_code=-3)
         x.select_song_name()
         r = x.to_dict_list()
         rating_sum = sum([i.rating for i in x.scores])
@@ -104,7 +139,7 @@ def users_user_b30_get(user, user_id):
 def users_user_best_get(data, user, user_id):
     '''查询用户所有best成绩'''
     if user_id <= 0:
-        return error_return(InputError(api_error_code=-4))
+        return error_return(InputError(api_error_code=-110))
     # 查别人需要select权限
     if user_id != user.user_id and not user.role.has_power('select'):
         return error_return(NoAccess('No permission', api_error_code=-1), 403)
@@ -113,6 +148,9 @@ def users_user_best_get(data, user, user_id):
         x = UserScoreList(c, UserInfo(c, user_id))
         x.query.from_dict(data)
         x.select_from_user()
+        if not x.scores:
+            raise NoData(
+                f'No best score data of user `{user_id}`', api_error_code=-3)
         r = x.to_dict_list()
         return success_return({'user_id': user_id, 'data': r})
 
@@ -124,7 +162,7 @@ def users_user_r30_get(user, user_id):
     '''查询用户r30'''
 
     if user_id <= 0:
-        return error_return(InputError(api_error_code=-4))
+        return error_return(InputError(api_error_code=-110))
     # 查别人需要select权限
     if user_id != user.user_id and not user.role.has_power('select'):
         return error_return(NoAccess('No permission', api_error_code=-1), 403)
@@ -141,7 +179,7 @@ def users_user_role_get(user, user_id):
     '''查询用户role和powers'''
 
     if user_id <= 0:
-        return error_return(InputError(api_error_code=-4))
+        return error_return(InputError(api_error_code=-110))
 
     if user_id == user.user_id:
         return success_return({'user_id': user.user_id, 'role': user.role.role_id, 'powers': [i.power_id for i in user.role.powers]})

@@ -8,6 +8,7 @@ from time import time
 from core.config_manager import Config
 from core.constant import ARCAEA_SERVER_VERSION
 from core.course import Course
+from core.download import SonglistParser
 from core.purchase import Purchase
 from core.sql import Connect, DatabaseMigrator, MemoryDatabase
 from core.user import UserRegister
@@ -241,5 +242,7 @@ class FileChecker:
 
     def check_before_run(self) -> bool:
         '''运行前检查，返回布尔值'''
+        # TODO: try
         MemoryDatabase()  # 初始化内存数据库
+        SonglistParser()  # 解析songlist
         return self.check_folder(Config.SONG_FILE_FOLDER_PATH) & self.check_update_database()

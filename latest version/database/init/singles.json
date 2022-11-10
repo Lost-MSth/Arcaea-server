@@ -1216,5 +1216,41 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "freemyself",
+		"items": [
+			{
+				"type": "single",
+				"id": "freemyself",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "cocorocosmetic",
+		"items": [
+			{
+				"type": "single",
+				"id": "cocorocosmetic",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

@@ -35,8 +35,6 @@ def download_song(user_id):
         x.url_flag = json.loads(request.args.get('url', 'true'))
         if x.url_flag and x.is_limited:
             raise RateLimit('You have reached the download limit.', 903)
-        if x.url_flag:
-            x.clear_download_token()
 
         x.add_songs()
         return success_return(x.urls)

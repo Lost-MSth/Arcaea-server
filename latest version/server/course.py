@@ -1,6 +1,5 @@
 from core.constant import Constant
 from core.course import UserCourseList
-from core.error import ArcError
 from core.item import ItemCore
 from core.sql import Connect
 from core.user import UserOnline

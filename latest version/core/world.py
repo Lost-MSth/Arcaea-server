@@ -477,7 +477,7 @@ class WorldPlay:
 
         if self.character_bonus_progress is not None:
             # 猜的，为了让客户端正确显示，当然结果是没问题的
-            r['base_progress'] += self.character_bonus_progress
+            # r['base_progress'] += self.character_bonus_progress # 肯定不是这样的
             r['character_bonus_progress'] = self.character_bonus_progress
 
         if self.user_play.beyond_gauge == 0:
@@ -593,7 +593,7 @@ class WorldPlay:
 
     def after_climb(self) -> None:
         factory_dict = {'eto_uncap': self._eto_uncap, 'ayu_uncap': self._ayu_uncap,
-                        'luna_uncap': self._luna_uncap, 'skill_fatalis': self._skill_fatalis}
+                        'luna_uncap': self._luna_uncap, 'skill_fatalis': self._skill_fatalis, 'skill_amane': self._skill_amane}
         if self.character_used.skill_id_displayed in factory_dict:
             factory_dict[self.character_used.skill_id_displayed]()
 
@@ -666,3 +666,14 @@ class WorldPlay:
         self.user.world_mode_locked_end_ts = int(
             time()*1000) + Constant.SKILL_FATALIS_WORLD_LOCKED_TIME
         self.user.update_user_one_column('world_mode_locked_end_ts')
+
+    def _skill_amane(self) -> None:
+        '''
+        amane技能，起始格为限速或随机，成绩小于EX时，世界模式进度减半
+        偷懒在after_climb里面，需要重爬一次
+        '''
+        x: 'Step' = self.user.current_map.steps_for_climbing[0]
+        if ('randomsong' in x.step_type or 'speedlimit' in x.step_type) and self.user_play.song_grade < 5:
+            self.character_bonus_progress = -self.step_value / 2 / self.step_times
+            self.step_value = self.step_value / 2
+            self.user.current_map.reclimb(self.step_value)
