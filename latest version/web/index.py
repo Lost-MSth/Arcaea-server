@@ -1,9 +1,9 @@
 import os
 import time
 
-import server.arcscore
 from core.download import DownloadList, initialize_songfile
 from core.init import FileChecker
+from core.operation import RefreshAllScoreRating
 from core.rank import RankList
 from core.sql import Connect
 from flask import Blueprint, flash, redirect, render_template, request, url_for
@@ -302,11 +302,8 @@ def update_song_hash():
 @login_required
 def update_song_rating():
     # 更新所有分数的rating
-    error = server.arcscore.refresh_all_score_rating()
-    if error:
-        flash(error)
-    else:
-        flash('数据刷新成功 Success refresh data.')
+    RefreshAllScoreRating().run()
+    flash('数据刷新成功 Success refresh data.')
     return render_template('web/updatedatabase.html')
 
 

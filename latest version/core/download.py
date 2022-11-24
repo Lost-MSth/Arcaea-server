@@ -51,7 +51,7 @@ class SonglistParser:
         self.parse()
 
     @staticmethod
-    def is_available_file(song_id: str, file_name: str) -> list:
+    def is_available_file(song_id: str, file_name: str) -> bool:
         '''判断文件是否允许被下载'''
         if song_id not in SonglistParser.songs:
             # songlist没有，则只限制文件名

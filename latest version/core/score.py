@@ -103,7 +103,7 @@ class Score:
 
     @staticmethod
     def calculate_rating(defnum: int, score: int) -> float:
-        '''计算rating，谱面定数小于等于0视为Unrank，这里的defnum = Chart const'''
+        '''计算rating，谱面定数小于等于0视为Unrank，返回值会为-1，这里的defnum = Chart const'''
         if not defnum or defnum <= 0:
             # 谱面没定数或者定数小于等于0被视作Unrank
             return -1

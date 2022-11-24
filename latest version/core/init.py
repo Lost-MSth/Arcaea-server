@@ -90,10 +90,10 @@ class DatabaseInit:
         self.c.execute('''insert into item values(?,?,?)''',
                        ('anni5tix', 'anni5tix', 1))
 
-        with open(self.pack_path, 'r') as f:
+        with open(self.pack_path, 'rb') as f:
             self.insert_purchase_item(load(f))
 
-        with open(self.single_path, 'r') as f:
+        with open(self.single_path, 'rb') as f:
             self.insert_purchase_item(load(f))
 
         self.c.execute(
@@ -105,7 +105,7 @@ class DatabaseInit:
     def course_init(self) -> None:
         '''初始化课题信息'''
         courses = []
-        with open(self.course_path, 'r', encoding='utf-8') as f:
+        with open(self.course_path, 'rb') as f:
             courses = load(f)
         for i in courses:
             x = Course(self.c).from_dict(i)
