@@ -182,7 +182,8 @@ def main():
 
     dictConfig(log_dict)
 
-    if not FileChecker(app).check_before_run():
+    Connect.logger = app.logger
+    if not FileChecker(app.logger).check_before_run():
         app.logger.error('Something wrong. The server will not run.')
         input('Press ENTER key to exit.')
         sys.exit()

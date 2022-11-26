@@ -157,35 +157,70 @@ class DatabaseInit:
             self.admin_init()
 
 
+class LogDatabaseInit:
+    def __init__(self, db_path: str = Config.SQLITE_LOG_DATABASE_PATH, init_folder_path: str = Config.DATABASE_INIT_PATH) -> None:
+        self.db_path = db_path
+        self.init_folder_path = init_folder_path
+        self.c = None
+
+    @property
+    def sql_path(self) -> str:
+        return os.path.join(self.init_folder_path, 'log_tables.sql')
+
+    def table_init(self) -> None:
+        '''初始化数据库结构'''
+        with open(self.sql_path, 'r') as f:
+            self.c.executescript(f.read())
+        self.c.execute(
+            '''insert into cache values("version", :a, -1);''', {'a': ARCAEA_SERVER_VERSION})
+
+    def init(self) -> None:
+        with Connect(self.db_path) as c:
+            self.c = c
+            self.table_init()
+
+
 class FileChecker:
 
-    def __init__(self, app=None):
-        self.app = app
+    def __init__(self, logger=None):
+        self.logger = logger
 
     def check_file(self, file_path: str) -> bool:
         f = os.path.isfile(file_path)
         if not f:
-            self.app.logger.warning('File `%s` is missing.' % file_path)
+            self.logger.warning('File `%s` is missing.' % file_path)
         return f
 
     def check_folder(self, folder_path: str) -> bool:
         f = os.path.isdir(folder_path)
         if not f:
-            self.app.logger.warning('Folder `%s` is missing.' % folder_path)
+            self.logger.warning('Folder `%s` is missing.' % folder_path)
         return f
 
     def check_update_database(self) -> bool:
+        if not self.check_file(Config.SQLITE_LOG_DATABASE_PATH):
+            # 新建日志数据库
+            try:
+                self.logger.info(
+                    f'Try to new the file {Config.SQLITE_LOG_DATABASE_PATH}')
+                LogDatabaseInit().init()
+                self.logger.info(
+                    f'Success to new the file {Config.SQLITE_LOG_DATABASE_PATH}')
+            except:
+                self.logger.error(
+                    f'Failed to new the file {Config.SQLITE_LOG_DATABASE_PATH}')
+                return False
         if not self.check_file(Config.SQLITE_DATABASE_PATH):
             # 新建数据库
             try:
-                self.app.logger.info(
+                self.logger.info(
                     'Try to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
                 DatabaseInit().init()
-                self.app.logger.info(
+                self.logger.info(
                     'Success to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
             except:
-                self.app.logger.warning(
-                    'Fail to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+                self.logger.warning(
+                    'Failed to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
                 return False
         else:
             # 检查更新
@@ -197,10 +232,10 @@ class FileChecker:
                     x = None
             # 数据库自动更新，不强求
             if not x or x[0] != ARCAEA_SERVER_VERSION:
-                self.app.logger.warning(
+                self.logger.warning(
                     'Maybe the file `%s` is an old version.' % Config.SQLITE_DATABASE_PATH)
                 try:
-                    self.app.logger.info(
+                    self.logger.info(
                         'Try to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
 
                     if not os.path.isdir(Config.SQLITE_DATABASE_BACKUP_FOLDER_PATH):
@@ -224,11 +259,11 @@ class FileChecker:
                     DatabaseInit().init()
                     self.update_database(temp_path)
 
-                    self.app.logger.info(
+                    self.logger.info(
                         'Success to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
 
                 except ValueError:
-                    self.app.logger.warning(
+                    self.logger.warning(
                         'Fail to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
 
         return True

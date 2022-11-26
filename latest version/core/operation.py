@@ -23,6 +23,7 @@ class RefreshAllScoreRating(BaseOperation):
 
     def run(self):
         # 追求效率，不用Song类，尽量不用对象
+        # 但其实还是很慢
         with Connect() as c:
             c.execute(
                 '''select song_id, rating_pst, rating_prs, rating_ftr, rating_byn from chart''')

@@ -2,16 +2,15 @@ import sqlite3
 import traceback
 from atexit import register
 
-from flask import current_app
-
 from .constant import Constant
 from .error import ArcError, InputError
 
 
 class Connect:
     # 数据库连接类，上下文管理
+    logger = None
 
-    def __init__(self, file_path: str = Constant.SQLITE_DATABASE_PATH, in_memory: bool = False):
+    def __init__(self, file_path: str = Constant.SQLITE_DATABASE_PATH, in_memory: bool = False, logger=None) -> None:
         """
             数据库连接，默认连接arcaea_database.db\ 
             接受：文件路径\ 
@@ -19,6 +18,8 @@ class Connect:
         """
         self.file_path = file_path
         self.in_memory: bool = in_memory
+        if logger is not None:
+            self.logger = logger
 
     def __enter__(self) -> sqlite3.Cursor:
         if self.in_memory:
@@ -37,7 +38,7 @@ class Connect:
             else:
                 self.conn.rollback()
 
-                current_app.logger.error(
+                self.logger.error(
                     traceback.format_exception(exc_type, exc_val, exc_tb))
 
         self.conn.commit()

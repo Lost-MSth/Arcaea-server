@@ -77,6 +77,7 @@ class Config:
     SQLITE_DATABASE_PATH = './database/arcaea_database.db'
     SQLITE_DATABASE_BACKUP_FOLDER_PATH = './database/backup/'
     DATABASE_INIT_PATH = './database/init/'
+    SQLITE_LOG_DATABASE_PATH = './database/arcaea_log.db'
 
     GAME_LOGIN_RATE_LIMIT = '30/5 minutes'
     API_LOGIN_RATE_LIMIT = '10/5 minutes'

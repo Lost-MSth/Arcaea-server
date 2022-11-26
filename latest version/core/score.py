@@ -7,7 +7,7 @@ from .course import CoursePlay
 from .error import NoData, StaminaNotEnough
 from .item import ItemCore
 from .song import Chart
-from .sql import Query, Sql
+from .sql import Connect, Query, Sql
 from .util import md5
 from .world import WorldPlay
 
@@ -408,6 +408,12 @@ class UserPlay(UserScore):
 
         self.ptt.insert_recent_30()
 
+    def record_score(self) -> None:
+        '''向log数据库记录分数，请注意列名不同'''
+        with Connect(Constant.SQLITE_LOG_DATABASE_PATH) as c2:
+            c2.execute('''insert into user_score values(?,?,?,?,?,?,?,?,?,?,?,?,?)''', (self.user.user_id, self.song.song_id, self.song.difficulty, self.time_played,
+                                                                                        self.score, self.shiny_perfect_count, self.perfect_count, self.near_count, self.miss_count, self.health, self.modifier, self.clear_type, self.rating))
+
     def upload_score(self) -> None:
         '''上传分数，包括user的recent更新，best更新，recent30更新，世界模式计算'''
         self.get_play_state()
@@ -419,6 +425,9 @@ class UserPlay(UserScore):
             self.unrank_flag = False
 
         self.time_played = int(time())
+
+        # 记录分数
+        self.record_score()
 
         # recent更新
         self.c.execute('''update user set song_id = :b, difficulty = :c, score = :d, shiny_perfect_count = :e, perfect_count = :f, near_count = :g, miss_count = :h, health = :i, modifier = :j, clear_type = :k, rating = :l, time_played = :m  where user_id = :a''', {
