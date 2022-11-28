@@ -4,11 +4,12 @@ from importlib import import_module
 from json import load
 from shutil import copy, copy2
 from time import time
+from traceback import format_exc
 
 from core.config_manager import Config
 from core.constant import ARCAEA_SERVER_VERSION
 from core.course import Course
-from core.download import SonglistParser
+from core.download import DownloadList
 from core.purchase import Purchase
 from core.sql import Connect, DatabaseMigrator, MemoryDatabase
 from core.user import UserRegister
@@ -181,6 +182,7 @@ class LogDatabaseInit:
 
 
 class FileChecker:
+    '''文件检查及初始化类'''
 
     def __init__(self, logger=None):
         self.logger = logger
@@ -206,7 +208,8 @@ class FileChecker:
                 LogDatabaseInit().init()
                 self.logger.info(
                     f'Success to new the file {Config.SQLITE_LOG_DATABASE_PATH}')
-            except:
+            except Exception as e:
+                self.logger.error(format_exc())
                 self.logger.error(
                     f'Failed to new the file {Config.SQLITE_LOG_DATABASE_PATH}')
                 return False
@@ -218,7 +221,8 @@ class FileChecker:
                 DatabaseInit().init()
                 self.logger.info(
                     'Success to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
-            except:
+            except Exception as e:
+                self.logger.error(format_exc())
                 self.logger.warning(
                     'Failed to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
                 return False
@@ -262,7 +266,8 @@ class FileChecker:
                     self.logger.info(
                         'Success to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
 
-                except ValueError:
+                except Exception as e:
+                    self.logger.error(format_exc())
                     self.logger.warning(
                         'Fail to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
 
@@ -275,9 +280,20 @@ class FileChecker:
             DatabaseMigrator(old_path, new_path).update_database()
             os.remove(old_path)
 
+    def check_song_file(self) -> bool:
+        '''检查song有关文件并初始化缓存'''
+        f = self.check_folder(Config.SONG_FILE_FOLDER_PATH)
+        self.logger.info("Start to initialize song data...")
+        try:
+            DownloadList.initialize_cache()
+            self.logger.info('Complete!')
+        except Exception as e:
+            self.logger.error(format_exc())
+            self.logger.warning('Initialization error!')
+            f = False
+        return f
+
     def check_before_run(self) -> bool:
         '''运行前检查，返回布尔值'''
-        # TODO: try
         MemoryDatabase()  # 初始化内存数据库
-        SonglistParser()  # 解析songlist
-        return self.check_folder(Config.SONG_FILE_FOLDER_PATH) & self.check_update_database()
+        return self.check_song_file() & self.check_update_database()

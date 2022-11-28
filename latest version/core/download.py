@@ -20,15 +20,6 @@ def get_song_file_md5(song_id: str, file_name: str) -> str:
     return get_file_md5(path)
 
 
-def initialize_songfile():
-    '''初始化歌曲数据的md5信息'''
-    get_song_file_md5.cache_clear()
-    x = DownloadList()
-    x.url_flag = False
-    x.add_songs()
-    del x
-
-
 class SonglistParser:
     '''songlist文件解析器'''
 
@@ -189,13 +180,22 @@ class DownloadList(UserDownload):
         self.downloads: list = []
         self.urls: dict = {}
 
+    @classmethod
+    def initialize_cache(cls) -> None:
+        '''初始化歌曲数据缓存，包括md5、文件目录遍历、解析songlist'''
+        SonglistParser()
+        x = cls()
+        x.url_flag = False
+        x.add_songs()
+        del x
+
     @staticmethod
-    def clear_all_cache():
+    def clear_all_cache() -> None:
         '''清除所有歌曲文件有关缓存'''
         get_song_file_md5.cache_clear()
         DownloadList.get_one_song_file_names.cache_clear()
         DownloadList.get_all_song_ids.cache_clear()
-        SonglistParser()
+        SonglistParser.songs = {}
 
     def clear_download_token(self) -> None:
         '''清除过期下载链接'''

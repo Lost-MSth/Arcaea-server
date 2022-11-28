@@ -5,7 +5,7 @@ from core.config_manager import Config
 from core.error import ArcError, NoAccess
 from core.sql import Connect
 from core.user import UserAuth, UserLogin
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
 
 from .func import arc_try, error_return
 
@@ -55,6 +55,7 @@ def auth_required(request):
                     user = UserAuth(c)
                     user.token = headers['Authorization'][7:]
                     user_id = user.token_get_id()
+                    g.user = user
                 except ArcError as e:
                     return error_return(e)
             return view(user_id, *args, **kwargs)

@@ -50,6 +50,8 @@ class Config:
     ALLOW_LOGIN_SAME_DEVICE = False
     ALLOW_BAN_MULTIDEVICE_USER_AUTO = True
 
+    ALLOW_SCORE_WITH_NO_SONG = True
+
     ALLOW_INFO_LOG = False
     ALLOW_WARNING_LOG = False
 

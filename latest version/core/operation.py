@@ -1,5 +1,6 @@
 from .sql import Connect, Sql
 from .score import Score
+from .download import DownloadList
 
 
 class BaseOperation:
@@ -53,3 +54,14 @@ class RefreshAllScoreRating(BaseOperation):
                     if values:
                         Sql(c).update_many('best_score', ['rating'], values, [
                             'user_id', 'song_id', 'difficulty'], where_values)
+
+
+class RefreshSongFileCache(BaseOperation):
+    '''
+        刷新歌曲文件缓存，包括文件hash缓存重建、文件目录重遍历、songlist重解析
+    '''
+    name = 'refresh_song_file_cache'
+
+    def run(self):
+        DownloadList.clear_all_cache()
+        DownloadList.initialize_cache()

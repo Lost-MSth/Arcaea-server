@@ -1,9 +1,8 @@
 import os
 import time
 
-from core.download import DownloadList, initialize_songfile
 from core.init import FileChecker
-from core.operation import RefreshAllScoreRating
+from core.operation import RefreshAllScoreRating, RefreshSongFileCache
 from core.rank import RankList
 from core.sql import Connect
 from flask import Blueprint, flash, redirect, render_template, request, url_for
@@ -290,8 +289,7 @@ def update_database():
 def update_song_hash():
     # 更新数据库内谱面文件hash值
     try:
-        DownloadList.clear_all_cache()
-        initialize_songfile()
+        RefreshSongFileCache().run()
         flash('数据刷新成功 Success refresh data.')
     except:
         flash('Something error!')
