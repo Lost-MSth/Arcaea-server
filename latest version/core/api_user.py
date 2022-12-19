@@ -34,6 +34,19 @@ class Role:
         '''判断role是否有power'''
         return any(power_id == i.power_id for i in self.powers)
 
+    def only_has_powers(self, power_ids: list, anti_power_ids: list = None) -> bool:
+        '''判断role是否全有power_ids里的power，且没有anti_power_ids里的任何一个power'''
+        flags = [False] * len(power_ids)
+        if anti_power_ids is None:
+            anti_power_ids = []
+        for i in self.powers:
+            if i.power_id in anti_power_ids:
+                return False
+            for j, k in enumerate(power_ids):
+                if i.power_id == k:
+                    flags[j] = True
+        return all(flags)
+
     def select_from_id(self, role_id: int = None) -> 'Role':
         '''用role_id查询role'''
         if role_id is not None:

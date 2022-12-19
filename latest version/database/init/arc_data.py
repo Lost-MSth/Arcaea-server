@@ -75,12 +75,12 @@ class InitData:
     role_caption = ['系统', '管理员', '用户', '查询接口']
 
     power = ['system', 'select', 'select_me', 'change', 'change_me', 'grant',
-             'grant_inf', 'select_song_rank', 'select_song_info']
+             'grant_inf', 'select_song_rank', 'select_song_info', 'select_song_rank_top']
     power_caption = ['系统权限', '总体查询权限', '自我查询权限', '总体修改权限',
-                     '自我修改权限', '授权权限', '下级授权权限', '歌曲排行榜查询权限', '歌曲信息查询权限']
+                     '自我修改权限', '授权权限', '下级授权权限', '歌曲排行榜查询权限', '歌曲信息查询权限', '歌曲排行榜有限查询权限']
 
     role_power = {'system': power,
-                  'admin': ['select', 'select_me', 'change_me', 'grant_inf', 'select_song_rank', 'select_song_info'],
+                  'admin': ['select', 'select_me', 'change_me', 'grant_inf', 'select_song_rank_top', 'select_song_info'],
                   'user': ['select_me', 'change_me', 'select_song_rank', 'select_song_info'],
                   'selector': ['select']
                   }
