@@ -3,7 +3,7 @@ from traceback import format_exc
 
 from core.config_manager import Config
 from core.error import ArcError
-from flask import current_app, jsonify
+from flask import current_app, g, jsonify
 
 default_error = ArcError('Unknown Error', status=500)
 
@@ -83,6 +83,9 @@ def arc_try(view):
         except ArcError as e:
             if Config.ALLOW_WARNING_LOG:
                 current_app.logger.warning(format_exc())
+            user = g.get("user", None)
+            current_app.logger.warning(
+                f'{user.user_id if user is not None else ""} - {e.error_code}|{e.api_error_code}: {e}')
             return error_return(e)
 
     return wrapped_view

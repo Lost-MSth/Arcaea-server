@@ -1,4 +1,5 @@
-from core.error import NoData
+from core.error import NoData, InputError
+from core.rank import RankList
 from core.song import Song
 from core.sql import Connect, Query, Sql
 from flask import Blueprint, request
@@ -40,3 +41,27 @@ def songs_get(data, user):
             raise NoData(api_error_code=-2)
 
         return success_return([x.to_dict() for x in r])
+
+
+@bp.route('/<string:song_id>/<int:difficulty>/rank', methods=['GET'])
+@role_required(request, ['select', 'select_song_rank', 'select_song_rank_top'])
+@request_json_handle(request, optional_keys=['limit'])
+@api_try
+def songs_song_difficulty_rank_get(data, user, song_id, difficulty):
+    '''查询歌曲某个难度的成绩排行榜，和游戏内接口相似，只允许limit'''
+    if difficulty not in [0, 1, 2, 3]:
+        raise InputError('Difficulty must be 0, 1, 2 or 3')
+    limit = data.get('limit', 20)
+    if not isinstance(limit, int):
+        raise InputError('Limit must be int')
+    if user.role.only_has_powers(['select_song_rank_top'], ['select', 'select_song_rank']):
+        # 限制低权限只能查询前20名
+        if limit > 20 or limit < 0:
+            limit = 20
+    with Connect() as c:
+        rank_list = RankList(c)
+        rank_list.song.set_chart(song_id, difficulty)
+        rank_list.limit = limit
+        # 不检查歌曲是否存在，不存在返回的是空列表
+        rank_list.select_top()
+        return success_return(rank_list.to_dict_list())

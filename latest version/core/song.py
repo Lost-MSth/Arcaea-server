@@ -1,4 +1,5 @@
 from .error import NoData
+from .config_manager import Config
 
 
 class Chart:
@@ -33,8 +34,10 @@ class Chart:
             '''select rating_pst, rating_prs, rating_ftr, rating_byn from chart where song_id=:a''', {'a': self.song_id})
         x = self.c.fetchone()
         if x is None:
-            self.defnum = -10
-            # raise NoData('The song `%s` does not exist.' % self.song_id)
+            if Config.ALLOW_SCORE_WITH_NO_SONG:
+                self.defnum = -10
+            else:
+                raise NoData(f'The song `{self.song_id}` does not exist.', 120)
         else:
             self.defnum = x[self.difficulty]
 

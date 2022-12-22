@@ -2,16 +2,15 @@ import sqlite3
 import traceback
 from atexit import register
 
-from flask import current_app
-
 from .constant import Constant
 from .error import ArcError, InputError
 
 
 class Connect:
     # 数据库连接类，上下文管理
+    logger = None
 
-    def __init__(self, file_path: str = Constant.SQLITE_DATABASE_PATH, in_memory: bool = False):
+    def __init__(self, file_path: str = Constant.SQLITE_DATABASE_PATH, in_memory: bool = False, logger=None) -> None:
         """
             数据库连接，默认连接arcaea_database.db\ 
             接受：文件路径\ 
@@ -19,6 +18,8 @@ class Connect:
         """
         self.file_path = file_path
         self.in_memory: bool = in_memory
+        if logger is not None:
+            self.logger = logger
 
     def __enter__(self) -> sqlite3.Cursor:
         if self.in_memory:
@@ -37,7 +38,7 @@ class Connect:
             else:
                 self.conn.rollback()
 
-                current_app.logger.error(
+                self.logger.error(
                     traceback.format_exception(exc_type, exc_val, exc_tb))
 
         self.conn.commit()
@@ -49,9 +50,9 @@ class Connect:
 class Query:
     '''查询参数类'''
 
-    def __init__(self, query_able: list = None, quzzy_query_able: list = None, sort_able: list = None) -> None:
+    def __init__(self, query_able: list = None, fuzzy_query_able: list = None, sort_able: list = None) -> None:
         self.query_able: list = query_able  # None表示不限制
-        self.quzzy_query_able: list = quzzy_query_able  # None表示不限制
+        self.fuzzy_query_able: list = fuzzy_query_able  # None表示不限制
         self.sort_able: list = sort_able
 
         self.__limit: int = -1
@@ -115,7 +116,7 @@ class Query:
     def fuzzy_query_append(self, fuzzy_query: dict) -> None:
         if not isinstance(fuzzy_query, dict):
             raise InputError(api_error_code=-101)
-        if self.quzzy_query_able is not None and fuzzy_query and not set(fuzzy_query).issubset(set(self.quzzy_query_able)):
+        if self.fuzzy_query_able is not None and fuzzy_query and not set(fuzzy_query).issubset(set(self.fuzzy_query_able)):
             raise InputError(api_error_code=-102)
         if not self.__fuzzy_query:
             self.__fuzzy_query = fuzzy_query
@@ -216,7 +217,7 @@ class Sql:
         return ('insert into ' if insert_type is None else 'insert or ' + insert_type + ' into ') + table_name + ('(' + ','.join(key) + ')' if key else '') + ' values(' + ','.join(['?'] * (len(key) if value_len is None else value_len)) + ')'
 
     @staticmethod
-    def get_update_sql(table_name: str, d: dict = {}, query: 'Query' = None) -> str:
+    def get_update_sql(table_name: str, d: dict = None, query: 'Query' = None):
         if not d:
             return None
         sql_list = []
@@ -244,6 +245,13 @@ class Sql:
             sql += ' and '.join(where_key)
 
         return sql, sql_list
+
+    @staticmethod
+    def get_update_many_sql(table_name: str, key: list = None, where_key: list = None) -> str:
+        '''拼接update语句，这里不用Query类，也不用字典，请注意只返回sql语句'''
+        if not key or not where_key:
+            return None
+        return f"update {table_name} set {','.join([f'{k}=?' for k in key])} where {' and '.join([f'{k}=?' for k in where_key])}"
 
     @staticmethod
     def get_delete_sql(table_name: str, query: 'Query' = None):
@@ -303,6 +311,13 @@ class Sql:
             return
         sql, sql_list = self.get_update_sql(table_name, d, query)
         self.c.execute(sql, sql_list)
+
+    def update_many(self, table_name: str, key: list, value_list: list, where_key: list, where_value_list: list) -> None:
+        '''单表内行update多句sql语句，这里不用Query类，也不用字典，要求值list长度一致，有点像insert_many'''
+        if not key or not value_list or not where_key or not where_value_list or not len(key) == len(value_list[0]) or not len(where_key) == len(where_value_list[0]) or not len(value_list) == len(where_value_list):
+            raise ValueError
+        self.c.executemany(self.get_update_many_sql(
+            table_name, key, where_key), [x + y for x, y in zip(value_list, where_value_list)])
 
     def delete(self, table_name: str, query: 'Query' = None) -> None:
         '''删除，query中只有query和fuzzy_query会被处理'''

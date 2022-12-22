@@ -50,6 +50,8 @@ class Config:
     ALLOW_LOGIN_SAME_DEVICE = False
     ALLOW_BAN_MULTIDEVICE_USER_AUTO = True
 
+    ALLOW_SCORE_WITH_NO_SONG = True
+
     ALLOW_INFO_LOG = False
     ALLOW_WARNING_LOG = False
 
@@ -77,6 +79,7 @@ class Config:
     SQLITE_DATABASE_PATH = './database/arcaea_database.db'
     SQLITE_DATABASE_BACKUP_FOLDER_PATH = './database/backup/'
     DATABASE_INIT_PATH = './database/init/'
+    SQLITE_LOG_DATABASE_PATH = './database/arcaea_log.db'
 
     GAME_LOGIN_RATE_LIMIT = '30/5 minutes'
     API_LOGIN_RATE_LIMIT = '10/5 minutes'

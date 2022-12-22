@@ -1,11 +1,10 @@
-from core.error import ArcError
 from core.present import UserPresent, UserPresentList
 from core.sql import Connect
 from core.user import UserOnline
 from flask import Blueprint, request
 
 from .auth import auth_required
-from .func import arc_try, error_return, success_return
+from .func import arc_try, success_return
 
 bp = Blueprint('present', __name__, url_prefix='/present')
 

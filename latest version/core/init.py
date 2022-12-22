@@ -4,11 +4,12 @@ from importlib import import_module
 from json import load
 from shutil import copy, copy2
 from time import time
+from traceback import format_exc
 
 from core.config_manager import Config
 from core.constant import ARCAEA_SERVER_VERSION
 from core.course import Course
-from core.download import SonglistParser
+from core.download import DownloadList
 from core.purchase import Purchase
 from core.sql import Connect, DatabaseMigrator, MemoryDatabase
 from core.user import UserRegister
@@ -90,10 +91,10 @@ class DatabaseInit:
         self.c.execute('''insert into item values(?,?,?)''',
                        ('anni5tix', 'anni5tix', 1))
 
-        with open(self.pack_path, 'r') as f:
+        with open(self.pack_path, 'rb') as f:
             self.insert_purchase_item(load(f))
 
-        with open(self.single_path, 'r') as f:
+        with open(self.single_path, 'rb') as f:
             self.insert_purchase_item(load(f))
 
         self.c.execute(
@@ -105,7 +106,7 @@ class DatabaseInit:
     def course_init(self) -> None:
         '''初始化课题信息'''
         courses = []
-        with open(self.course_path, 'r', encoding='utf-8') as f:
+        with open(self.course_path, 'rb') as f:
             courses = load(f)
         for i in courses:
             x = Course(self.c).from_dict(i)
@@ -157,35 +158,73 @@ class DatabaseInit:
             self.admin_init()
 
 
-class FileChecker:
+class LogDatabaseInit:
+    def __init__(self, db_path: str = Config.SQLITE_LOG_DATABASE_PATH, init_folder_path: str = Config.DATABASE_INIT_PATH) -> None:
+        self.db_path = db_path
+        self.init_folder_path = init_folder_path
+        self.c = None
 
-    def __init__(self, app=None):
-        self.app = app
+    @property
+    def sql_path(self) -> str:
+        return os.path.join(self.init_folder_path, 'log_tables.sql')
+
+    def table_init(self) -> None:
+        '''初始化数据库结构'''
+        with open(self.sql_path, 'r') as f:
+            self.c.executescript(f.read())
+        self.c.execute(
+            '''insert into cache values("version", :a, -1);''', {'a': ARCAEA_SERVER_VERSION})
+
+    def init(self) -> None:
+        with Connect(self.db_path) as c:
+            self.c = c
+            self.table_init()
+
+
+class FileChecker:
+    '''文件检查及初始化类'''
+
+    def __init__(self, logger=None):
+        self.logger = logger
 
     def check_file(self, file_path: str) -> bool:
         f = os.path.isfile(file_path)
         if not f:
-            self.app.logger.warning('File `%s` is missing.' % file_path)
+            self.logger.warning('File `%s` is missing.' % file_path)
         return f
 
     def check_folder(self, folder_path: str) -> bool:
         f = os.path.isdir(folder_path)
         if not f:
-            self.app.logger.warning('Folder `%s` is missing.' % folder_path)
+            self.logger.warning('Folder `%s` is missing.' % folder_path)
         return f
 
     def check_update_database(self) -> bool:
+        if not self.check_file(Config.SQLITE_LOG_DATABASE_PATH):
+            # 新建日志数据库
+            try:
+                self.logger.info(
+                    f'Try to new the file {Config.SQLITE_LOG_DATABASE_PATH}')
+                LogDatabaseInit().init()
+                self.logger.info(
+                    f'Success to new the file {Config.SQLITE_LOG_DATABASE_PATH}')
+            except Exception as e:
+                self.logger.error(format_exc())
+                self.logger.error(
+                    f'Failed to new the file {Config.SQLITE_LOG_DATABASE_PATH}')
+                return False
         if not self.check_file(Config.SQLITE_DATABASE_PATH):
             # 新建数据库
             try:
-                self.app.logger.info(
+                self.logger.info(
                     'Try to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
                 DatabaseInit().init()
-                self.app.logger.info(
+                self.logger.info(
                     'Success to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
-            except:
-                self.app.logger.warning(
-                    'Fail to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+            except Exception as e:
+                self.logger.error(format_exc())
+                self.logger.warning(
+                    'Failed to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
                 return False
         else:
             # 检查更新
@@ -197,10 +236,10 @@ class FileChecker:
                     x = None
             # 数据库自动更新，不强求
             if not x or x[0] != ARCAEA_SERVER_VERSION:
-                self.app.logger.warning(
+                self.logger.warning(
                     'Maybe the file `%s` is an old version.' % Config.SQLITE_DATABASE_PATH)
                 try:
-                    self.app.logger.info(
+                    self.logger.info(
                         'Try to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
 
                     if not os.path.isdir(Config.SQLITE_DATABASE_BACKUP_FOLDER_PATH):
@@ -224,11 +263,12 @@ class FileChecker:
                     DatabaseInit().init()
                     self.update_database(temp_path)
 
-                    self.app.logger.info(
+                    self.logger.info(
                         'Success to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
 
-                except ValueError:
-                    self.app.logger.warning(
+                except Exception as e:
+                    self.logger.error(format_exc())
+                    self.logger.warning(
                         'Fail to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
 
         return True
@@ -240,9 +280,20 @@ class FileChecker:
             DatabaseMigrator(old_path, new_path).update_database()
             os.remove(old_path)
 
+    def check_song_file(self) -> bool:
+        '''检查song有关文件并初始化缓存'''
+        f = self.check_folder(Config.SONG_FILE_FOLDER_PATH)
+        self.logger.info("Start to initialize song data...")
+        try:
+            DownloadList.initialize_cache()
+            self.logger.info('Complete!')
+        except Exception as e:
+            self.logger.error(format_exc())
+            self.logger.warning('Initialization error!')
+            f = False
+        return f
+
     def check_before_run(self) -> bool:
         '''运行前检查，返回布尔值'''
-        # TODO: try
         MemoryDatabase()  # 初始化内存数据库
-        SonglistParser()  # 解析songlist
-        return self.check_folder(Config.SONG_FILE_FOLDER_PATH) & self.check_update_database()
+        return self.check_song_file() & self.check_update_database()

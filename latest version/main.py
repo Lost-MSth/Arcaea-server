@@ -27,7 +27,7 @@ import server
 import web.index
 import web.login
 from core.constant import Constant
-from core.download import (UserDownload, initialize_songfile)
+from core.download import UserDownload
 from core.error import ArcError, NoAccess, RateLimit
 from core.init import FileChecker
 from core.sql import Connect
@@ -128,6 +128,18 @@ def tcp_server_run():
             app.run(Config.HOST, Config.PORT)
 
 
+def generate_log_file_dict(level: str, filename: str) -> dict:
+    return {
+        "class": "logging.handlers.RotatingFileHandler",
+        "maxBytes": 1024 * 1024,
+        "backupCount": 1,
+        "encoding": "utf-8",
+        "level": level,
+        "formatter": "default",
+        "filename": filename
+    }
+
+
 def main():
     log_dict = {
         'version': 1,
@@ -141,15 +153,7 @@ def main():
                 'stream': 'ext://flask.logging.wsgi_errors_stream',
                 'formatter': 'default'
             },
-            "error_file": {
-                "class": "logging.handlers.RotatingFileHandler",
-                "maxBytes": 1024 * 1024,
-                "backupCount": 1,
-                "encoding": "utf-8",
-                "level": "ERROR",
-                "formatter": "default",
-                "filename": "./log/error.log"
-            }
+            "error_file": generate_log_file_dict('ERROR', './log/error.log')
         },
         'formatters': {
             'default': {
@@ -159,50 +163,30 @@ def main():
     }
     if Config.ALLOW_INFO_LOG:
         log_dict['root']['handlers'].append('info_file')
-        log_dict['handlers']['info_file'] = {
-            "class": "logging.handlers.RotatingFileHandler",
-            "maxBytes": 1024 * 1024,
-            "backupCount": 1,
-            "encoding": "utf-8",
-            "level": "INFO",
-            "formatter": "default",
-            "filename": "./log/info.log"
-        }
+        log_dict['handlers']['info_file'] = generate_log_file_dict(
+            'INFO', './log/info.log')
     if Config.ALLOW_WARNING_LOG:
         log_dict['root']['handlers'].append('warning_file')
-        log_dict['handlers']['warning_file'] = {
-            "class": "logging.handlers.RotatingFileHandler",
-            "maxBytes": 1024 * 1024,
-            "backupCount": 1,
-            "encoding": "utf-8",
-            "level": "WARNING",
-            "formatter": "default",
-            "filename": "./log/warning.log"
-        }
+        log_dict['handlers']['warning_file'] = generate_log_file_dict(
+            'WARNING', './log/warning.log')
 
     dictConfig(log_dict)
 
-    if not FileChecker(app).check_before_run():
-        app.logger.error('Something wrong. The server will not run.')
+    Connect.logger = app.logger
+    if not FileChecker(app.logger).check_before_run():
+        app.logger.error('Some errors occurred. The server will not run.')
         input('Press ENTER key to exit.')
         sys.exit()
-
-    app.logger.info("Start to initialize song data...")
-    try:
-        initialize_songfile()
-        app.logger.info('Complete!')
-    except:
-        app.logger.warning('Initialization error!')
 
     if Config.LINKPLAY_HOST and Config.SET_LINKPLAY_SERVER_AS_SUB_PROCESS:
         from linkplay_server import link_play
         process = [Process(target=link_play, args=(
             Config.LINKPLAY_HOST, int(Config.LINKPLAY_UDP_PORT), int(Config.LINKPLAY_TCP_PORT)))]
         [p.start() for p in process]
-        app.logger.info("Link Play UDP server is running on " +
-                        Config.LINKPLAY_HOST + ':' + str(Config.LINKPLAY_UDP_PORT) + " ...")
-        app.logger.info("Link Play TCP server is running on " +
-                        Config.LINKPLAY_HOST + ':' + str(Config.LINKPLAY_TCP_PORT) + " ...")
+        app.logger.info(
+            f"Link Play UDP server is running on {Config.LINKPLAY_HOST}:{Config.LINKPLAY_UDP_PORT} ...")
+        app.logger.info(
+            f"Link Play TCP server is running on {Config.LINKPLAY_HOST}:{Config.LINKPLAY_TCP_PORT} ...")
         tcp_server_run()
         [p.join() for p in process]
     else:
