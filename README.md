@@ -73,32 +73,17 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss.
 
-### Version 2.10.1
+### Version 2.10.2
 
-- 适用于Arcaea 4.1.4版本 For Arcaea 4.1.4
-- 新搭档 **天音** 已解锁 Unlock the character **Amane**.
-- 为**天音**技能提供支持 Add support for the skill of **Amane**.
-- 现在配置文件可以是含有部分选项的文件或模块 At present the setting file can be a module or a file with some of options.
-- 添加`waitress`和`gevent`的部署方案支持，并支持日志记录 Add deployment mode `waitress` and `gevent`, and add support for the info log recording of them.
-- 为`songlist`添加解析器以指定可下载的文件 Add a parser for `songlist` to specify downloadable files.
-- 重构数据库初始化和数据迁移部分 Code refactoring for database initialization and migration.
-- 限制用户下载频率将使用第三方限制器，替代数据库 Add a custom limiter and use it for limiting users' download rate instead of using database.
-  > 现在需要`limits`模块  
-  > Now `limits` module is required.
-- 为登录和API登录添加限制器 Add limiter for login and API login.
-- `sqlite3`数据库调整为WAL模式并增大缓存 Change journal mode to WAL and enlarge cache size for `sqlite3` database.
-- 将下载token放入内存中而不是文件数据库中 Put download token in memory database instead of filesystem database.
-- 加速`best_score`表多次查询，表现为歌曲排行榜查询性能提升 Accelerate multiple querying in `best_score` table, which results in performance improvement of song ranklist query.
-- 优化歌曲下载部分 Make some optimization for downloading songs.
-- **修复更新recent 10时可能出现的死循环问题 Fix a bug that there is a endless loop in calculating recent 10 updating.** (due to 6fcca179182775615115cdb255b3a8223831a8a0)
-- 修复课题模式成绩没有rating的问题 Fix a bug that scores in course mode cannot calculate rating.
-- 修正搭档数值 Fix a character's value.
-- 邮箱长度最大限制提升到64 Change the email max length to 64.
-- 新增API接口来获取用户身份与权限 Add a method of API for getting users' roles and powers.
-- 新增API接口来修改用户信息 Add a method of API to change the user's info.
-- 为API的`GET`请求添加`query`参数支持 Add support for the `query` param in API's `GET` requests.
-- 修复API的`best30`接口曲目无数据导致出错的问题 Fix a bug that `best30` of API cannot have scores whose songs are not in database.
-- 修复API的`recent30`接口用户成绩数量不足导致出错的问题 Fix a bug that users with no recent scores cannot get `recent30` via API.
+- 适用于Arcaea 4.1.7版本 For Arcaea 4.1.7
+- 新搭档 **红（冬日）** 已解锁 Unlock the character **Kou(Winter)**.
+- 新增记录数据库来记录全部的游玩历史分数 Add a log database to record all playing scores.
+- 新增设置选项，可选择阻止或接受unranked成绩 Add a config option that can be used to forbid unranked scores.
+- 为自定义异常添加简明的warning日志 Add brief warning logs for custom exceptions.
+- 修复flask应用启动前出现异常，日志无法正确地指出异常的问题 Fix a bug that if an exception is raised before flask app runs, logger will not work well.
+- 现在初始化文件中JSON文件可以是模块支持的其它编码格式 Now initial files can be other encoding types which are supported by JSON module.
+- `run.bat`在报错时会停下而不是一闪而过了 Make the `run.bat` script pause when meeting an error. #82
+- 新增API接口查询单谱排行 Add an API endpoint for getting the rank list of a song's chart. #81
 
 ## 运行环境与依赖 Running environment and requirements
 
