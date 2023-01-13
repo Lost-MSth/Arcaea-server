@@ -243,8 +243,9 @@ class UserLogin(User):
                        'name': self.name})
         x = self.c.fetchone()
         if x is None:
-            raise NoData('Username does not exist.', 104)
+            raise NoData(f'Username `{self.name}` does not exist.', 104)
 
+        self.user_id = x[0]
         self.now = int(time.time() * 1000)
         if x[2] is not None and x[2] != '':
             # 自动封号检查
@@ -255,14 +256,14 @@ class UserLogin(User):
 
         if x[1] == '':
             # 账号封禁
-            raise UserBan('The account has been banned.', 106)
+            raise UserBan(
+                f'The account `{self.user_id}` has been banned.', 106)
 
         if x[1] != self.hash_pwd:
             raise NoAccess('Wrong password.', 104)
 
-        self.user_id = str(x[0])
         self.token = base64.b64encode(hashlib.sha256(
-            (self.user_id + str(self.now)).encode("utf8") + urandom(8)).digest()).decode()
+            (str(self.user_id) + str(self.now)).encode("utf8") + urandom(8)).digest()).decode()
 
         self.c.execute(
             '''select login_device from login where user_id = :user_id''', {"user_id": self.user_id})

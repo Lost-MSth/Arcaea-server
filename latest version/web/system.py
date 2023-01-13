@@ -132,61 +132,6 @@ def get_all_purchase():
     return re
 
 
-def update_one_save(c, user_id):
-    # 同步指定用户存档
-    # 注意，best_score表不比较，直接覆盖
-    return
-
-    # c.execute('''select scores_data, clearlamps_data from user_save where user_id=:a''', {
-    #           'a': user_id})
-    # x = c.fetchone()
-    # if x:
-    #     scores = json.loads(x[0])[""]
-    #     clearlamps = json.loads(x[1])[""]
-    #     clear_song_id_difficulty = []
-    #     clear_state = []
-    #     for i in clearlamps:
-    #         clear_song_id_difficulty.append(i['song_id']+str(i['difficulty']))
-    #         clear_state.append(i['clear_type'])
-
-    #     for i in scores:
-    #         rating = server.arcscore.get_one_ptt(
-    #             i['song_id'], i['difficulty'], i['score'])
-    #         if rating < 0:
-    #             rating = 0
-    #         try:
-    #             index = clear_song_id_difficulty.index(
-    #                 i['song_id'] + str(i['difficulty']))
-    #         except:
-    #             index = -1
-    #         if index != -1:
-    #             clear_type = clear_state[index]
-    #         else:
-    #             clear_type = 0
-    #         c.execute('''delete from best_score where user_id=:a and song_id=:b and difficulty=:c''', {
-    #             'a': user_id, 'b': i['song_id'], 'c': i['difficulty']})
-    #         c.execute('''insert into best_score values(:a, :b, :c, :d, :e, :f, :g, :h, :i, :j, :k, :l, :m, :n)''', {
-    #             'a': user_id, 'b': i['song_id'], 'c': i['difficulty'], 'd': i['score'], 'e': i['shiny_perfect_count'], 'f': i['perfect_count'], 'g': i['near_count'], 'h': i['miss_count'], 'i': i['health'], 'j': i['modifier'], 'k': i['time_played'], 'l': clear_type, 'm': clear_type, 'n': rating})
-
-    #     ptt = server.arcscore.get_user_ptt(c, user_id)  # 更新PTT
-    #     c.execute('''update user set rating_ptt=:a where user_id=:b''', {
-    #         'a': ptt, 'b': user_id})
-
-    # return
-
-
-def update_all_save(c):
-    # 同步所有用户存档
-
-    c.execute('''select user_id from user_save''')
-    x = c.fetchall()
-    if x:
-        for i in x:
-            update_one_save(c, i[0])
-
-    return
-
-
 def add_one_present(present_id, expire_ts, description, item_id, item_type, item_amount):
     # 添加一个奖励
 

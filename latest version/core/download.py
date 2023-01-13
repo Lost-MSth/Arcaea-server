@@ -167,7 +167,7 @@ class UserDownload:
 
 class DownloadList(UserDownload):
     '''
-        下载列表类\ 
+        下载列表类
         properties: `user` - `User`类或子类的实例
     '''
 

@@ -53,7 +53,10 @@ def auth_required(request):
             with Connect() as c:
                 try:
                     user = UserAuth(c)
-                    user.token = headers['Authorization'][7:]
+                    token = headers.get('Authorization')
+                    if not token:
+                        raise NoAccess('No token.', -4)
+                    user.token = token[7:]
                     user_id = user.token_get_id()
                     g.user = user
                 except ArcError as e:

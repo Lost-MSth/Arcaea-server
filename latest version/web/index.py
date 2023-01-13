@@ -2,9 +2,10 @@ import os
 import time
 
 from core.init import FileChecker
-from core.operation import RefreshAllScoreRating, RefreshSongFileCache
+from core.operation import RefreshAllScoreRating, RefreshSongFileCache, SaveUpdateScore
 from core.rank import RankList
 from core.sql import Connect
+from core.user import User
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
@@ -937,7 +938,7 @@ def update_user_save():
         # 全修改
         if 'name' not in request.form and 'user_code' not in request.form:
             flag = False
-            web.system.update_all_save(c)
+            SaveUpdateScore().run()
             flash("全部用户存档同步成功 Successfully update all users' saves.")
 
         else:
@@ -957,7 +958,9 @@ def update_user_save():
             user_id = c.fetchone()
             if user_id:
                 user_id = user_id[0]
-                web.system.update_one_save(c, user_id)
+                user = User()
+                user.user_id = user_id
+                SaveUpdateScore(user).run()
                 flash("用户存档同步成功 Successfully update the user's saves.")
 
             else:
