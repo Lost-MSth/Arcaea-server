@@ -286,6 +286,8 @@ class FileChecker:
         self.logger.info("Start to initialize song data...")
         try:
             DownloadList.initialize_cache()
+            if not Config.SONG_FILE_HASH_PRE_CALCULATE:
+                self.logger.info('Song file hash pre-calculate is disabled.')
             self.logger.info('Complete!')
         except Exception as e:
             self.logger.error(format_exc())

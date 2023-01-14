@@ -10,6 +10,8 @@ class Config:
     USE_PROXY_FIX = False
     USE_CORS = False
 
+    SONG_FILE_HASH_PRE_CALCULATE = True
+
     GAME_API_PREFIX = '/join/21'
 
     ALLOW_APPVERSION = []  # list[str]
