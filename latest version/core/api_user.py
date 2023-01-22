@@ -134,11 +134,12 @@ class APIUser(UserOnline):
         x = self.c.fetchone()
         if x is None:
             raise NoData('The user `%s` does not exist.' %
-                         self.name, api_error_code=-201)
+                         self.name, api_error_code=-201, status=401)
         if x[1] == '':
             raise UserBan('The user `%s` is banned.' % self.name)
         if self.hash_pwd != x[1]:
-            raise NoAccess('The password is incorrect.', api_error_code=-201)
+            raise NoAccess('The password is incorrect.',
+                           api_error_code=-201, status=401)
 
         self.user_id = x[0]
         now = int(time() * 1000)

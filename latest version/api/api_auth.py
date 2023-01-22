@@ -48,13 +48,14 @@ def role_required(request, powers=[]):
     return decorator
 
 
-def request_json_handle(request, required_keys=[], optional_keys=[]):
+def request_json_handle(request, required_keys: list = [], optional_keys: list = [], must_change: bool = False):
     '''
         提取post参数，返回dict，写成了修饰器\ 
         parameters: \ 
         `request`: `Request` - 当前请求\ 
         `required_keys`: `list` - 必须的参数\ 
-        `optional_keys`: `list` - 可选的参数
+        `optional_keys`: `list` - 可选的参数\ 
+        `must_change`: `bool` - 当全都是可选参数时，是否必须有至少一项修改
     '''
 
     def decorator(view):
@@ -67,8 +68,11 @@ def request_json_handle(request, required_keys=[], optional_keys=[]):
             else:
                 if request.method == 'GET' and 'query' in request.args:
                     # 处理axios没法GET传data的问题
-                    json_data = loads(
-                        b64decode(request.args['query']).decode())
+                    try:
+                        json_data = loads(
+                            b64decode(request.args['query']).decode())
+                    except:
+                        raise PostError(api_error_code=-105)
                 else:
                     json_data = {}
 
@@ -80,6 +84,9 @@ def request_json_handle(request, required_keys=[], optional_keys=[]):
             for key in optional_keys:
                 if key in json_data:
                     data[key] = json_data[key]
+
+            if must_change and not data:
+                return error_return(PostError('No change', api_error_code=-100))
 
             return view(data, *args, **kwargs)
 

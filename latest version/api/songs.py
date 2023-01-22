@@ -1,4 +1,4 @@
-from core.error import NoData, InputError
+from core.error import DataExist, NoData, InputError
 from core.rank import RankList
 from core.song import Song
 from core.sql import Connect, Query, Sql
@@ -21,6 +21,39 @@ def songs_song_get(user, song_id):
         return success_return(s.to_dict())
 
 
+@bp.route('/<string:song_id>', methods=['PUT'])
+@role_required(request, ['change'])
+@request_json_handle(request, optional_keys=['name', 'charts'], must_change=True)
+@api_try
+def songs_song_put(data, user, song_id):
+    '''修改歌曲信息'''
+    with Connect() as c:
+        s = Song(c, song_id).select()
+        if 'name' in data:
+            s.name = str(data['name'])
+        if 'charts' in data:
+            for i in data['charts']:
+                if 'difficulty' in i and 'chart_const' in i:
+                    s.charts[i['difficulty']].defnum = round(
+                        i['chart_const'] * 10)
+
+        s.update()
+        return success_return(s.to_dict())
+
+
+@bp.route('/<string:song_id>', methods=['DELETE'])
+@role_required(request, ['change'])
+@api_try
+def songs_song_delete(user, song_id):
+    '''删除歌曲信息'''
+    with Connect() as c:
+        s = Song(c, song_id)
+        if not s.select_exists():
+            raise NoData(f'No such song: `{song_id}`')
+        s.delete()
+        return success_return()
+
+
 @bp.route('', methods=['GET'])
 @role_required(request, ['select', 'select_song_info'])
 @request_json_handle(request, optional_keys=Constant.QUERY_KEYS)
@@ -41,6 +74,20 @@ def songs_get(data, user):
             raise NoData(api_error_code=-2)
 
         return success_return([x.to_dict() for x in r])
+
+
+@bp.route('', methods=['POST'])
+@role_required(request, ['change'])
+@request_json_handle(request, ['song_id', 'charts'], ['name'])
+@api_try
+def songs_post(data, user):
+    '''添加歌曲信息'''
+    with Connect() as c:
+        s = Song(c).from_dict(data)
+        if s.select_exists():
+            raise DataExist(f'Song `{s.song_id}` already exists')
+        s.insert()
+        return success_return(s.to_dict())
 
 
 @bp.route('/<string:song_id>/<int:difficulty>/rank', methods=['GET'])

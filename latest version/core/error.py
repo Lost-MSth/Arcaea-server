@@ -19,7 +19,9 @@ class InputError(ArcError):
 
 class DataExist(ArcError):
     '''数据存在'''
-    pass
+
+    def __init__(self, message=None, error_code=108, api_error_code=-4, extra_data=None, status=200) -> None:
+        super().__init__(message, error_code, api_error_code, extra_data, status)
 
 
 class NoData(ArcError):
