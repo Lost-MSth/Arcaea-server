@@ -16,10 +16,9 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 @arc_try
 def login():
     headers = request.headers
-    if 'AppVersion' in headers:  # 版本检查
-        if Config.ALLOW_APPVERSION:
-            if headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-                raise NoAccess('Wrong app version.', 1203)
+    if Config.ALLOW_APPVERSION:  # 版本检查
+        if 'AppVersion' not in headers or headers['AppVersion'] not in Config.ALLOW_APPVERSION:
+            raise NoAccess('Invalid app version.', 1203)
 
     request.form['grant_type']
     with Connect() as c:
@@ -45,10 +44,9 @@ def auth_required(request):
 
             headers = request.headers
 
-            if 'AppVersion' in headers:  # 版本检查
-                if Config.ALLOW_APPVERSION:
-                    if headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-                        return error_return(NoAccess('Wrong app version.', 1203))
+            if Config.ALLOW_APPVERSION:  # 版本检查
+                if 'AppVersion' not in headers or headers['AppVersion'] not in Config.ALLOW_APPVERSION:
+                    return error_return(NoAccess('Invalid app version.', 1203))
 
             with Connect() as c:
                 try:

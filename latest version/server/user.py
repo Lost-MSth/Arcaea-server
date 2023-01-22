@@ -16,10 +16,10 @@ bp = Blueprint('user', __name__, url_prefix='/user')
 @bp.route('', methods=['POST'])  # 注册接口
 @arc_try
 def register():
-    if 'AppVersion' in request.headers:  # 版本检查
-        if Config.ALLOW_APPVERSION:
-            if request.headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-                raise NoAccess('Wrong app version.', 1203)
+    headers = request.headers
+    if Config.ALLOW_APPVERSION:  # 版本检查
+        if 'AppVersion' not in headers or headers['AppVersion'] not in Config.ALLOW_APPVERSION:
+            raise NoAccess('Invalid app version.', 1203)
 
     with Connect() as c:
         new_user = UserRegister(c)
