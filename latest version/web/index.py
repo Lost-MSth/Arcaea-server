@@ -2,7 +2,7 @@ import os
 import time
 
 from core.init import FileChecker
-from core.operation import RefreshAllScoreRating, RefreshSongFileCache, SaveUpdateScore
+from core.operation import RefreshAllScoreRating, RefreshSongFileCache, SaveUpdateScore, UnlockUserItem
 from core.rank import RankList
 from core.sql import Connect
 from core.user import User
@@ -606,7 +606,7 @@ def edit_user_purchase():
         if 'name' not in request.form and 'user_code' not in request.form:
             flag = False
             if method == '0':
-                web.system.unlock_all_user_item(c)
+                UnlockUserItem().run()
             else:
                 c.execute(
                     '''delete from user_item where type in ('pack', 'single')''')
@@ -632,7 +632,9 @@ def edit_user_purchase():
                 user_id = user_id[0]
 
                 if method == '0':
-                    web.system.unlock_user_item(c, user_id)
+                    x = UnlockUserItem()
+                    x.set_params(user_id=user_id)
+                    x.run()
                 else:
                     c.execute('''delete from user_item where type in ('pack', 'single') and user_id = :user_id''', {
                         'user_id': user_id})

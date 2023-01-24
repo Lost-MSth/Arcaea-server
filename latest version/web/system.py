@@ -40,41 +40,6 @@ def update_user_char(c):
                           (j[0], i[0], i[1], exp, i[2], 0))
 
 
-def unlock_all_user_item(c):
-    # 解锁所有用户购买
-
-    c.execute('''select user_id from user''')
-    x = c.fetchall()
-    c.execute('''select item_id, type from purchase_item''')
-    y = c.fetchall()
-    if x and y:
-        for i in x:
-            for j in y:
-                c.execute('''select exists(select * from user_item where user_id=:a and item_id=:b and type=:c)''', {
-                    'a': i[0], 'b': j[0], 'c': j[1]})
-                if c.fetchone() == (0,) and j[1] != 'character':
-                    c.execute('''insert into user_item values(:a,:b,:c,1)''', {
-                        'a': i[0], 'b': j[0], 'c': j[1]})
-
-    return
-
-
-def unlock_user_item(c, user_id):
-    # 解锁用户购买
-
-    c.execute('''select item_id, type from purchase_item''')
-    y = c.fetchall()
-
-    for j in y:
-        c.execute('''select exists(select * from user_item where user_id=:a and item_id=:b and type=:c)''', {
-            'a': user_id, 'b': j[0], 'c': j[1]})
-        if c.fetchone() == (0,) and j[1] != 'character':
-            c.execute('''insert into user_item values(:a,:b,:c,1)''', {
-                'a': user_id, 'b': j[0], 'c': j[1]})
-
-    return
-
-
 def get_all_item():
     # 所有物品数据查询
     with Connect() as c:

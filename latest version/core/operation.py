@@ -1,18 +1,21 @@
-from .save import SaveData
-from .sql import Connect, Sql
-from .score import Score
 from .download import DownloadList
+from .save import SaveData
+from .score import Score
+from .sql import Connect, Sql
 from .user import User
 
 
 class BaseOperation:
-    name: str = None
+    _name: str = None
 
     def __init__(self, *args, **kwargs):
         pass
 
     def __call__(self, *args, **kwargs) -> None:
         return self.run(*args, **kwargs)
+
+    def set_params(self, *args, **kwargs) -> None:
+        pass
 
     def run(self, *args, **kwargs) -> None:
         raise NotImplementedError
@@ -22,7 +25,7 @@ class RefreshAllScoreRating(BaseOperation):
     '''
         刷新所有成绩的评分
     '''
-    name = 'refresh_all_score_rating'
+    _name = 'refresh_all_score_rating'
 
     def run(self):
         # 追求效率，不用Song类，尽量不用对象
@@ -61,8 +64,9 @@ class RefreshAllScoreRating(BaseOperation):
 class RefreshSongFileCache(BaseOperation):
     '''
         刷新歌曲文件缓存，包括文件hash缓存重建、文件目录重遍历、songlist重解析
+        注意在设置里预先计算关闭的情况下，文件hash不会计算
     '''
-    name = 'refresh_song_file_cache'
+    _name = 'refresh_song_file_cache'
 
     def run(self):
         DownloadList.clear_all_cache()
@@ -74,10 +78,15 @@ class SaveUpdateScore(BaseOperation):
         云存档更新成绩，是覆盖式更新\ 
         提供user参数时，只更新该用户的成绩，否则更新所有用户的成绩
     '''
-    name = 'save_update_score'
+    _name = 'save_update_score'
 
     def __init__(self, user=None):
         self.user = user
+
+    def set_params(self, user_id: int = None, *args, **kwargs):
+        if user_id is not None:
+            self.user = User()
+            self.user.user_id = int(user_id)
 
     def run(self, user=None):
         '''
@@ -166,3 +175,70 @@ class SaveUpdateScore(BaseOperation):
 
                 c.executemany(
                     '''insert or replace into best_score values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', new_scores)
+
+
+class UnlockUserItem(BaseOperation):
+    '''
+        全解锁/锁定用户物品\ 
+        提供user参数时，只更新该用户的，否则更新所有用户的
+    '''
+    _name = 'unlock_user_item'
+
+    ALLOW_TYPES = ['single', 'pack', 'world_song',
+                   'course_banner', 'world_unlock']
+
+    def __init__(self, user=None, method: str = 'unlock', item_types: list = ['single', 'pack']):
+        self.user = user
+        self.set_params(method=method, item_types=item_types)
+
+    def set_params(self, user_id: int = None, method: str = 'unlock', item_types: list = ['single', 'pack'], *args, **kwargs):
+        if user_id is not None:
+            self.user = User()
+            self.user.user_id = int(user_id)
+        if method in ['unlock', 'lock']:
+            self.method = method
+        if isinstance(item_types, list) and all([i in self.ALLOW_TYPES for i in item_types]):
+            self.item_types = item_types
+
+    def run(self):
+        if self.user is not None and self.user.user_id is not None:
+            if self.method == 'unlock':
+                self._one_user_insert()
+            else:
+                self._one_user_delete()
+        else:
+            if self.method == 'unlock':
+                self._all_insert()
+            else:
+                self._all_delete()
+
+    def _one_user_insert(self):
+        with Connect() as c:
+            c.execute(
+                f'''select item_id, type from item where type in ({','.join(['?'] * len(self.item_types))})''', self.item_types)
+            sql_list = [(self.user.user_id, i[0], i[1])
+                        for i in c.fetchall()]
+            c.executemany(
+                '''insert or ignore into user_item values (?, ?, ?, 1)''', sql_list)
+
+    def _all_insert(self):
+        with Connect() as c:
+            c.execute('''select user_id from user''')
+            x = c.fetchall()
+            c.execute(
+                f'''select item_id, type from item where type in ({','.join(['?'] * len(self.item_types))})''', self.item_types)
+            y = c.fetchall()
+            sql_list = [(i[0], j[0], j[1])
+                        for i in x for j in y]
+            c.executemany(
+                '''insert or ignore into user_item values (?, ?, ?, 1)''', sql_list)
+
+    def _one_user_delete(self):
+        with Connect() as c:
+            c.execute(
+                f'''delete from user_item where user_id = ? and type in ({','.join(['?'] * len(self.item_types))})''', (self.user.user_id, *self.item_types))
+
+    def _all_delete(self):
+        with Connect() as c:
+            c.execute(
+                f'''delete from user_item where type in ({','.join(['?'] * len(self.item_types))})''', self.item_types)

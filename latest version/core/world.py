@@ -50,6 +50,7 @@ class Step:
         self.restrict_id: str = None
         self.restrict_ids: list = []
         self.restrict_type: str = None
+        self.restrict_difficulty: int = None
         self.step_type: list = None
         self.speed_limit_value: int = None
         self.plus_stamina_value: int = None
@@ -61,12 +62,14 @@ class Step:
         }
         if self.items:
             r['items'] = [i.to_dict() for i in self.items]
-        if self.restrict_id:
-            r['restrict_id'] = self.restrict_id
-        if self.restrict_ids:
-            r['restrict_ids'] = self.restrict_ids
         if self.restrict_type:
             r['restrict_type'] = self.restrict_type
+            if self.restrict_id:
+                r['restrict_id'] = self.restrict_id
+            if self.restrict_ids:
+                r['restrict_ids'] = self.restrict_ids
+            if self.restrict_difficulty is not None:
+                r['restrict_difficulty'] = self.restrict_difficulty
         if self.step_type:
             r['step_type'] = self.step_type
         if self.speed_limit_value:
@@ -82,6 +85,7 @@ class Step:
         self.restrict_id = d.get('restrict_id')
         self.restrict_ids = d.get('restrict_ids')
         self.restrict_type = d.get('restrict_type')
+        self.restrict_difficulty = d.get('restrict_difficulty')
         self.step_type = d.get('step_type')
         self.speed_limit_value = d.get('speed_limit_value')
         self.plus_stamina_value = d.get('plus_stamina_value')
