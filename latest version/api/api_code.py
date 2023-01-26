@@ -1,5 +1,6 @@
-from core.error import ArcError
 from flask import jsonify
+
+from core.error import ArcError
 
 default_error = ArcError('Unknown Error')
 
@@ -9,6 +10,7 @@ CODE_MSG = {
     -1: 'See status code',  # 基础错误
     -2: 'No data',
     -3: 'No data or user',  # 不确定是无数据还是无用户
+    -4: 'Data exist',
     -100: 'Invalid post data',  # 1xx数据错误
     -101: 'Invalid data type',
     -102: 'Invalid query parameter',

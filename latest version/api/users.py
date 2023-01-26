@@ -78,7 +78,7 @@ def users_user_get(user, user_id):
 
 @bp.route('/<int:user_id>', methods=['PUT'])
 @role_required(request, ['change'])
-@request_json_handle(request, optional_keys=['name', 'password', 'user_code', 'ticket', 'email'])
+@request_json_handle(request, optional_keys=['name', 'password', 'user_code', 'ticket', 'email'], must_change=True)
 @api_try
 def users_user_put(data, user, user_id):
     '''修改一个用户'''
@@ -103,8 +103,7 @@ def users_user_put(data, user, user_id):
                 raise InputError('Ticket must be int')
             u.ticket = data['ticket']
             r['ticket'] = u.ticket
-        if r:
-            u.update_columns(d=r)
+        u.update_columns(d=r)
         return success_return(r)
 
 

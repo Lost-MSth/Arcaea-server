@@ -2,9 +2,10 @@ import os
 import time
 
 from core.init import FileChecker
-from core.operation import RefreshAllScoreRating, RefreshSongFileCache
+from core.operation import RefreshAllScoreRating, RefreshSongFileCache, SaveUpdateScore, UnlockUserItem
 from core.rank import RankList
 from core.sql import Connect
+from core.user import User
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
@@ -421,7 +422,7 @@ def all_character():
 def change_character():
     # 修改角色数据
     skill_ids = ['No_skill', 'gauge_easy', 'note_mirror', 'gauge_hard', 'frag_plus_10_pack_stellights', 'gauge_easy|frag_plus_15_pst&prs', 'gauge_hard|fail_frag_minus_100', 'frag_plus_5_side_light', 'visual_hide_hp', 'frag_plus_5_side_conflict', 'challenge_fullcombo_0gauge', 'gauge_overflow', 'gauge_easy|note_mirror', 'note_mirror', 'visual_tomato_pack_tonesphere',
-                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami', 'skill_elizabeth', 'skill_lily', 'skill_kanae_midsummer', 'eto_uncap', 'luna_uncap', 'frags_preferred_song', 'visual_ghost_skynotes', 'ayu_uncap', 'skill_vita', 'skill_fatalis', 'skill_reunion', 'frags_ongeki_slash', 'frags_ongeki_hard', 'skill_amane']
+                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami', 'skill_elizabeth', 'skill_lily', 'skill_kanae_midsummer', 'eto_uncap', 'luna_uncap', 'frags_preferred_song', 'visual_ghost_skynotes', 'ayu_uncap', 'skill_vita', 'skill_fatalis', 'skill_reunion', 'frags_ongeki_slash', 'frags_ongeki_hard', 'skill_amane', 'skill_kou_winter', 'gauge_hard|note_mirror']
     return render_template('web/changechar.html', skill_ids=skill_ids)
 
 
@@ -605,7 +606,7 @@ def edit_user_purchase():
         if 'name' not in request.form and 'user_code' not in request.form:
             flag = False
             if method == '0':
-                web.system.unlock_all_user_item(c)
+                UnlockUserItem().run()
             else:
                 c.execute(
                     '''delete from user_item where type in ('pack', 'single')''')
@@ -631,7 +632,9 @@ def edit_user_purchase():
                 user_id = user_id[0]
 
                 if method == '0':
-                    web.system.unlock_user_item(c, user_id)
+                    x = UnlockUserItem()
+                    x.set_params(user_id=user_id)
+                    x.run()
                 else:
                     c.execute('''delete from user_item where type in ('pack', 'single') and user_id = :user_id''', {
                         'user_id': user_id})
@@ -937,7 +940,7 @@ def update_user_save():
         # 全修改
         if 'name' not in request.form and 'user_code' not in request.form:
             flag = False
-            web.system.update_all_save(c)
+            SaveUpdateScore().run()
             flash("全部用户存档同步成功 Successfully update all users' saves.")
 
         else:
@@ -957,7 +960,9 @@ def update_user_save():
             user_id = c.fetchone()
             if user_id:
                 user_id = user_id[0]
-                web.system.update_one_save(c, user_id)
+                user = User()
+                user.user_id = user_id
+                SaveUpdateScore(user).run()
                 flash("用户存档同步成功 Successfully update the user's saves.")
 
             else:

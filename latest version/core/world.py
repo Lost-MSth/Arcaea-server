@@ -50,6 +50,7 @@ class Step:
         self.restrict_id: str = None
         self.restrict_ids: list = []
         self.restrict_type: str = None
+        self.restrict_difficulty: int = None
         self.step_type: list = None
         self.speed_limit_value: int = None
         self.plus_stamina_value: int = None
@@ -61,12 +62,14 @@ class Step:
         }
         if self.items:
             r['items'] = [i.to_dict() for i in self.items]
-        if self.restrict_id:
-            r['restrict_id'] = self.restrict_id
-        if self.restrict_ids:
-            r['restrict_ids'] = self.restrict_ids
         if self.restrict_type:
             r['restrict_type'] = self.restrict_type
+            if self.restrict_id:
+                r['restrict_id'] = self.restrict_id
+            if self.restrict_ids:
+                r['restrict_ids'] = self.restrict_ids
+            if self.restrict_difficulty is not None:
+                r['restrict_difficulty'] = self.restrict_difficulty
         if self.step_type:
             r['step_type'] = self.step_type
         if self.speed_limit_value:
@@ -82,6 +85,7 @@ class Step:
         self.restrict_id = d.get('restrict_id')
         self.restrict_ids = d.get('restrict_ids')
         self.restrict_type = d.get('restrict_type')
+        self.restrict_difficulty = d.get('restrict_difficulty')
         self.step_type = d.get('step_type')
         self.speed_limit_value = d.get('speed_limit_value')
         self.plus_stamina_value = d.get('plus_stamina_value')
@@ -102,7 +106,7 @@ class Map:
         self.available_from: int = None
         self.available_to: int = None
         self.is_repeatable: bool = None
-        self.require_id: str = None
+        self.require_id: 'str | list[str]' = None
         self.require_type: str = None
         self.require_value: int = None
         self.coordinate: str = None
@@ -110,6 +114,9 @@ class Map:
         self.stamina_cost: int = None
         self.steps: list = []
         self.__rewards: list = None
+
+        self.require_localunlock_songid: str = None
+        self.require_localunlock_challengeid: str = None
 
     @property
     def rewards(self) -> list:
@@ -151,6 +158,8 @@ class Map:
             'custom_bg': self.custom_bg,
             'stamina_cost': self.stamina_cost,
             'step_count': self.step_count,
+            'require_localunlock_songid': self.require_localunlock_songid,
+            'require_localunlock_challengeid': self.require_localunlock_challengeid,
             'steps': [s.to_dict() for s in self.steps],
         }
 
@@ -170,6 +179,8 @@ class Map:
         self.coordinate = raw_dict.get('coordinate')
         self.custom_bg = raw_dict.get('custom_bg', '')
         self.stamina_cost = raw_dict.get('stamina_cost')
+        self.require_localunlock_songid = raw_dict.get('require_localunlock_songid', '')
+        self.require_localunlock_challengeid = raw_dict.get('require_localunlock_challengeid', '')
         self.steps = [Step().from_dict(s) for s in raw_dict.get('steps')]
         return self
 

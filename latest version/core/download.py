@@ -5,6 +5,7 @@ from time import time
 
 from flask import url_for
 
+from .config_manager import Config
 from .constant import Constant
 from .error import NoAccess
 from .limiter import ArcLimiter
@@ -167,7 +168,7 @@ class UserDownload:
 
 class DownloadList(UserDownload):
     '''
-        下载列表类\ 
+        下载列表类
         properties: `user` - `User`类或子类的实例
     '''
 
@@ -184,10 +185,11 @@ class DownloadList(UserDownload):
     def initialize_cache(cls) -> None:
         '''初始化歌曲数据缓存，包括md5、文件目录遍历、解析songlist'''
         SonglistParser()
-        x = cls()
-        x.url_flag = False
-        x.add_songs()
-        del x
+        if Config.SONG_FILE_HASH_PRE_CALCULATE:
+            x = cls()
+            x.url_flag = False
+            x.add_songs()
+            del x
 
     @staticmethod
     def clear_all_cache() -> None:
@@ -212,9 +214,10 @@ class DownloadList(UserDownload):
     def get_one_song_file_names(song_id: str) -> list:
         '''获取一个歌曲文件夹下的所有合法文件名，有lru缓存'''
         r = []
-        for i in os.listdir(os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id)):
-            if os.path.isfile(os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id, i)) and SonglistParser.is_available_file(song_id, i):
-                r.append(i)
+        for i in os.scandir(os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id)):
+            file_name = i.name
+            if i.is_file() and SonglistParser.is_available_file(song_id, file_name):
+                r.append(file_name)
         return r
 
     def add_one_song(self, song_id: str) -> None:
@@ -265,7 +268,7 @@ class DownloadList(UserDownload):
     @lru_cache()
     def get_all_song_ids() -> list:
         '''获取全歌曲文件夹列表，有lru缓存'''
-        return list(filter(lambda x: os.path.isdir(os.path.join(Constant.SONG_FILE_FOLDER_PATH, x)), os.listdir(Constant.SONG_FILE_FOLDER_PATH)))
+        return [i.name for i in os.scandir(Constant.SONG_FILE_FOLDER_PATH) if i.is_dir()]
 
     def add_songs(self, song_ids: list = None) -> None:
         '''添加一个或多个歌曲到下载列表，若`song_ids`为空，则添加所有歌曲'''

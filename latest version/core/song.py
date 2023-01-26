@@ -43,7 +43,7 @@ class Chart:
 
 
 class Song:
-    def __init__(self, c=None, song_id=None) -> None:
+    def __init__(self, c=None, song_id: str = None) -> None:
         self.c = c
         self.song_id: str = song_id
         self.name: str = None
@@ -68,9 +68,38 @@ class Song:
         self.charts[3].defnum = x[5]
         return self
 
+    def from_dict(self, d: dict) -> 'Song':
+        self.song_id = d['song_id']
+        self.name = d.get('name', '')
+        self.charts = [Chart(self.c, self.song_id, 0), Chart(self.c, self.song_id, 1), Chart(
+            self.c, self.song_id, 2), Chart(self.c, self.song_id, 3)]
+        for i in range(4):
+            self.charts[i].defnum = -10
+        for chart in d['charts']:
+            self.charts[chart['difficulty']].defnum = round(
+                chart['chart_const'] * 10)
+        return self
+
+    def delete(self) -> None:
+        self.c.execute(
+            '''delete from chart where song_id=?''', (self.song_id,))
+
+    def update(self) -> None:
+        '''全部更新'''
+        self.c.execute(
+            '''update chart set name=?, rating_pst=?, rating_prs=?, rating_ftr=?, rating_byn=? where song_id=?''', (self.name, self.charts[0].defnum, self.charts[1].defnum, self.charts[2].defnum, self.charts[3].defnum, self.song_id))
+
     def insert(self) -> None:
         self.c.execute(
             '''insert into chart values (?,?,?,?,?,?)''', (self.song_id, self.name, self.charts[0].defnum, self.charts[1].defnum, self.charts[2].defnum, self.charts[3].defnum))
+
+    def select_exists(self, song_id: str = None) -> bool:
+        if song_id is not None:
+            self.song_id = song_id
+
+        self.c.execute(
+            '''select exists(select * from chart where song_id=?)''', (self.song_id,))
+        return bool(self.c.fetchone()[0])
 
     def select(self, song_id: str = None) -> 'Song':
         if song_id is not None:
@@ -80,6 +109,6 @@ class Song:
                        'a': self.song_id})
         x = self.c.fetchone()
         if x is None:
-            raise NoData('The song `%s` does not exist.' % self.song_id)
+            raise NoData(f'The song `{self.song_id}` does not exist.')
 
         return self.from_list(x)

@@ -13,13 +13,11 @@ def md5(code: str) -> str:
 
 
 def get_file_md5(file_path: str) -> str:
-    '''计算文件MD5'''
-    if not os.path.isfile(file_path):
-        return None
+    '''计算文件MD5，假设是文件'''
     myhash = hashlib.md5()
     with open(file_path, 'rb') as f:
         while True:
-            b = f.read(8096)
+            b = f.read(8192)
             if not b:
                 break
             myhash.update(b)

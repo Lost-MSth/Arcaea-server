@@ -3,7 +3,7 @@ from time import time
 
 from .config_manager import Config
 from .constant import Constant
-from .error import InputError
+from .error import InputError, NoData
 from .util import md5
 
 
@@ -53,6 +53,20 @@ class SaveData:
                 'val': self.finalestate_data
             }
         }
+
+    def select_scores(self, user) -> None:
+        '''
+            parameter: `user` - `User`类或子类的实例
+        '''
+        self.user = user
+        self.c.execute('''select scores_data, clearlamps_data from user_save where user_id=:a''',
+                       {'a': user.user_id})
+        x = self.c.fetchone()
+        if not x:
+            raise NoData(f'User `{user.user_id}` has no cloud save data')
+
+        self.scores_data: list = json.loads(x[0])[""]
+        self.clearlamps_data: list = json.loads(x[1])[""]
 
     def select_all(self, user) -> None:
         '''

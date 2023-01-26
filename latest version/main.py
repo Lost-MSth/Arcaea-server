@@ -105,6 +105,12 @@ if Config.DEPLOY_MODE == 'waitress':
             f'{request.remote_addr} - - {request.method} {request.path} {response.status_code}')
         return response
 
+# @app.before_request
+# def before_request():
+#     print(request.path)
+#     print(request.headers)
+#     print(request.data)
+
 
 def tcp_server_run():
     if Config.DEPLOY_MODE == 'gevent':

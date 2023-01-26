@@ -40,41 +40,6 @@ def update_user_char(c):
                           (j[0], i[0], i[1], exp, i[2], 0))
 
 
-def unlock_all_user_item(c):
-    # 解锁所有用户购买
-
-    c.execute('''select user_id from user''')
-    x = c.fetchall()
-    c.execute('''select item_id, type from purchase_item''')
-    y = c.fetchall()
-    if x and y:
-        for i in x:
-            for j in y:
-                c.execute('''select exists(select * from user_item where user_id=:a and item_id=:b and type=:c)''', {
-                    'a': i[0], 'b': j[0], 'c': j[1]})
-                if c.fetchone() == (0,) and j[1] != 'character':
-                    c.execute('''insert into user_item values(:a,:b,:c,1)''', {
-                        'a': i[0], 'b': j[0], 'c': j[1]})
-
-    return
-
-
-def unlock_user_item(c, user_id):
-    # 解锁用户购买
-
-    c.execute('''select item_id, type from purchase_item''')
-    y = c.fetchall()
-
-    for j in y:
-        c.execute('''select exists(select * from user_item where user_id=:a and item_id=:b and type=:c)''', {
-            'a': user_id, 'b': j[0], 'c': j[1]})
-        if c.fetchone() == (0,) and j[1] != 'character':
-            c.execute('''insert into user_item values(:a,:b,:c,1)''', {
-                'a': user_id, 'b': j[0], 'c': j[1]})
-
-    return
-
-
 def get_all_item():
     # 所有物品数据查询
     with Connect() as c:
@@ -130,61 +95,6 @@ def get_all_purchase():
                            })
 
     return re
-
-
-def update_one_save(c, user_id):
-    # 同步指定用户存档
-    # 注意，best_score表不比较，直接覆盖
-    return
-
-    # c.execute('''select scores_data, clearlamps_data from user_save where user_id=:a''', {
-    #           'a': user_id})
-    # x = c.fetchone()
-    # if x:
-    #     scores = json.loads(x[0])[""]
-    #     clearlamps = json.loads(x[1])[""]
-    #     clear_song_id_difficulty = []
-    #     clear_state = []
-    #     for i in clearlamps:
-    #         clear_song_id_difficulty.append(i['song_id']+str(i['difficulty']))
-    #         clear_state.append(i['clear_type'])
-
-    #     for i in scores:
-    #         rating = server.arcscore.get_one_ptt(
-    #             i['song_id'], i['difficulty'], i['score'])
-    #         if rating < 0:
-    #             rating = 0
-    #         try:
-    #             index = clear_song_id_difficulty.index(
-    #                 i['song_id'] + str(i['difficulty']))
-    #         except:
-    #             index = -1
-    #         if index != -1:
-    #             clear_type = clear_state[index]
-    #         else:
-    #             clear_type = 0
-    #         c.execute('''delete from best_score where user_id=:a and song_id=:b and difficulty=:c''', {
-    #             'a': user_id, 'b': i['song_id'], 'c': i['difficulty']})
-    #         c.execute('''insert into best_score values(:a, :b, :c, :d, :e, :f, :g, :h, :i, :j, :k, :l, :m, :n)''', {
-    #             'a': user_id, 'b': i['song_id'], 'c': i['difficulty'], 'd': i['score'], 'e': i['shiny_perfect_count'], 'f': i['perfect_count'], 'g': i['near_count'], 'h': i['miss_count'], 'i': i['health'], 'j': i['modifier'], 'k': i['time_played'], 'l': clear_type, 'm': clear_type, 'n': rating})
-
-    #     ptt = server.arcscore.get_user_ptt(c, user_id)  # 更新PTT
-    #     c.execute('''update user set rating_ptt=:a where user_id=:b''', {
-    #         'a': ptt, 'b': user_id})
-
-    # return
-
-
-def update_all_save(c):
-    # 同步所有用户存档
-
-    c.execute('''select user_id from user_save''')
-    x = c.fetchall()
-    if x:
-        for i in x:
-            update_one_save(c, i[0])
-
-    return
 
 
 def add_one_present(present_id, expire_ts, description, item_id, item_type, item_amount):
