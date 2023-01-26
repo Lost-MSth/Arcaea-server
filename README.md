@@ -73,17 +73,17 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss.
 
-### Version 2.10.2
+### Version 2.10.3
 
-- 适用于Arcaea 4.1.7版本 For Arcaea 4.1.7
-- 新搭档 **红（冬日）** 已解锁 Unlock the character **Kou(Winter)**.
-- 新增记录数据库来记录全部的游玩历史分数 Add a log database to record all playing scores.
-- 新增设置选项，可选择阻止或接受unranked成绩 Add a config option that can be used to forbid unranked scores.
-- 为自定义异常添加简明的warning日志 Add brief warning logs for custom exceptions.
-- 修复flask应用启动前出现异常，日志无法正确地指出异常的问题 Fix a bug that if an exception is raised before flask app runs, logger will not work well.
-- 现在初始化文件中JSON文件可以是模块支持的其它编码格式 Now initial files can be other encoding types which are supported by JSON module.
-- `run.bat`在报错时会停下而不是一闪而过了 Make the `run.bat` script pause when meeting an error. #82
-- 新增API接口查询单谱排行 Add an API endpoint for getting the rank list of a song's chart. #81
+- 适用于Arcaea 4.2.0版本 For Arcaea 4.2.0
+- 新搭档 **拉格兰（Aria）** 已解锁 Unlock the character **Lagrange(Aria)**. (Lack of its values)
+- 新搭档 **忘却（Apophenia）** 已解锁 Unlock the character **Lethe(Apophenia)**.
+- 新增选项取消歌曲文件哈希预计算 Add an option to disable song file hash pre-calculation.
+- 新增对世界模式中地图本地限制歌曲解锁或挑战解锁以及地图中台阶上限制歌曲难度的支持 Add support for restricting songs' difficulty in the map's steps of world mode and locally restricting unlocking songs or challenges in the map of world mode.
+- 恢复使用云存档覆盖成绩的功能 Restore the feature that cloud save can be used to cover best scores.
+- 捕获`Authorization`不在请求头导致的报错 Capture error that the request does not have `Authorization` in header.
+- 修复客户端版本校验中请求头不存在`AppVersion`也能通过校验的逻辑错误 Fix a bug that headers without `AppVersion` are allowed in client version checking.
+- 新增增删改歌曲信息的API接口 Add some API endpoints, including creating, changing, deleting song info.
 
 ## 运行环境与依赖 Running environment and requirements
 

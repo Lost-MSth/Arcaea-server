@@ -22,6 +22,8 @@ class Purchase:
 
         self.items: list = []
 
+        # TODO: "discount_reason": "extend"
+
     @property
     def price_displayed(self) -> int:
         '''

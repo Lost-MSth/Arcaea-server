@@ -327,11 +327,10 @@
 				"is_available": true
 			}
 		],
-		"price": 0,
+		"price": 700,
 		"orig_price": 700,
 		"discount_from": 1646784000000,
-		"discount_to": 1647388799000,
-		"discount_reason": "extend"
+		"discount_to": 1647388799000
 	},
 	{
 		"name": "alice",
@@ -596,6 +595,11 @@
 				"is_available": true
 			},
 			{
+				"type": "pack",
+				"id": "epilogue",
+				"is_available": true
+			},
+			{
 				"type": "core",
 				"amount": 5,
 				"id": "core_generic",
@@ -622,5 +626,25 @@
 		],
 		"orig_price": 500,
 		"price": 500
+	},
+	{
+		"name": "extend_2",
+		"items": [
+			{
+				"type": "pack",
+				"id": "extend_2",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 7,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 700,
+		"price": 700,
+		"discount_from": 1646784000000,
+		"discount_to": 1647388799000
 	}
 ]

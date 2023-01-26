@@ -1,5 +1,6 @@
-from core.error import ArcError
 from flask import jsonify
+
+from core.error import ArcError
 
 default_error = ArcError('Unknown Error')
 

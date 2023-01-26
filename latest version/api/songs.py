@@ -1,8 +1,9 @@
-from core.error import DataExist, NoData, InputError
+from flask import Blueprint, request
+
+from core.error import DataExist, InputError, NoData
 from core.rank import RankList
 from core.song import Song
 from core.sql import Connect, Query, Sql
-from flask import Blueprint, request
 
 from .api_auth import api_try, request_json_handle, role_required
 from .api_code import success_return

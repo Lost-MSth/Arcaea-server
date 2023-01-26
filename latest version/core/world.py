@@ -106,7 +106,7 @@ class Map:
         self.available_from: int = None
         self.available_to: int = None
         self.is_repeatable: bool = None
-        self.require_id: str = None
+        self.require_id: 'str | list[str]' = None
         self.require_type: str = None
         self.require_value: int = None
         self.coordinate: str = None
@@ -114,6 +114,9 @@ class Map:
         self.stamina_cost: int = None
         self.steps: list = []
         self.__rewards: list = None
+
+        self.require_localunlock_songid: str = None
+        self.require_localunlock_challengeid: str = None
 
     @property
     def rewards(self) -> list:
@@ -155,6 +158,8 @@ class Map:
             'custom_bg': self.custom_bg,
             'stamina_cost': self.stamina_cost,
             'step_count': self.step_count,
+            'require_localunlock_songid': self.require_localunlock_songid,
+            'require_localunlock_challengeid': self.require_localunlock_challengeid,
             'steps': [s.to_dict() for s in self.steps],
         }
 
@@ -174,6 +179,8 @@ class Map:
         self.coordinate = raw_dict.get('coordinate')
         self.custom_bg = raw_dict.get('custom_bg', '')
         self.stamina_cost = raw_dict.get('stamina_cost')
+        self.require_localunlock_songid = raw_dict.get('require_localunlock_songid', '')
+        self.require_localunlock_challengeid = raw_dict.get('require_localunlock_challengeid', '')
         self.steps = [Step().from_dict(s) for s in raw_dict.get('steps')]
         return self
 
