@@ -1,13 +1,12 @@
 import base64
 from functools import wraps
 
-from core.config_manager import Config
 from core.error import ArcError, NoAccess
 from core.sql import Connect
 from core.user import UserAuth, UserLogin
-from flask import Blueprint, g, jsonify, request
+from flask import Blueprint, g, jsonify, request, current_app
 
-from .func import arc_try, error_return
+from .func import arc_try, error_return, header_check
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')
 
@@ -16,9 +15,9 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 @arc_try
 def login():
     headers = request.headers
-    if Config.ALLOW_APPVERSION:  # 版本检查
-        if 'AppVersion' not in headers or headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-            raise NoAccess('Invalid app version.', 1203)
+    e = header_check(request)
+    if e is not None:
+        raise e
 
     request.form['grant_type']
     with Connect() as c:
@@ -44,9 +43,11 @@ def auth_required(request):
 
             headers = request.headers
 
-            if Config.ALLOW_APPVERSION:  # 版本检查
-                if 'AppVersion' not in headers or headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-                    return error_return(NoAccess('Invalid app version.', 1203))
+            e = header_check(request)
+            if e is not None:
+                current_app.logger.warning(
+                    f' - {e.error_code}|{e.api_error_code}: {e}')
+                return error_return(e)
 
             with Connect() as c:
                 try:

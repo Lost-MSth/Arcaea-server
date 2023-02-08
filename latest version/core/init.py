@@ -97,12 +97,6 @@ class DatabaseInit:
         with open(self.single_path, 'rb') as f:
             self.insert_purchase_item(load(f))
 
-        self.c.execute(
-            '''select exists(select * from item where item_id='epilogue')''')
-        if self.c.fetchone() == (0,):
-            self.c.execute(
-                '''insert into item values('epilogue','pack',1)''')
-
     def course_init(self) -> None:
         '''初始化课题信息'''
         courses = []

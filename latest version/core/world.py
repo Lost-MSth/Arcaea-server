@@ -301,7 +301,7 @@ class UserMap(Map):
                 if self.require_type in ['pack', 'single']:
                     item = ItemFactory(self.c).get_item(self.require_type)
                     item.item_id = self.require_id
-                    item.select(self.user)
+                    item.select_user_item(self.user)
                     if not item.amount:
                         self.is_locked = True
 

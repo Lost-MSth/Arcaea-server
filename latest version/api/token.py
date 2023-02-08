@@ -1,9 +1,10 @@
 from base64 import b64decode
 
+from flask import Blueprint, request
+
 from core.api_user import APIUser
 from core.error import PostError
 from core.sql import Connect
-from flask import Blueprint, request
 
 from .api_auth import api_try, request_json_handle, role_required
 from .api_code import success_return

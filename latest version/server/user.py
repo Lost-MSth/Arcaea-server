@@ -8,7 +8,7 @@ from core.user import User, UserLogin, UserOnline, UserRegister
 from flask import Blueprint, request
 
 from .auth import auth_required
-from .func import arc_try, success_return
+from .func import arc_try, header_check, success_return
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -17,9 +17,9 @@ bp = Blueprint('user', __name__, url_prefix='/user')
 @arc_try
 def register():
     headers = request.headers
-    if Config.ALLOW_APPVERSION:  # 版本检查
-        if 'AppVersion' not in headers or headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-            raise NoAccess('Invalid app version.', 1203)
+    error = header_check(request)
+    if error is not None:
+        raise error
 
     with Connect() as c:
         new_user = UserRegister(c)
