@@ -1,8 +1,7 @@
 from time import time
 
-from core.item import ItemFactory
-
-from .error import ArcError, NoData
+from .error import ArcError, DataExist, NoData
+from .item import ItemFactory
 
 
 class Present:
@@ -18,15 +17,40 @@ class Present:
     def is_expired(self) -> bool:
         return self.expire_ts < int(time() * 1000)
 
-    def to_dict(self) -> dict:
-        return {
+    def to_dict(self, has_items: bool = True) -> dict:
+        r = {
             'present_id': self.present_id,
             'expire_ts': self.expire_ts,
-            'description': self.description,
-            'items': [x.to_dict() for x in self.items]
+            'description': self.description
         }
+        if has_items:
+            r['items'] = [x.to_dict() for x in self.items]
+        return r
 
-    def select(self, present_id: str = None) -> None:
+    def from_dict(self, d: dict) -> 'Present':
+        self.present_id = d['present_id']
+        self.expire_ts = int(d['expire_ts'])
+        self.description = d.get('description', '')
+        self.items = []
+        for i in d.get('items', []):
+            self.items.append(ItemFactory.from_dict(i))
+        return self
+
+    def from_list(self, l: list) -> 'Present':
+        self.present_id = l[0]
+        self.expire_ts = int(l[1]) if l[1] else 0
+        self.description = l[2] if l[2] else ''
+        return self
+
+    def select_exists(self) -> bool:
+        '''
+            查询present是否存在
+        '''
+        self.c.execute(
+            '''select exists(select * from present where present_id=?)''', (self.present_id,))
+        return bool(self.c.fetchone()[0])
+
+    def select(self, present_id: str = None) -> 'Present':
         '''
             用present_id查询信息
         '''
@@ -39,8 +63,8 @@ class Present:
         if x is None:
             raise NoData('The present `%s` does not exist.' % self.present_id)
 
-        self.expire_ts = x[1] if x[1] else 0
-        self.description = x[2] if x[2] else ''
+        self.from_list(x)
+        return self
 
     def select_items(self) -> None:
         '''
@@ -48,15 +72,79 @@ class Present:
         '''
         self.c.execute(
             '''select * from present_item where present_id=:a''', {'a': self.present_id})
-        x = self.c.fetchall()
-        if not x:
-            raise NoData('The present `%s` does not have any items.' %
-                         self.present_id)
         self.items = [ItemFactory.from_dict({
             'item_id': i[1],
             'type': i[2],
             'amount': i[3] if i[3] else 1
-        }, self.c) for i in x]
+        }, self.c) for i in self.c.fetchall()]
+
+    def insert_items(self) -> None:
+        for i in self.items:
+            self.c.execute('''insert or ignore into item values(?,?,?)''',
+                           (i.item_id, i.item_type, i.is_available))
+
+            self.c.execute('''insert or ignore into present_item values(?,?,?,?)''',
+                           (self.present_id, i.item_id, i.item_type, i.amount))
+
+    def insert(self) -> None:
+        self.c.execute('''insert into present values(?,?,?)''',
+                       (self.present_id, self.expire_ts, self.description))
+
+    def insert_all(self) -> None:
+        self.insert()
+        self.insert_items()
+
+    def delete(self) -> None:
+        self.c.execute(
+            '''delete from present where present_id=?''', (self.present_id,))
+
+    def delete_present_item(self) -> None:
+        self.c.execute(
+            '''delete from present_item where present_id=?''', (self.present_id,))
+
+    def delete_all(self) -> None:
+        self.delete_present_item()
+        self.delete()
+
+    def update(self) -> None:
+        self.c.execute('''update present set expire_ts=?, description=? where present_id=?''',
+                       (self.expire_ts, self.description, self.present_id))
+
+    def delete_items(self, items: list) -> None:
+        '''删除present_item表中的物品'''
+        for i in items:
+            if i not in self.items:
+                raise NoData(
+                    f'No such item `{i.item_type}`: `{i.item_id}` in present `{self.present_id}`', api_error_code=-124)
+        self.c.executemany('''delete from present_item where present_id=? and item_id=? and type=?''', [
+                           (self.present_id, i.item_id, i.item_type) for i in items])
+        for i in items:
+            self.items.remove(i)
+
+    def add_items(self, items: list) -> None:
+        '''添加物品到present_item表'''
+        for i in items:
+            if not i.select_exists():
+                raise NoData(
+                    f'No such item `{i.item_type}`: `{i.item_id}`', api_error_code=-121)
+            if i in self.items:
+                raise DataExist(
+                    f'Item `{i.item_type}`: `{i.item_id}` already exists in present `{self.present_id}`', api_error_code=-123)
+        self.c.executemany('''insert into present_item values(?,?,?,?)''', [
+                           (self.present_id, i.item_id, i.item_type, i.amount) for i in items])
+        self.items.extend(items)
+
+    def update_items(self, items: list) -> None:
+        '''更新present_item表中的物品'''
+        for i in items:
+            if i not in self.items:
+                raise NoData(
+                    f'No such item `{i.item_type}`: `{i.item_id}` in present `{self.present_id}`', api_error_code=-124)
+        self.c.executemany('''update present_item set amount=? where present_id=? and item_id=? and type=?''', [
+                           (i.amount, self.present_id, i.item_id, i.item_type) for i in items])
+
+        for i in items:
+            self.items[self.items.index(i)].amount = i.amount
 
 
 class UserPresent(Present):

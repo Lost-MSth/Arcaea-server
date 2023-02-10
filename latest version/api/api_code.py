@@ -21,8 +21,8 @@ CODE_MSG = {
     -120: 'Invalid item type',
     -121: 'No such item',
     -122: 'Item already exists',
-    -123: 'Purchase already has this item',
-    -124: 'Purchase does not have this item',
+    -123: 'The collection already has this item',
+    -124: 'The collection does not have this item',
     -200: 'No permission',  # 2xx用户相关错误
     -201: 'Wrong username or password',
     -202: 'User is banned',

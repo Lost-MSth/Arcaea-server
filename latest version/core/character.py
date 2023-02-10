@@ -70,16 +70,24 @@ class CharacterValue:
         self.set_parameter(start, mid, end)
 
     @staticmethod
-    def _calc_char_value_20(level, stata, statb, lva=1, lvb=20):
-        # 计算1~20级搭档数值的核心函数，返回浮点数，来自https://redive.estertion.win/arcaea/calc/
-        n = [0, 0, 0.0005831753900000081, 0.004665403120000065, 0.015745735529959858, 0.03732322495992008, 0.07289692374980007, 0.12596588423968, 0.2000291587694801, 0.29858579967923987, 0.42513485930893946,
-             0.5748651406910605, 0.7014142003207574, 0.7999708412305152, 0.8740341157603029, 0.9271030762501818, 0.962676775040091, 0.9842542644700301, 0.9953345968799998, 0.9994168246100001, 1]
-        e = n[lva] - n[lvb]
-        a = stata - statb
-        r = a / e
-        d = stata - n[lva] * r
+    def _calc_char_value_20_math(level: int, value_1: float, value_20: float) -> float:
+        # by Lost-MSth
+        # 4/6859 = 0.00058317539
+        if level <= 10:
+            return 0.00058317539 * (level - 1) ** 3 * (value_20 - value_1) + value_1
+        else:
+            return - 0.00058317539 * (20 - level) ** 3 * (value_20 - value_1) + value_20
 
-        return d + r * n[level]
+    # @staticmethod
+    # def _calc_char_value_20(level: int, stata, statb, lva=1, lvb=20) -> float:
+    #     # 计算1~20级搭档数值的核心函数，返回浮点数，来自https://redive.estertion.win/arcaea/calc/
+    #     n = [0, 0, 0.0005831753900000081, 0.004665403120000065, 0.015745735529959858, 0.03732322495992008, 0.07289692374980007, 0.12596588423968, 0.2000291587694801, 0.29858579967923987, 0.42513485930893946,
+    #          0.5748651406910605, 0.7014142003207574, 0.7999708412305152, 0.8740341157603029, 0.9271030762501818, 0.962676775040091, 0.9842542644700301, 0.9953345968799998, 0.9994168246100001, 1]
+    #     e = n[lva] - n[lvb]
+    #     a = stata - statb
+    #     r = a / e
+    #     d = stata - n[lva] * r
+    #     return d + r * n[level]
 
     @staticmethod
     def _calc_char_value_30(level, stata, statb, lva=20, lvb=30):
@@ -93,7 +101,7 @@ class CharacterValue:
 
     def get_value(self, level: Level):
         if level.min_level <= level.level <= level.mid_level:
-            return self._calc_char_value_20(level.level, self.start, self.mid)
+            return self._calc_char_value_20_math(level.level, self.start, self.mid)
         elif level.mid_level < level.level <= level.max_level:
             return self._calc_char_value_30(level.level, self.mid, self.end)
         else:
@@ -137,7 +145,7 @@ class Character:
 
 class UserCharacter(Character):
     '''
-        用户角色类\ 
+        用户角色类
         property: `user` - `User`类或子类的实例
     '''
     database_table_name = 'user_char_full' if Config.CHARACTER_FULL_UNLOCK else 'user_char'
@@ -332,9 +340,10 @@ class UserCharacter(Character):
 
     def upgrade_by_core(self, user=None, core=None):
         '''
-            以太之滴升级，注意这里core.amount应该是负数\ 
-            parameter: `user` - `User`类或子类的实例\ 
-            `core` - `ItemCore`类或子类的实例
+            以太之滴升级，注意这里core.amount应该是负数
+
+            parameter: `user` - `User`类或子类的实例
+                `core` - `ItemCore`类或子类的实例
         '''
         if user:
             self.user = user
@@ -353,7 +362,7 @@ class UserCharacter(Character):
 
 class UserCharacterList:
     '''
-        用户拥有角色列表类\ 
+        用户拥有角色列表类
         properties: `user` - `User`类或子类的实例
     '''
     database_table_name = 'user_char_full' if Config.CHARACTER_FULL_UNLOCK else 'user_char'

@@ -20,7 +20,7 @@ def purchases_get(data, user):
     '''查询全购买信息'''
     with Connect() as c:
         query = Query(['purchase_name', 'discount_reason'], ['purchase_name'], [
-                      'price', 'orig_price', 'discount_from', 'discount_to']).from_dict(data)
+                      'purchase_name', 'price', 'orig_price', 'discount_from', 'discount_to']).from_dict(data)
         x = Sql(c).select('purchase', query=query)
         r = [Purchase().from_list(i) for i in x]
 
@@ -60,8 +60,7 @@ def purchases_purchase_get(user, purchase_name: str):
 def purchases_purchase_delete(user, purchase_name: str):
     '''删除单个购买信息，会连带删除purchase_item'''
     with Connect() as c:
-        purchase = Purchase(c).select(purchase_name)
-        purchase.delete_all()
+        Purchase(c).select(purchase_name).delete_all()
         return success_return()
 
 

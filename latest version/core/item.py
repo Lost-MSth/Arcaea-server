@@ -333,7 +333,8 @@ class ItemFactory:
         elif item_type == 'course_banner':
             return CourseBanner(self.c)
         else:
-            raise InputError('The item type `%s` is wrong.' % item_type)
+            raise InputError(
+                f'The item type `{item_type}` is invalid.', api_error_code=-120)
 
     @classmethod
     def from_dict(cls, d: dict, c=None):
