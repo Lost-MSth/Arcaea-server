@@ -6,31 +6,23 @@ from .udp_sender import CommandSender
 
 
 class CommandParser:
+    route = [None, 'command_01', 'command_02', 'command_03', 'command_04', 'command_05',
+             'command_06', 'command_07', 'command_08', 'command_09', 'command_0a', 'command_0b']
+
     def __init__(self, room: Room, player_index: int = 0) -> None:
         self.room = room
         self.player_index = player_index
+        self.s = CommandSender(self.room)
 
     def get_commands(self, command):
         self.command = command
-        l = {b'\x06\x16\x01': self.command_01,
-             b'\x06\x16\x02': self.command_02,
-             b'\x06\x16\x03': self.command_03,
-             b'\x06\x16\x04': self.command_04,
-             b'\x06\x16\x05': self.command_05,
-             b'\x06\x16\x06': self.command_06,
-             b'\x06\x16\x07': self.command_07,
-             b'\x06\x16\x08': self.command_08,
-             b'\x06\x16\x09': self.command_09,
-             b'\x06\x16\x0a': self.command_0a,
-             b'\x06\x16\x0b': self.command_0b
-             }
-        r = l[command[:3]]()
+        r = getattr(self, self.route[self.command[2]])()
 
         re = []
 
         flag_13 = False
         for i in range(max(bi(self.command[12:16]), self.room.players[self.player_index].start_command_num), self.room.command_queue_length):
-            if self.room.command_queue[i][:3] == b'\x06\x16\x13':
+            if self.room.command_queue[i][2] == 0x13:
                 if flag_13:
                     break
                 flag_13 = True
@@ -52,16 +44,13 @@ class CommandParser:
             if i.player_id == player_id and i.online == 1:
                 self.room.host_id = player_id
 
-        x = CommandSender(self.room)
-        x.random_code = self.command[16:24]
-        self.room.command_queue_length += 1
-        self.room.command_queue.append(x.command_10())
+        self.s.random_code = self.command[16:24]
+        self.room.command_queue.append(self.s.command_10())
 
         return None
 
     def command_02(self):
-        x = CommandSender(self.room)
-        x.random_code = self.command[16:24]
+        self.s.random_code = self.command[16:24]
         song_idx = bi(self.command[24:26])
 
         flag = 2
@@ -69,17 +58,14 @@ class CommandParser:
             flag = 0
             self.room.state = 3
             self.room.song_idx = song_idx
-            self.room.command_queue_length += 1
-            self.room.command_queue.append(x.command_11())
-            self.room.command_queue_length += 1
-            self.room.command_queue.append(x.command_13())
+            self.room.command_queue.append(self.s.command_11())
+            self.room.command_queue.append(self.s.command_13())
 
-        return [x.command_0d(flag)]
+        return [self.s.command_0d(flag)]
 
     def command_03(self):
         # 尝试进入结算
-        x = CommandSender(self.room)
-        x.random_code = self.command[16:24]
+        self.s.random_code = self.command[16:24]
         player = self.room.players[self.player_index]
         player.score = bi(self.command[24:28])
         player.cleartype = self.command[28]
@@ -89,20 +75,17 @@ class CommandParser:
         player.last_timestamp -= Config.COMMAND_INTERVAL
         self.room.last_song_idx = self.room.song_idx
 
-        self.room.command_queue_length += 1
-        self.room.command_queue.append(x.command_12(self.player_index))
+        self.room.command_queue.append(self.s.command_12(self.player_index))
 
         if self.room.is_finish():
             self.room.make_finish()
-            self.room.command_queue_length += 1
-            self.room.command_queue.append(x.command_13())
+            self.room.command_queue.append(self.s.command_13())
 
         return None
 
     def command_04(self):
         # 踢人
-        x = CommandSender(self.room)
-        x.random_code = self.command[16:24]
+        self.s.random_code = self.command[16:24]
         player_id = bi(self.command[24:32])
         flag = 2
         if self.room.players[self.player_index].player_id == self.room.host_id and player_id != self.room.host_id:
@@ -110,51 +93,42 @@ class CommandParser:
                 if self.room.players[i].player_id == player_id:
                     flag = 1
                     self.room.delete_player(i)
-                    self.room.command_queue_length += 1
-                    self.room.command_queue.append(x.command_12(i))
+                    self.room.command_queue.append(self.s.command_12(i))
                     self.room.update_song_unlock()
-                    self.room.command_queue_length += 1
-                    self.room.command_queue.append(x.command_14())
+                    self.room.command_queue.append(self.s.command_14())
                     break
 
-        return [x.command_0d(flag)]
+        return [self.s.command_0d(flag)]
 
     def command_05(self):
         pass
 
     def command_06(self):
-        x = CommandSender(self.room)
-        x.random_code = self.command[16:24]
+        self.s.random_code = self.command[16:24]
         self.room.state = 1
         self.room.song_idx = 0xffff
 
-        self.room.command_queue_length += 1
-        self.room.command_queue.append(x.command_13())
+        self.room.command_queue.append(self.s.command_13())
         return None
 
     def command_07(self):
-        x = CommandSender(self.room)
-        x.random_code = self.command[16:24]
+        self.s.random_code = self.command[16:24]
         self.room.players[self.player_index].song_unlock = self.command[24:536]
         self.room.update_song_unlock()
 
-        self.room.command_queue_length += 1
-        self.room.command_queue.append(x.command_14())
+        self.room.command_queue.append(self.s.command_14())
         return None
 
     def command_08(self):
         self.room.round_switch = bi(self.command[24:25])
-        x = CommandSender(self.room)
-        x.random_code = self.command[16:24]
-        self.room.command_queue_length += 1
-        self.room.command_queue.append(x.command_13())
+        self.s.random_code = self.command[16:24]
+        self.room.command_queue.append(self.s.command_13())
 
         return None
 
     def command_09(self):
         re = []
-        x = CommandSender(self.room)
-        x.random_code = self.command[16:24]
+        self.s.random_code = self.command[16:24]
         player = self.room.players[self.player_index]
 
         if bi(self.command[12:16]) == 0:
@@ -162,12 +136,11 @@ class CommandParser:
             self.room.state = 1
             self.room.update_song_unlock()
             player.start_command_num = self.room.command_queue_length
-            self.room.command_queue_length += 1
-            self.room.command_queue.append(x.command_15())
+            self.room.command_queue.append(self.s.command_15())
         else:
-            if x.timestamp - player.last_timestamp >= Config.COMMAND_INTERVAL:
-                re.append(x.command_0c())
-                player.last_timestamp = x.timestamp
+            if self.s.timestamp - player.last_timestamp >= Config.COMMAND_INTERVAL:
+                re.append(self.s.command_0c())
+                player.last_timestamp = self.s.timestamp
 
             flag_13 = False
             # 离线判断
@@ -176,14 +149,14 @@ class CommandParser:
                     t = self.room.players[i]
                     if t.player_id != 0:
                         if t.last_timestamp != 0:
-                            if t.online == 1 and x.timestamp - t.last_timestamp >= Config.PLAYER_PRE_TIMEOUT:
+                            if t.online == 1 and self.s.timestamp - t.last_timestamp >= Config.PLAYER_PRE_TIMEOUT:
                                 t.online = 0
-                                self.room.command_queue_length += 1
-                                self.room.command_queue.append(x.command_12(i))
-                            elif t.online == 0 and x.timestamp - t.last_timestamp >= Config.PLAYER_TIMEOUT:
+                                self.room.command_queue.append(
+                                    self.s.command_12(i))
+                            elif t.online == 0 and self.s.timestamp - t.last_timestamp >= Config.PLAYER_TIMEOUT:
                                 self.room.delete_player(i)
-                                self.room.command_queue_length += 1
-                                self.room.command_queue.append(x.command_12(i))
+                                self.room.command_queue.append(
+                                    self.s.command_12(i))
                                 flag_13 = True
 
             flag_11 = False
@@ -276,7 +249,7 @@ class CommandParser:
                 if player.timer != 0 or self.room.state != 8:
                     for i in self.room.players:
                         i.extra_command_queue.append(
-                            x.command_0e(self.player_index))
+                            self.s.command_0e(self.player_index))
 
                 if self.room.is_ready(8, 1):
                     flag_13 = True
@@ -293,14 +266,12 @@ class CommandParser:
                     flag_13 = True
 
             if flag_11:
-                self.room.command_queue_length += 1
-                self.room.command_queue.append(x.command_11())
+                self.room.command_queue.append(self.s.command_11())
             if flag_12:
-                self.room.command_queue_length += 1
-                self.room.command_queue.append(x.command_12(self.player_index))
+                self.room.command_queue.append(
+                    self.s.command_12(self.player_index))
             if flag_13:
-                self.room.command_queue_length += 1
-                self.room.command_queue.append(x.command_13())
+                self.room.command_queue.append(self.s.command_13())
 
         return re
 
@@ -308,28 +279,22 @@ class CommandParser:
         # 退出房间
         self.room.delete_player(self.player_index)
 
-        x = CommandSender(self.room)
-        self.room.command_queue_length += 1
-        self.room.command_queue.append(x.command_12(self.player_index))
+        self.room.command_queue.append(self.s.command_12(self.player_index))
 
         if self.room.state == 3 or self.room.state == 2:
             self.room.state = 1
             self.room.song_idx = 0xffff
-        # self.room.command_queue_length += 1
-        # self.room.command_queue.append(x.command_11())
-        self.room.command_queue_length += 1
-        self.room.command_queue.append(x.command_13())
-        self.room.command_queue_length += 1
-        self.room.command_queue.append(x.command_14())
+        # self.room.command_queue.append(self.s.command_11())
+        self.room.command_queue.append(self.s.command_13())
+        self.room.command_queue.append(self.s.command_14())
         return None
 
     def command_0b(self):
         # 推荐歌曲
         song_idx = bi(self.command[16:18])
-        x = CommandSender(self.room)
         for i in range(4):
             if self.player_index != i and self.room.players[i].online == 1:
                 self.room.players[i].extra_command_queue.append(
-                    x.command_0f(self.player_index, song_idx))
+                    self.s.command_0f(self.player_index, song_idx))
 
         return None

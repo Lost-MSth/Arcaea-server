@@ -61,11 +61,10 @@ class Room:
         self.song_idx = 0xffff
         self.last_song_idx = 0xffff
 
-        self.song_unlock = b'\x00' * Config.LINK_PLAY_UNLOCK_LENGTH
+        self.song_unlock = b'\xFF' * Config.LINK_PLAY_UNLOCK_LENGTH
 
         self.host_id = 0
         self.players = [Player(), Player(), Player(), Player()]
-        self.player_num = 0
 
         self.interval = 1000
         self.times = 100
@@ -73,7 +72,14 @@ class Room:
         self.round_switch = 0
 
         self.command_queue = []
-        self.command_queue_length = 0
+
+    @property
+    def command_queue_length(self) -> int:
+        return len(self.command_queue)
+
+    @property
+    def player_num(self) -> int:
+        return sum(i.player_id != 0 for i in self.players)
 
     def get_players_info(self):
         # 获取所有玩家信息
@@ -113,7 +119,6 @@ class Room:
 
     def delete_player(self, player_index: int):
         # 删除某个玩家
-        self.player_num -= 1
         if self.players[player_index].player_id == self.host_id:
             self.make_round()
 
