@@ -94,7 +94,7 @@ class TCPRouter:
         self.data = data  # data: list[str] = [command, ...]
 
     def debug(self):
-        if Config.IS_DEBUG:
+        if Config.DEBUG:
             return eval(self.data[1])
         return 'ok'
 
@@ -186,9 +186,13 @@ class TCPRouter:
                 return '1202'
             room: Room = Store.room_code_dict[room_code]
 
-            if room.player_num == 4:
+            player_num = room.player_num
+            if player_num == 4:
                 # 满人
                 return '1201'
+            elif player_num == 0:
+                # 房间不存在
+                return '1202'
             elif room.state != 2:
                 # 无法加入
                 return '1205'

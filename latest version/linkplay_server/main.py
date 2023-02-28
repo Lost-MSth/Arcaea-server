@@ -30,9 +30,9 @@ class UDP_handler(socketserver.BaseRequestHandler):
             logging.error(e)
             return None
 
-        if Config.IS_DEBUG:
-            logging.info(
-                f'UDP-From-{self.client_address[0]}-{binascii.b2a_hex(plaintext)}')
+        # if Config.DEBUG:
+        #     logging.info(
+        #         f'UDP-From-{self.client_address[0]}-{binascii.b2a_hex(plaintext)}')
 
         commands = CommandParser(
             user['room'], user['player_index']).get_commands(plaintext)
@@ -46,9 +46,9 @@ class UDP_handler(socketserver.BaseRequestHandler):
 
         for i in commands:
             iv, ciphertext, tag = encrypt(user['key'], i, b'')
-            if Config.IS_DEBUG:
-                logging.info(
-                    f'UDP-To-{self.client_address[0]}-{binascii.b2a_hex(i)}')
+            # if Config.DEBUG:
+            #     logging.info(
+            #         f'UDP-To-{self.client_address[0]}-{binascii.b2a_hex(i)}')
 
             server.sendto(token + iv + tag[:12] +
                           ciphertext, self.client_address)
@@ -59,15 +59,18 @@ class TCP_handler(socketserver.StreamRequestHandler):
         self.data = self.rfile.readline().strip()
 
         message = self.data.decode('utf-8')
-        # print(message)
+        if Config.DEBUG:
+            logging.info(f'TCP-From-{self.client_address[0]}-{message}')
         data = message.split('|')
         if data[0] != Config.AUTHENTICATION:
             self.wfile.write(b'No authentication')
-            logging.warning('TCP-%s-No authentication' %
-                            self.client_address[0])
+            logging.warning(f'TCP-{self.client_address[0]}-No authentication')
             return None
 
-        self.wfile.write(TCPRouter(data[1:]).handle().encode('utf-8'))
+        r = TCPRouter(data[1:]).handle()
+        if Config.DEBUG:
+            logging.info(f'TCP-To-{self.client_address[0]}-{r}')
+        self.wfile.write(r.encode('utf-8'))
 
 
 def link_play(ip: str = Config.HOST, udp_port: int = Config.UDP_PORT, tcp_port: int = Config.TCP_PORT):

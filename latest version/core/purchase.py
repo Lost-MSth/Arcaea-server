@@ -225,7 +225,7 @@ class Purchase:
                            (self.purchase_name, i.item_id, i.item_type, i.amount) for i in items])
         self.items.extend(items)
 
-    def delete_items(self, items: list) -> None:
+    def remove_items(self, items: list) -> None:
         '''删除purchase_item表'''
         for i in items:
             if i not in self.items:

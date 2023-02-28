@@ -142,22 +142,11 @@ class CommandParser:
                 re.append(self.s.command_0c())
                 player.last_timestamp = self.s.timestamp
 
-            flag_13 = False
             # 离线判断
-            for i in range(4):
-                if i != self.player_index:
-                    t = self.room.players[i]
-                    if t.player_id != 0:
-                        if t.last_timestamp != 0:
-                            if t.online == 1 and self.s.timestamp - t.last_timestamp >= Config.PLAYER_PRE_TIMEOUT:
-                                t.online = 0
-                                self.room.command_queue.append(
-                                    self.s.command_12(i))
-                            elif t.online == 0 and self.s.timestamp - t.last_timestamp >= Config.PLAYER_TIMEOUT:
-                                self.room.delete_player(i)
-                                self.room.command_queue.append(
-                                    self.s.command_12(i))
-                                flag_13 = True
+            flag_13, player_index_list = self.room.check_player_online(
+                self.s.timestamp)
+            for i in player_index_list:
+                self.room.command_queue.append(self.s.command_12(i))
 
             flag_11 = False
             flag_12 = False

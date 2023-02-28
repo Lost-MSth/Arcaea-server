@@ -116,8 +116,8 @@ class RemoteMultiPlayer:
 
         self.data_recv = received.split('|')
         if self.data_recv[0] != '0':
-            raise ArcError('Link Play error.',
-                           int(self.data_recv[0]), status=400)
+            code = int(self.data_recv[0])
+            raise ArcError(f'Link Play error code: {code}', code, status=400)
 
     def create_room(self, user: 'Player' = None) -> None:
         '''创建房间'''

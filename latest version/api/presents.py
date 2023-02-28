@@ -105,7 +105,7 @@ def presents_present_items_patch(data, user, present_id: str):
         p = Present(c)
         p.present_id = present_id
         p.select_items()
-        p.delete_items([ItemFactory.from_dict(x, c=c)
+        p.remove_items([ItemFactory.from_dict(x, c=c)
                         for x in data.get('remove', [])])
         p.add_items([ItemFactory.from_dict(x, c=c)
                      for x in data.get('create', [])])

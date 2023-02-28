@@ -42,9 +42,9 @@ class Item:
                        (self.item_id, self.item_type))
         return bool(self.c.fetchone()[0])
 
-    def insert(self):
-        self.c.execute('''insert into item values(?,?,?)''',
-                       (self.item_id, self.item_type, self.is_available))
+    def insert(self, ignore: bool = False):
+        sql = '''insert into item values(?,?,?)''' if not ignore else '''insert or ignore into item values(?,?,?)'''
+        self.c.execute(sql, (self.item_id, self.item_type, self.is_available))
 
     def delete(self):
         self.c.execute('''delete from item where item_id=? and type=?''',

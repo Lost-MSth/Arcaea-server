@@ -111,7 +111,9 @@ class CharacterValue:
 class Character:
     database_table_name = None
 
-    def __init__(self) -> None:
+    def __init__(self, c=None) -> None:
+        self.c = c
+
         self.character_id = None
         self.name = None
         self.char_type = None
@@ -141,6 +143,12 @@ class Character:
     def is_base_character(self) -> bool:
         # 应该是只有对立这样
         return self.character_id == 1
+
+    def to_dict(self) -> dict:
+        pass
+
+    def from_list(self, l: list) -> 'Character':
+        pass
 
 
 class UserCharacter(Character):

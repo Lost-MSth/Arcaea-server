@@ -119,7 +119,7 @@ def purchases_purchase_items_patch(data, user, purchase_name: str):
         p = Purchase(c)
         p.purchase_name = purchase_name
         p.select_items()
-        p.delete_items([ItemFactory.from_dict(x, c=c)
+        p.remove_items([ItemFactory.from_dict(x, c=c)
                         for x in data.get('remove', [])])
         p.add_items([ItemFactory.from_dict(x, c=c)
                      for x in data.get('create', [])])

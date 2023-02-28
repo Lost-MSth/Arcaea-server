@@ -31,9 +31,8 @@ class Present:
         self.present_id = d['present_id']
         self.expire_ts = int(d['expire_ts'])
         self.description = d.get('description', '')
-        self.items = []
-        for i in d.get('items', []):
-            self.items.append(ItemFactory.from_dict(i))
+        self.items = [ItemFactory.from_dict(
+            i, c=self.c) for i in d.get('items', [])]
         return self
 
     def from_list(self, l: list) -> 'Present':
@@ -110,7 +109,7 @@ class Present:
         self.c.execute('''update present set expire_ts=?, description=? where present_id=?''',
                        (self.expire_ts, self.description, self.present_id))
 
-    def delete_items(self, items: list) -> None:
+    def remove_items(self, items: list) -> None:
         '''删除present_item表中的物品'''
         for i in items:
             if i not in self.items:
