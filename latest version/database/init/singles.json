@@ -1306,5 +1306,59 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "hiirogekka",
+		"items": [
+			{
+				"type": "single",
+				"id": "hiirogekka",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "manicjeer",
+		"items": [
+			{
+				"type": "single",
+				"id": "manicjeer",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "crimsonthrone",
+		"items": [
+			{
+				"type": "single",
+				"id": "crimsonthrone",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

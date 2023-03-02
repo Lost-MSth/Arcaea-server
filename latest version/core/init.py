@@ -50,7 +50,7 @@ class DatabaseInit:
         '''初始化搭档信息'''
         for i in range(0, len(self.init_data.char)):
             skill_requires_uncap = 1 if i == 2 else 0
-            if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21, 42, 43, 11, 12, 19, 5]:
+            if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21, 42, 43, 11, 12, 19, 5, 10]:
                 max_level = 30
                 uncapable = 1
             else:

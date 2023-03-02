@@ -363,8 +363,10 @@ class DatabaseMigrator:
         if db1_pk != db2_pk:
             return False
 
-        sql2.insert_many(table_name, [], sql1.select(
-            table_name, list(filter(lambda x: x in db2_name, db1_name))), insert_type='replace')
+        public_column = list(filter(lambda x: x in db2_name, db1_name))
+
+        sql2.insert_many(table_name, public_column, sql1.select(
+            table_name, public_column), insert_type='replace')
 
         return True
 

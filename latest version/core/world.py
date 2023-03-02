@@ -117,6 +117,7 @@ class Map:
 
         self.require_localunlock_songid: str = None
         self.require_localunlock_challengeid: str = None
+        self.chain_info: dict = None
 
     @property
     def rewards(self) -> list:
@@ -160,6 +161,7 @@ class Map:
             'step_count': self.step_count,
             'require_localunlock_songid': self.require_localunlock_songid,
             'require_localunlock_challengeid': self.require_localunlock_challengeid,
+            'chain_info': self.chain_info,
             'steps': [s.to_dict() for s in self.steps],
         }
 
@@ -179,8 +181,11 @@ class Map:
         self.coordinate = raw_dict.get('coordinate')
         self.custom_bg = raw_dict.get('custom_bg', '')
         self.stamina_cost = raw_dict.get('stamina_cost')
-        self.require_localunlock_songid = raw_dict.get('require_localunlock_songid', '')
-        self.require_localunlock_challengeid = raw_dict.get('require_localunlock_challengeid', '')
+        self.require_localunlock_songid = raw_dict.get(
+            'require_localunlock_songid', '')
+        self.require_localunlock_challengeid = raw_dict.get(
+            'require_localunlock_challengeid', '')
+        self.chain_info = raw_dict.get('chain_info', {})
         self.steps = [Step().from_dict(s) for s in raw_dict.get('steps')]
         return self
 
@@ -447,8 +452,9 @@ class WorldPlay:
         self.step_value: float = None
 
         self.prog_tempest: float = None
-        self.overdrive_extra: float = None
         self.character_bonus_progress: float = None
+        self.prog_skill_increase: float = None
+        self.over_skill_increase: float = None
 
     def to_dict(self) -> dict:
         arcmap: 'UserMap' = self.user.current_map
@@ -476,14 +482,17 @@ class WorldPlay:
             },
             "current_stamina": self.user.stamina.stamina,
             "max_stamina_ts": self.user.stamina.max_stamina_ts,
-            'world_mode_locked_end_ts': self.user.world_mode_locked_end_ts
+            'world_mode_locked_end_ts': self.user.world_mode_locked_end_ts,
+            'beyond_boost_gauge': self.user.beyond_boost_gauge
         }
 
-        if self.overdrive_extra is not None:
-            r['char_stats']['overdrive'] += self.overdrive_extra
+        if self.over_skill_increase is not None:
+            r['char_stats']['over_skill_increase'] = self.over_skill_increase
+        if self.prog_skill_increase is not None:
+            r['char_stats']['prog_skill_increase'] = self.prog_skill_increase
 
         if self.prog_tempest is not None:
-            r['char_stats']['prog'] += self.prog_tempest
+            r['char_stats']['prog'] += self.prog_tempest  # 没试过要不要这样
             r['char_stats']['prog_tempest'] = self.prog_tempest
 
         if self.character_bonus_progress is not None:
@@ -503,16 +512,45 @@ class WorldPlay:
             r['fragment_multiply'] = self.user_play.fragment_multiply
         if self.user_play.prog_boost_multiply != 0:
             r['prog_boost_multiply'] = self.user_play.prog_boost_multiply
+        if self.user_play.beyond_boost_gauge_usage != 0:
+            r['beyond_boost_gauge_usage'] = self.user_play.beyond_boost_gauge_usage
 
         return r
 
     @property
+    def beyond_boost_gauge_addition(self) -> float:
+        # guessed by Lost-MSth
+        return 2.45 * self.user_play.rating ** 0.5 + 27
+
+    @property
     def step_times(self) -> float:
-        return self.user_play.stamina_multiply * self.user_play.fragment_multiply / 100 * (self.user_play.prog_boost_multiply+100) / 100
+        prog_boost_multiply = self.user_play.prog_boost_multiply + 100
+        beyond_boost_times = 1
+
+        if self.user_play.beyond_gauge == 1:
+            if prog_boost_multiply > 100:
+                prog_boost_multiply -= 100
+            if self.user_play.beyond_boost_gauge_usage == 100:
+                beyond_boost_times = 2
+            elif self.user_play.beyond_boost_gauge_usage == 200:
+                beyond_boost_times = 3
+
+        return self.user_play.stamina_multiply * self.user_play.fragment_multiply / 100 * prog_boost_multiply / 100 * beyond_boost_times
 
     @property
     def exp_times(self) -> float:
-        return self.user_play.stamina_multiply * (self.user_play.prog_boost_multiply+100) / 100
+        prog_boost_multiply = self.user_play.prog_boost_multiply + 100
+        beyond_boost_times = 1
+
+        if self.user_play.beyond_gauge == 1:
+            if prog_boost_multiply > 100:
+                prog_boost_multiply -= 100
+            if self.user_play.beyond_boost_gauge_usage == 100:
+                beyond_boost_times = 2
+            elif self.user_play.beyond_boost_gauge_usage == 200:
+                beyond_boost_times = 3
+
+        return self.user_play.stamina_multiply * prog_boost_multiply / 100 * beyond_boost_times
 
     def get_step(self) -> None:
         if self.user_play.beyond_gauge == 0:
@@ -521,6 +559,8 @@ class WorldPlay:
                 self.character_used.level)
             if self.prog_tempest:
                 prog += self.prog_tempest
+            if self.prog_skill_increase:
+                prog += self.prog_skill_increase
 
             self.step_value = self.base_step_value * prog / 50 * self.step_times
         else:
@@ -539,8 +579,8 @@ class WorldPlay:
 
             overdrive = self.character_used.overdrive.get_value(
                 self.character_used.level)
-            if self.overdrive_extra:
-                overdrive += self.overdrive_extra
+            if self.over_skill_increase:
+                overdrive += self.over_skill_increase
 
             self.step_value = self.base_step_value * overdrive / \
                 50 * self.step_times * affinity_multiplier
@@ -552,6 +592,20 @@ class WorldPlay:
 
         self.user_play.clear_play_state()
         self.user.select_user_about_world_play()
+
+        if self.user_play.beyond_gauge == 0:
+            # 更新byd大招蓄力条
+            self.user.beyond_boost_gauge += self.beyond_boost_gauge_addition
+            if self.user.beyond_boost_gauge > 200:
+                self.user.beyond_boost_gauge = 200
+            self.user.update_user_one_column(
+                'beyond_boost_gauge', self.user.beyond_boost_gauge)
+        elif self.user_play.beyond_boost_gauge_usage != 0 and self.user_play.beyond_boost_gauge_usage <= self.user.beyond_boost_gauge:
+            self.user.beyond_boost_gauge -= self.user_play.beyond_boost_gauge_usage
+            if abs(self.user.beyond_boost_gauge) <= 1e-5:
+                self.user.beyond_boost_gauge = 0
+            self.user.update_user_one_column(
+                'beyond_boost_gauge', self.user.beyond_boost_gauge)
 
         self.character_used = Character()
 
@@ -601,10 +655,12 @@ class WorldPlay:
         else:
             if self.character_used.skill_id_displayed == 'skill_vita':
                 self._skill_vita()
+        if self.character_used.skill_id_displayed == 'skill_mika':
+            self._skill_mika()
 
     def after_climb(self) -> None:
         factory_dict = {'eto_uncap': self._eto_uncap, 'ayu_uncap': self._ayu_uncap,
-                        'luna_uncap': self._luna_uncap, 'skill_fatalis': self._skill_fatalis, 'skill_amane': self._skill_amane}
+                        'luna_uncap': self._luna_uncap, 'skill_fatalis': self._skill_fatalis, 'skill_amane': self._skill_amane, 'ilith_awakened_skill': self._ilith_awakened_skill}
         if self.character_used.skill_id_displayed in factory_dict:
             factory_dict[self.character_used.skill_id_displayed]()
 
@@ -627,9 +683,9 @@ class WorldPlay:
             vita技能，overdrive随回忆率提升，提升量最多为10\ 
             此处采用线性函数
         '''
-        self.overdrive_extra = 0
+        self.over_skill_increase = 0
         if 0 < self.user_play.health <= 100:
-            self.overdrive_extra = self.user_play.health / 10
+            self.over_skill_increase = self.user_play.health / 10
 
     def _eto_uncap(self) -> None:
         '''eto觉醒技能，获得残片奖励时世界模式进度加7'''
@@ -688,3 +744,22 @@ class WorldPlay:
             self.character_bonus_progress = -self.step_value / 2 / self.step_times
             self.step_value = self.step_value / 2
             self.user.current_map.reclimb(self.step_value)
+
+    def _ilith_awakened_skill(self) -> None:
+        '''
+        ilith 觉醒技能，曲目通关时步数+6，偷懒写在after_climb里面，需要重爬一次
+        '''
+        if self.user_play.health > 0:
+            self.character_bonus_progress = 6
+            self.step_value += 6
+            self.user.current_map.reclimb(self.step_value)
+
+    def _skill_mika(self) -> None:
+        '''
+        mika 技能，通关特定曲目能力值翻倍
+        '''
+        if self.user_play.song.song_id in Constant.SKILL_MIKA_SONGS and self.user_play.clear_type != 0:
+            self.over_skill_increase = self.character_used.overdrive.get_value(
+                self.character_used.level)
+            self.prog_skill_increase = self.character_used.prog.get_value(
+                self.character_used.level)
