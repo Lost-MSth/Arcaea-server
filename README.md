@@ -73,17 +73,18 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss.
 
-### Version 2.10.3
+### Version 2.11.0
 
-- 适用于Arcaea 4.2.0版本 For Arcaea 4.2.0
-- 新搭档 **拉格兰（Aria）** 已解锁 Unlock the character **Lagrange(Aria)**. (Lack of its values)
-- 新搭档 **忘却（Apophenia）** 已解锁 Unlock the character **Lethe(Apophenia)**.
-- 新增选项取消歌曲文件哈希预计算 Add an option to disable song file hash pre-calculation.
-- 新增对世界模式中地图本地限制歌曲解锁或挑战解锁以及地图中台阶上限制歌曲难度的支持 Add support for restricting songs' difficulty in the map's steps of world mode and locally restricting unlocking songs or challenges in the map of world mode.
-- 恢复使用云存档覆盖成绩的功能 Restore the feature that cloud save can be used to cover best scores.
-- 捕获`Authorization`不在请求头导致的报错 Capture error that the request does not have `Authorization` in header.
-- 修复客户端版本校验中请求头不存在`AppVersion`也能通过校验的逻辑错误 Fix a bug that headers without `AppVersion` are allowed in client version checking.
-- 新增增删改歌曲信息的API接口 Add some API endpoints, including creating, changing, deleting song info.
+- 适用于Arcaea 4.3.0版本 For Arcaea 4.3.0
+- 新搭档 **霞玛（大～宇～宙）**、**米露可（大～宇～宙）**、**紫黑**、**百合咲美香** 已解锁 Unlock the character **Shama(UNiVERSE)**, **Milk(UNiVERSE)**, **Shikoku**, **Mika Yurisaki**.
+- 搭档 **依莉丝** 已觉醒 Uncap the character **Ilith**.
+- 为觉醒 **依莉丝** 以及 **百合咲美香** 的技能提供支持 Add support for the skills of uncapped **Ilith** and **Mika Yurisaki**.
+- 为 Beyond 图倍增提供支持 Add support for beyond gauge boost.
+- 为 Beyond 连锁图提供支持 Add support for beyond chain maps.
+- 修复联机时无人房间仍可进入的问题 Fix a logic bug that the room without anyone can be entered in multiplayer.
+- 对一些数值的算法进行了更改 Some changes in some values' algorithms.
+- 小重构 Link Play 子程序 Refactor simply for Link Play subprogram.
+- 新增增删改兑换码、购买项目、登陆奖励、物品的API接口 Add some API endpoints, including creating, changing, deleting about redeem, purchase, login present and item.
 
 ## 运行环境与依赖 Running environment and requirements
 

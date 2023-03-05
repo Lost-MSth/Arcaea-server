@@ -141,7 +141,7 @@ class Map:
     def to_dict(self) -> dict:
         if self.chapter is None:
             self.select_map_info()
-        return {
+        r = {
             'map_id': self.map_id,
             'is_legacy': self.is_legacy,
             'is_beyond': self.is_beyond,
@@ -161,9 +161,11 @@ class Map:
             'step_count': self.step_count,
             'require_localunlock_songid': self.require_localunlock_songid,
             'require_localunlock_challengeid': self.require_localunlock_challengeid,
-            'chain_info': self.chain_info,
             'steps': [s.to_dict() for s in self.steps],
         }
+        if self.chain_info is not None:
+            r['chain_info'] = self.chain_info
+        return r
 
     def from_dict(self, raw_dict: dict) -> 'Map':
         self.is_legacy = raw_dict.get('is_legacy')
@@ -185,7 +187,7 @@ class Map:
             'require_localunlock_songid', '')
         self.require_localunlock_challengeid = raw_dict.get(
             'require_localunlock_challengeid', '')
-        self.chain_info = raw_dict.get('chain_info', {})
+        self.chain_info = raw_dict.get('chain_info')
         self.steps = [Step().from_dict(s) for s in raw_dict.get('steps')]
         return self
 
@@ -652,6 +654,8 @@ class WorldPlay:
         if self.user_play.beyond_gauge == 0:
             if self.character_used.character_id == 35 and self.character_used.skill_id_displayed:
                 self._special_tempest()
+            elif self.character_used.skill_id_displayed == 'ilith_awakened_skill':
+                self._ilith_awakened_skill()
         else:
             if self.character_used.skill_id_displayed == 'skill_vita':
                 self._skill_vita()
@@ -660,7 +664,7 @@ class WorldPlay:
 
     def after_climb(self) -> None:
         factory_dict = {'eto_uncap': self._eto_uncap, 'ayu_uncap': self._ayu_uncap,
-                        'luna_uncap': self._luna_uncap, 'skill_fatalis': self._skill_fatalis, 'skill_amane': self._skill_amane, 'ilith_awakened_skill': self._ilith_awakened_skill}
+                        'luna_uncap': self._luna_uncap, 'skill_fatalis': self._skill_fatalis, 'skill_amane': self._skill_amane}
         if self.character_used.skill_id_displayed in factory_dict:
             factory_dict[self.character_used.skill_id_displayed]()
 
@@ -747,12 +751,10 @@ class WorldPlay:
 
     def _ilith_awakened_skill(self) -> None:
         '''
-        ilith 觉醒技能，曲目通关时步数+6，偷懒写在after_climb里面，需要重爬一次
+        ilith 觉醒技能，曲目通关时步数+6，wiki 说是 prog 值+6
         '''
         if self.user_play.health > 0:
-            self.character_bonus_progress = 6
-            self.step_value += 6
-            self.user.current_map.reclimb(self.step_value)
+            self.prog_skill_increase = 6
 
     def _skill_mika(self) -> None:
         '''
