@@ -1,9 +1,17 @@
 from functools import wraps
 from traceback import format_exc
 
-from core.config_manager import Config
-from core.error import ArcError
 from flask import current_app, g, jsonify
+
+from core.config_manager import Config
+from core.error import ArcError, NoAccess
+
+has_arc_hash = False
+try:
+    from core.arc_crypto import ArcHashChecker  # type: ignore
+    has_arc_hash = True
+except ModuleNotFoundError:
+    pass
 
 default_error = ArcError('Unknown Error', status=500)
 
@@ -89,3 +97,16 @@ def arc_try(view):
             return error_return(e)
 
     return wrapped_view
+
+
+def header_check(request) -> ArcError:
+    '''检查请求头是否合法'''
+    headers = request.headers
+    if Config.ALLOW_APPVERSION:  # 版本检查
+        if 'AppVersion' not in headers or headers['AppVersion'] not in Config.ALLOW_APPVERSION:
+            return NoAccess('Invalid app version', 1203)
+
+    if has_arc_hash and not ArcHashChecker(request).check():
+        return NoAccess('Invalid request')
+
+    return None

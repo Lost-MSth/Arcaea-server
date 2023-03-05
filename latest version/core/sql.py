@@ -363,8 +363,10 @@ class DatabaseMigrator:
         if db1_pk != db2_pk:
             return False
 
-        sql2.insert_many(table_name, [], sql1.select(
-            table_name, list(filter(lambda x: x in db2_name, db1_name))), insert_type='replace')
+        public_column = list(filter(lambda x: x in db2_name, db1_name))
+
+        sql2.insert_many(table_name, public_column, sql1.select(
+            table_name, public_column), insert_type='replace')
 
         return True
 
@@ -381,13 +383,6 @@ class DatabaseMigrator:
             c.executemany('''insert into user_char_full values(?,?,?,?,?,?)''', [
                           (j[0], i[0], i[1], exp, i[2], 0) for j in y])
 
-    @staticmethod
-    def update_user_epilogue(c) -> None:
-        '''给用户添加epilogue包'''
-        c.execute('''select user_id from user''')
-        Sql(c).insert_many('user_item', [], [(i[0], 'epilogue', 'pack', 1)
-                                             for i in c.fetchall()], insert_type='ignore')
-
     def update_database(self) -> None:
         '''
         将c1数据库不存在数据加入或覆盖到c2数据库上
@@ -402,7 +397,6 @@ class DatabaseMigrator:
                     self.update_one_table(c1, c2, 'character')
 
             self.update_user_char_full(c2)  # 更新user_char_full
-            self.update_user_epilogue(c2)  # 更新user的epilogue
 
 
 class MemoryDatabase:

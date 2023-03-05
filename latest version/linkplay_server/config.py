@@ -15,6 +15,8 @@ class Config:
     --------------------------------------------------
     '''
 
+    DEBUG = False
+
     TIME_LIMIT = 3600000
 
     COMMAND_INTERVAL = 1000000

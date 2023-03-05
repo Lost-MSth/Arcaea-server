@@ -1,15 +1,17 @@
-from functools import wraps
-from traceback import format_exc
 from base64 import b64decode
+from functools import wraps
 from json import loads
+from traceback import format_exc
+
+from flask import current_app
 
 from core.api_user import APIUser
 from core.config_manager import Config
-from core.error import ArcError, NoAccess, PostError
+from core.error import ArcError, InputError, NoAccess, PostError
 from core.sql import Connect
-from flask import current_app
 
 from .api_code import error_return
+from .constant import Constant
 
 
 def role_required(request, powers=[]):
@@ -48,7 +50,7 @@ def role_required(request, powers=[]):
     return decorator
 
 
-def request_json_handle(request, required_keys: list = [], optional_keys: list = [], must_change: bool = False):
+def request_json_handle(request, required_keys: list = [], optional_keys: list = [], must_change: bool = False, is_batch: bool = False):
     '''
         提取post参数，返回dict，写成了修饰器\ 
         parameters: \ 
@@ -64,7 +66,7 @@ def request_json_handle(request, required_keys: list = [], optional_keys: list =
 
             data = {}
             if request.data:
-                json_data = request.json
+                json_data = request.get_json()
             else:
                 if request.method == 'GET' and 'query' in request.args:
                     # 处理axios没法GET传data的问题
@@ -78,15 +80,24 @@ def request_json_handle(request, required_keys: list = [], optional_keys: list =
 
             for key in required_keys:
                 if key not in json_data:
-                    return error_return(PostError(f'Missing parameter: {key}', api_error_code=-100))
+                    return error_return(InputError(f'Missing parameter: {key}', api_error_code=-100))
                 data[key] = json_data[key]
 
-            for key in optional_keys:
-                if key in json_data:
-                    data[key] = json_data[key]
+            if is_batch:
+                for key in Constant.PATCH_KEYS:
+                    if key in json_data:
+                        data[key] = json_data[key]
+                        if not isinstance(data[key], list):
+                            return error_return(InputError(f'Parameter {key} must be a list', api_error_code=-100))
+                if not data:
+                    return error_return(InputError('No change', api_error_code=-100))
+            else:
+                for key in optional_keys:
+                    if key in json_data:
+                        data[key] = json_data[key]
 
-            if must_change and not data:
-                return error_return(PostError('No change', api_error_code=-100))
+                if must_change and not data:
+                    return error_return(InputError('No change', api_error_code=-100))
 
             return view(data, *args, **kwargs)
 

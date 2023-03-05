@@ -50,7 +50,7 @@ class DatabaseInit:
         '''初始化搭档信息'''
         for i in range(0, len(self.init_data.char)):
             skill_requires_uncap = 1 if i == 2 else 0
-            if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21, 42, 43, 11, 12, 19, 5]:
+            if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21, 42, 43, 11, 12, 19, 5, 10]:
                 max_level = 30
                 uncapable = 1
             else:
@@ -96,12 +96,6 @@ class DatabaseInit:
 
         with open(self.single_path, 'rb') as f:
             self.insert_purchase_item(load(f))
-
-        self.c.execute(
-            '''select exists(select * from item where item_id='epilogue')''')
-        if self.c.fetchone() == (0,):
-            self.c.execute(
-                '''insert into item values('epilogue','pack',1)''')
 
     def course_init(self) -> None:
         '''初始化课题信息'''

@@ -646,5 +646,23 @@
 		"price": 700,
 		"discount_from": 1646784000000,
 		"discount_to": 1647388799000
+	},
+	{
+		"name": "maimai_append_1",
+		"items": [
+			{
+				"type": "pack",
+				"id": "maimai_append_1",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 4,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 400,
+		"price": 400
 	}
 ]

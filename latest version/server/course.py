@@ -19,7 +19,7 @@ def course_me(user_id):
         user = UserOnline(c, user_id)
         core = ItemCore(c)
         core.item_id = 'core_course_skip_purchase'
-        core.select(user)
+        core.select_user_item(user)
         x = UserCourseList(c, user)
         x.select_all()
         return success_return({

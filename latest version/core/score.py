@@ -209,6 +209,7 @@ class UserPlay(UserScore):
         self.stamina_multiply: int = None
         self.fragment_multiply: int = None
         self.prog_boost_multiply: int = None
+        self.beyond_boost_gauge_usage: int = None
 
         self.ptt: Potential = None  # 临时用来计算用户ptt的
         self.world_play: 'WorldPlay' = None
@@ -228,7 +229,7 @@ class UserPlay(UserScore):
         r['user_rating'] = self.user.rating_ptt
         r['finale_challenge_higher'] = self.rating > self.ptt.value
         r['global_rank'] = self.user.global_rank
-        r['finale_play_value'] = self.rating * 5  # emmmm
+        r['finale_play_value'] = 9.065 * self.rating ** 0.5  # by Lost-MSth
         return r
 
     @property
@@ -285,24 +286,29 @@ class UserPlay(UserScore):
             self.stamina_multiply = int(x[8])
             self.fragment_multiply = int(x[9])
             self.prog_boost_multiply = int(x[10])
+            self.beyond_boost_gauge_usage = int(x[11])
             self.is_world_mode = True
             self.course_play_state = -1
 
-    def set_play_state_for_world(self, stamina_multiply: int = 1, fragment_multiply: int = 100, prog_boost_multiply: int = 0) -> None:
+    def set_play_state_for_world(self, stamina_multiply: int = 1, fragment_multiply: int = 100, prog_boost_multiply: int = 0, beyond_boost_gauge_usage: int = 0) -> None:
         self.song_token = b64encode(urandom(64)).decode()
         self.stamina_multiply = int(stamina_multiply)
         self.fragment_multiply = int(fragment_multiply)
         self.prog_boost_multiply = int(prog_boost_multiply)
-        if self.prog_boost_multiply != 0:
-            self.c.execute('''select prog_boost from user where user_id=:a''', {
+        self.beyond_boost_gauge_usage = int(beyond_boost_gauge_usage)
+        if self.prog_boost_multiply != 0 or self.beyond_boost_gauge_usage != 0:
+            self.c.execute('''select prog_boost, beyond_boost_gauge from user where user_id=:a''', {
                            'a': self.user.user_id})
             x = self.c.fetchone()
-            if x and x[0] == 300:
-                self.prog_boost_multiply = 300
+            if x:
+                self.prog_boost_multiply = 300 if x[0] == 300 else 0
+                if x[1] < self.beyond_boost_gauge_usage or (self.beyond_boost_gauge_usage != 100 and self.beyond_boost_gauge_usage != 200):
+                    # 注意：偷懒了，没判断是否是beyond图
+                    self.beyond_boost_gauge_usage = 0
 
         self.clear_play_state()
-        self.c.execute('''insert into songplay_token values(:t,:a,:b,:c,'',-1,0,0,:d,:e,:f)''', {
-            'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty, 'd': self.stamina_multiply, 'e': self.fragment_multiply, 'f': self.prog_boost_multiply, 't': self.song_token})
+        self.c.execute('''insert into songplay_token values(:t,:a,:b,:c,'',-1,0,0,:d,:e,:f,:g)''', {
+            'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty, 'd': self.stamina_multiply, 'e': self.fragment_multiply, 'f': self.prog_boost_multiply, 'g': self.beyond_boost_gauge_usage, 't': self.song_token})
 
         self.user.select_user_about_current_map()
         self.user.current_map.select_map_info()
@@ -334,8 +340,8 @@ class UserPlay(UserScore):
         self.course_play.score = 0
         self.course_play.clear_type = 3  # 设置为PM，即最大值
 
-        self.c.execute('''insert into songplay_token values(?,?,?,?,?,?,?,?,1,100,0)''', (self.song_token, self.user.user_id, self.song.song_id,
-                                                                                          self.song.difficulty, self.course_play.course_id, self.course_play_state, self.course_play.score, self.course_play.clear_type))
+        self.c.execute('''insert into songplay_token values(?,?,?,?,?,?,?,?,1,100,0,0)''', (self.song_token, self.user.user_id, self.song.song_id,
+                                                                                            self.song.difficulty, self.course_play.course_id, self.course_play_state, self.course_play.score, self.course_play.clear_type))
         self.user.select_user_about_stamina()
         if use_course_skip_purchase:
             x = ItemCore(self.c)

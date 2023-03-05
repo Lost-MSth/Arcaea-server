@@ -1,4 +1,5 @@
 from .download import DownloadList
+from .error import NoData
 from .save import SaveData
 from .score import Score
 from .sql import Connect, Sql
@@ -214,6 +215,11 @@ class UnlockUserItem(BaseOperation):
 
     def _one_user_insert(self):
         with Connect() as c:
+            c.execute(
+                '''select exists(select * from user where user_id = ?)''', (self.user.user_id,))
+            if not c.fetchone()[0]:
+                raise NoData(
+                    f'No such user: `{self.user.user_id}`', api_error_code=-110)
             c.execute(
                 f'''select item_id, type from item where type in ({','.join(['?'] * len(self.item_types))})''', self.item_types)
             sql_list = [(self.user.user_id, i[0], i[1])

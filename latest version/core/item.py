@@ -5,10 +5,14 @@ from .error import InputError, ItemNotEnough, ItemUnavailable, NoData
 class Item:
     item_type = None
 
-    def __init__(self) -> None:
+    def __init__(self, c=None) -> None:
         self.item_id = None
         self.__amount = None
         self.is_available = None
+        self.c = c
+
+    def __eq__(self, other: 'Item') -> bool:
+        return self.item_id == other.item_id and self.item_type == other.item_type
 
     @property
     def amount(self):
@@ -18,12 +22,13 @@ class Item:
     def amount(self, value: int):
         self.__amount = int(value)
 
-    def to_dict(self, has_is_available: bool = False) -> dict:
+    def to_dict(self, has_is_available: bool = False, has_amount: bool = True) -> dict:
         r = {
             'id': self.item_id,
-            'amount': self.amount,
             'type': self.item_type
         }
+        if has_amount:
+            r['amount'] = self.amount
         if has_is_available:
             r['is_available'] = self.is_available
         return r
@@ -31,6 +36,32 @@ class Item:
     def user_claim_item(self, user):
         # parameter: user - User类或子类的实例
         pass
+
+    def select_exists(self):
+        self.c.execute('''select exists(select * from item where item_id=? and type=?)''',
+                       (self.item_id, self.item_type))
+        return bool(self.c.fetchone()[0])
+
+    def insert(self, ignore: bool = False):
+        sql = '''insert into item values(?,?,?)''' if not ignore else '''insert or ignore into item values(?,?,?)'''
+        self.c.execute(sql, (self.item_id, self.item_type, self.is_available))
+
+    def delete(self):
+        self.c.execute('''delete from item where item_id=? and type=?''',
+                       (self.item_id, self.item_type))
+
+    def update(self):
+        self.c.execute('''update item set is_available=? where item_id=? and type=?''',
+                       (self.is_available, self.item_id, self.item_type))
+
+    def select(self):
+        self.c.execute('''select is_available from item where item_id=? and type=?''',
+                       (self.item_id, self.item_type))
+        x = self.c.fetchone()
+        if not x:
+            raise NoData(
+                f'No such item `{self.item_type}`: `{self.item_id}`', api_error_code=-121)
+        self.is_available = x[0]
 
 
 class UserItem(Item):
@@ -40,7 +71,7 @@ class UserItem(Item):
         self.c = c
         self.user = None
 
-    def select(self, user=None):
+    def select_user_item(self, user=None):
         '''
             查询用户item\ 
             parameter: `user` - `User`类或子类的实例
@@ -302,7 +333,8 @@ class ItemFactory:
         elif item_type == 'course_banner':
             return CourseBanner(self.c)
         else:
-            raise InputError('The item type `%s` is wrong.' % item_type)
+            raise InputError(
+                f'The item type `{item_type}` is invalid.', api_error_code=-120)
 
     @classmethod
     def from_dict(cls, d: dict, c=None):

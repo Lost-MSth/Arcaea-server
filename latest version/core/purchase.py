@@ -1,6 +1,6 @@
 from time import time
 
-from .error import NoData, TicketNotEnough
+from .error import DataExist, InputError, NoData, TicketNotEnough
 from .item import ItemFactory
 
 
@@ -34,31 +34,35 @@ class Purchase:
                 if self.discount_reason == 'anni5tix':
                     x = ItemFactory(self.c).get_item('anni5tix')
                     x.item_id = 'anni5tix'
-                    x.select(self.user)
+                    x.select_user_item(self.user)
                     if x.amount >= 1:
                         return 0
                 return self.price
         return self.orig_price
 
-    def to_dict(self) -> dict:
-        price = self.price_displayed
+    def to_dict(self, has_items: bool = True, show_real_price: bool = True) -> dict:
+        if show_real_price:
+            price = self.price_displayed
         r = {
             'name': self.purchase_name,
-            'price': price,
+            'price': price if show_real_price else self.price,
             'orig_price': self.orig_price,
-            'items': [x.to_dict(has_is_available=True) for x in self.items]
         }
+        if has_items:
+            r['items'] = [x.to_dict(has_is_available=True) for x in self.items]
         if self.discount_from > 0 and self.discount_to > 0:
             r['discount_from'] = self.discount_from
             r['discount_to'] = self.discount_to
-            if self.discount_reason == 'anni5tix' and price == 0:
+            if not show_real_price or (self.discount_reason == 'anni5tix' and price == 0):
                 r['discount_reason'] = self.discount_reason
         return r
 
     def from_dict(self, d: dict) -> 'Purchase':
-        self.purchase_name = d['name']
-        self.price = d['price']
-        self.orig_price = d['orig_price']
+        self.purchase_name = d.get('name') or d.get('purchase_name')
+        if not self.purchase_name:
+            raise InputError('purchase_name is required')
+        self.orig_price = int(d['orig_price'])
+        self.price = d.get('price', self.orig_price)
         self.discount_from = d.get('discount_from', -1)
         self.discount_to = d.get('discount_to', -1)
         self.discount_reason = d.get('discount_reason', '')
@@ -67,23 +71,49 @@ class Purchase:
 
         return self
 
+    def from_list(self, l: list) -> 'Purchase':
+        self.purchase_name = l[0]
+        self.price = l[1]
+        self.orig_price = l[2]
+        self.discount_from = l[3] if l[3] else -1
+        self.discount_to = l[4] if l[4] else -1
+        self.discount_reason = l[5] if l[5] else ''
+        return self
+
     def insert_all(self) -> None:
         '''向数据库插入，包括item表和purchase_item表'''
+        self.insert()
+        self.insert_items()
+
+    def insert(self) -> None:
+        '''向数据库插入，不包括item表和purchase_item表'''
         self.c.execute('''insert into purchase values(?,?,?,?,?,?)''',
                        (self.purchase_name, self.price, self.orig_price, self.discount_from, self.discount_to, self.discount_reason))
-        self.insert_items()
+
+    # def insert_only_purchase_item(self) -> None:
+    #     '''向数据库插入purchase_item表'''
+    #     for i in self.items:
+    #         self.c.execute('''insert into purchase_item values(?,?,?,?)''',
+    #                        (self.purchase_name, i.item_id, i.item_type, i.amount))
 
     def insert_items(self) -> None:
         '''向数据库插入物品，注意已存在的物品不会变更'''
         for i in self.items:
-            self.c.execute(
-                '''select exists(select * from item where item_id=?)''', (i.item_id,))
-            if self.c.fetchone() == (0,):
-                self.c.execute('''insert into item values(?,?,?)''',
-                               (i.item_id, i.item_type, i.is_available))
+            self.c.execute('''insert or ignore into item values(?,?,?)''',
+                           (i.item_id, i.item_type, i.is_available))
 
-            self.c.execute('''insert into purchase_item values(?,?,?,?)''',
+            self.c.execute('''insert or ignore into purchase_item values(?,?,?,?)''',
                            (self.purchase_name, i.item_id, i.item_type, i.amount))
+
+    def select_exists(self, purchase_name: str = None) -> bool:
+        '''
+            用purchase_name查询存在性
+        '''
+        if purchase_name:
+            self.purchase_name = purchase_name
+        self.c.execute(
+            '''select exists(select * from purchase where purchase_name=?)''', (self.purchase_name,))
+        return self.c.fetchone() == (1,)
 
     def select(self, purchase_name: str = None) -> 'Purchase':
         '''
@@ -93,11 +123,11 @@ class Purchase:
             self.purchase_name = purchase_name
 
         self.c.execute(
-            '''select * from purchase where purchase_name=:name''', {'name': purchase_name})
+            '''select * from purchase where purchase_name=:name''', {'name': self.purchase_name})
         x = self.c.fetchone()
         if not x:
-            raise NoData('The purchase `%s` does not exist.' %
-                         purchase_name, 501)
+            raise NoData(
+                f'Purchase `{self.purchase_name}` does not exist.', 501)
 
         self.price = x[1]
         self.orig_price = x[2]
@@ -112,9 +142,9 @@ class Purchase:
         self.c.execute(
             '''select item_id, type, amount from purchase_item where purchase_name=:a''', {'a': self.purchase_name})
         x = self.c.fetchall()
-        if not x:
-            raise NoData('The items of the purchase `%s` does not exist.' %
-                         self.purchase_name, 501)
+        # if not x:
+        #     raise NoData(
+        #         f'The items of the purchase `{self.purchase_name}` does not exist.', 501)
 
         self.items = []
         t = None
@@ -161,6 +191,61 @@ class Purchase:
 
         for i in self.items:
             i.user_claim_item(self.user)
+
+    def delete_purchase_item(self) -> None:
+        '''删除purchase_item表'''
+        self.c.execute(
+            '''delete from purchase_item where purchase_name=?''', (self.purchase_name, ))
+
+    def delete(self) -> None:
+        '''删除purchase表'''
+        self.c.execute(
+            '''delete from purchase where purchase_name=?''', (self.purchase_name, ))
+
+    def delete_all(self) -> None:
+        '''删除purchase表和purchase_item表'''
+        self.delete_purchase_item()
+        self.delete()
+
+    def update(self) -> None:
+        '''更新purchase表'''
+        self.c.execute('''update purchase set price=:a, orig_price=:b, discount_from=:c, discount_to=:d, discount_reason=:e where purchase_name=:f''', {
+                       'a': self.price, 'b': self.orig_price, 'c': self.discount_from, 'd': self.discount_to, 'e': self.discount_reason, 'f': self.purchase_name})
+
+    def add_items(self, items: list) -> None:
+        '''添加purchase_item表'''
+        for i in items:
+            if not i.select_exists():
+                raise NoData(
+                    f'No such item `{i.item_type}`: `{i.item_id}`', api_error_code=-121)
+            if i in self.items:
+                raise DataExist(
+                    f'Item `{i.item_type}`: `{i.item_id}` already exists in purchase `{self.purchase_name}`', api_error_code=-123)
+        self.c.executemany('''insert into purchase_item values (?, ?, ?, ?)''', [
+                           (self.purchase_name, i.item_id, i.item_type, i.amount) for i in items])
+        self.items.extend(items)
+
+    def remove_items(self, items: list) -> None:
+        '''删除purchase_item表'''
+        for i in items:
+            if i not in self.items:
+                raise NoData(
+                    f'No such item `{i.item_type}`: `{i.item_id}` in purchase `{self.purchase_name}`', api_error_code=-124)
+        self.c.executemany('''delete from purchase_item where purchase_name=? and item_id=? and type=?''', [
+                           (self.purchase_name, i.item_id, i.item_type) for i in items])
+        for i in items:
+            self.items.remove(i)
+
+    def update_items(self, items: list) -> None:
+        '''更新purchase_item表，只能更新amount'''
+        for i in items:
+            if i not in self.items:
+                raise NoData(
+                    f'No such item `{i.item_type}`: `{i.item_id}` in purchase `{self.purchase_name}`', api_error_code=-124)
+        self.c.executemany('''update purchase_item set amount=? where purchase_name=? and item_id=? and type=?''', [
+                           (i.amount, self.purchase_name, i.item_id, i.item_type) for i in items])
+        for i in items:
+            self.items[self.items.index(i)].amount = i.amount
 
 
 class PurchaseList:

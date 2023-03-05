@@ -1,6 +1,6 @@
 from .config_manager import Config
 
-ARCAEA_SERVER_VERSION = 'v2.10.3'
+ARCAEA_SERVER_VERSION = 'v2.11.0'
 
 
 class Constant:
@@ -22,6 +22,8 @@ class Constant:
     LUNA_UNCAP_BONUS_PROGRESS = 7
     AYU_UNCAP_BONUS_PROGRESS = 5
     SKILL_FATALIS_WORLD_LOCKED_TIME = 3600000
+    SKILL_MIKA_SONGS = ['aprilshowers', 'seventhsense', 'oshamascramble',
+                        'amazingmightyyyy', 'cycles', 'maxrage', 'infinity', 'temptation']
 
     MAX_FRIEND_COUNT = Config.MAX_FRIEND_COUNT
 

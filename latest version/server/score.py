@@ -24,18 +24,16 @@ def score_token():
 @arc_try
 def score_token_world(user_id):
 
-    stamina_multiply = int(
-        request.args['stamina_multiply']) if 'stamina_multiply' in request.args else 1
-    fragment_multiply = int(
-        request.args['fragment_multiply']) if 'fragment_multiply' in request.args else 100
-    prog_boost_multiply = int(
-        request.args['prog_boost_multiply']) if 'prog_boost_multiply' in request.args else 0
+    stamina_multiply = int(request.args.get('stamina_multiply', 1))
+    fragment_multiply = int(request.args.get('fragment_multiply', 100))
+    prog_boost_multiply = int(request.args.get('prog_boost_multiply', 0))
+    beyond_boost_gauge_use = int(request.args.get('beyond_boost_gauge_use', 0))
     with Connect() as c:
         x = UserPlay(c, UserOnline(c, user_id))
         x.song.set_chart(request.args['song_id'], int(
             request.args['difficulty']))
-        x.set_play_state_for_world(stamina_multiply,
-                                   fragment_multiply, prog_boost_multiply)
+        x.set_play_state_for_world(
+            stamina_multiply, fragment_multiply, prog_boost_multiply, beyond_boost_gauge_use)
         return success_return({
             "stamina": x.user.stamina.stamina,
             "max_stamina_ts": x.user.stamina.max_stamina_ts,

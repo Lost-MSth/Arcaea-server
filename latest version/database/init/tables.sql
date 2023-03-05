@@ -33,7 +33,8 @@ ban_flag text,
 next_fragstam_ts int,
 max_stamina_ts int,
 stamina int,
-world_mode_locked_end_ts int
+world_mode_locked_end_ts int,
+beyond_boost_gauge real default 0
 );
 create table if not exists login(access_token text,
 user_id int,
@@ -182,7 +183,8 @@ course_score int,
 course_clear_type int,
 stamina_multiply int,
 fragment_multiply int,
-prog_boost_multiply int
+prog_boost_multiply int,
+beyond_boost_gauge_usage int
 );
 create table if not exists item(item_id text,
 type text,
