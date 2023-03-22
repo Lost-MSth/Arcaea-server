@@ -128,7 +128,7 @@ def users_user_b30_get(user, user_id):
                 f'No best30 data of user `{user_id}`', api_error_code=-3)
         x.select_song_name()
         r = x.to_dict_list()
-        rating_sum = sum([i.rating for i in x.scores])
+        rating_sum = sum(i.rating for i in x.scores)
         return success_return({'user_id': user_id, 'b30_ptt': rating_sum / 30, 'data': r})
 
 

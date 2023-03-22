@@ -1,8 +1,16 @@
-from .error import DataExist, NoData, RedeemUnavailable
-from .item import ItemFactory
+from .error import NoData, RedeemUnavailable
+from .item import CollectionItemMixin, ItemFactory
 
 
-class Redeem:
+class Redeem(CollectionItemMixin):
+    collection_item_const = {
+        'name': 'redeem',
+        'table_name': 'redeem_item',
+        'table_primary_key': 'code',
+        'id_name': 'code',
+        'items_name': 'items'
+    }
+
     def __init__(self, c=None) -> None:
         self.c = c
         self.code: str = None
@@ -87,46 +95,11 @@ class Redeem:
         self.c.execute('''update redeem set type=? where code=?''',
                        (self.redeem_type, self.code))
 
-    def remove_items(self, items: list) -> None:
-        '''删除redeem_item表中的物品'''
-        for i in items:
-            if i not in self.items:
-                raise NoData(
-                    f'No such item `{i.item_type}`: `{i.item_id}` in redeem `{self.code}`', api_error_code=-124)
-        self.c.executemany('''delete from redeem_item where code=? and item_id=? and type=?''', [
-                           (self.code, i.item_id, i.item_type) for i in items])
-        for i in items:
-            self.items.remove(i)
-
-    def add_items(self, items: list) -> None:
-        '''添加物品到redeem_item表'''
-        for i in items:
-            if not i.select_exists():
-                raise NoData(
-                    f'No such item `{i.item_type}`: `{i.item_id}`', api_error_code=-121)
-            if i in self.items:
-                raise DataExist(
-                    f'Item `{i.item_type}`: `{i.item_id}` already exists in redeem `{self.code}`', api_error_code=-123)
-        self.c.executemany('''insert into redeem_item values(?,?,?,?)''', [
-                           (self.code, i.item_id, i.item_type, i.amount) for i in items])
-        self.items.extend(items)
-
-    def update_items(self, items: list) -> None:
-        '''更新redeem_item表中的物品'''
-        for i in items:
-            if i not in self.items:
-                raise NoData(
-                    f'No such item `{i.item_type}`: `{i.item_id}` in redeem `{self.code}`', api_error_code=-124)
-        self.c.executemany('''update redeem_item set amount=? where code=? and item_id=? and type=?''', [
-                           (i.amount, self.code, i.item_id, i.item_type) for i in items])
-
-        for i in items:
-            self.items[self.items.index(i)].amount = i.amount
-
 
 class UserRedeem(Redeem):
     '''
-        用户兑换码类\ 
+        用户兑换码类
+
         properties: `user` - `User`类或子类的实例
     '''
 
@@ -165,7 +138,7 @@ class UserRedeem(Redeem):
             if self.redeem_type == 0:
                 raise RedeemUnavailable(
                     'The redeem `%s` is unavailable.' % self.code)
-            elif self.redeem_type == 1:
+            if self.redeem_type == 1:
                 raise RedeemUnavailable(
                     'The redeem `%s` is unavailable.' % self.code, 506)
 

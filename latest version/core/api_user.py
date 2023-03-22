@@ -55,8 +55,8 @@ class Role:
                        {'a': self.role_id})
         x = self.c.fetchone()
         if x is None:
-            raise NoData('The role `%s` does not exist.' %
-                         self.role_id, api_error_code=-200)
+            raise NoData(
+                f'The role `{self.role_id}` does not exist.', api_error_code=-200)
         self.caption = x[0]
         return self
 
@@ -133,19 +133,19 @@ class APIUser(UserOnline):
                        'a': self.name})
         x = self.c.fetchone()
         if x is None:
-            raise NoData('The user `%s` does not exist.' %
-                         self.name, api_error_code=-201, status=401)
+            raise NoData(
+                f'The user `{self.name}` does not exist.', api_error_code=-201, status=401)
         if x[1] == '':
-            raise UserBan('The user `%s` is banned.' % self.name)
+            raise UserBan(f'The user `{self.name}` is banned.')
         if self.hash_pwd != x[1]:
             raise NoAccess('The password is incorrect.',
                            api_error_code=-201, status=401)
 
         self.user_id = x[0]
         now = int(time() * 1000)
-        self.token = sha256(
+        self.api_token = sha256(
             (str(self.user_id) + str(now)).encode("utf8") + urandom(8)).hexdigest()
 
         self.logout()
         self.c.execute('''insert into api_login values(?,?,?,?)''',
-                       (self.user_id, self.token, now, self.ip))
+                       (self.user_id, self.api_token, now, self.ip))

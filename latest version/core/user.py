@@ -2,6 +2,7 @@ import base64
 import hashlib
 import time
 from os import urandom
+from random import randint
 
 from .character import UserCharacter, UserCharacterList
 from .config_manager import Config
@@ -100,7 +101,6 @@ class UserRegister(User):
 
     def _build_user_code(self):
         # 生成9位的user_code，用的自然是随机
-        from random import randint
         random_times = 0
 
         while random_times <= 1000:
@@ -148,7 +148,7 @@ class UserRegister(User):
             self._build_user_id()
         self._insert_user_char()
 
-        self.c.execute('''insert into user(user_id, name, password, join_date, user_code, rating_ptt, 
+        self.c.execute('''insert into user(user_id, name, password, join_date, user_code, rating_ptt,
         character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, is_hide_rating, favorite_character, max_stamina_notification_enabled, current_map, ticket, prog_boost, email)
         values(:user_id, :name, :password, :join_date, :user_code, 0, 0, 0, 0, 0, 0, -1, 0, '', :memories, 0, :email)
         ''', {'user_code': self.user_code, 'user_id': self.user_id, 'join_date': now, 'name': self.name, 'password': self.hash_pwd, 'memories': Config.DEFAULT_MEMORIES, 'email': self.email})
@@ -309,6 +309,8 @@ class UserInfo(User):
         self.beyond_boost_gauge: float = 0
         self.next_fragstam_ts: int = None
         self.world_mode_locked_end_ts: int = None
+        self.current_map: 'Map' = None
+        self.stamina: 'UserStamina' = None
 
         self.__cores: list = None
         self.__packs: list = None
@@ -406,7 +408,7 @@ class UserInfo(User):
                 self.c.execute('''select exists(select * from friend where user_id_me = :x and user_id_other = :y)''',
                                {'x': i[0], 'y': self.user_id})
 
-                is_mutual = True if self.c.fetchone() == (1,) else False
+                is_mutual = self.c.fetchone() == (1,)
 
                 you = UserOnline(self.c, i[0])
                 you.select_user()
@@ -626,7 +628,7 @@ class UserInfo(User):
         self.character.is_uncapped_override = x[5] == 1
         self.current_map = UserMap(self.c, x[6], self)
         self.world_mode_locked_end_ts = x[7] if x[7] else -1
-        self.beyond_boost_gauge = x[8] if x[8] else 0 
+        self.beyond_boost_gauge = x[8] if x[8] else 0
 
     @property
     def global_rank(self) -> int:
@@ -660,16 +662,16 @@ class UserInfo(User):
 
         score_sum = 0
         if len(song_list_ftr) >= 2:
-            self.c.execute('''select sum(score) from best_score where user_id=? and difficulty=2 and song_id in ({0})'''.format(
-                ','.join(['?']*(len(song_list_ftr)-1))), tuple(song_list_ftr))
+            self.c.execute(
+                f'''select sum(score) from best_score where user_id=? and difficulty=2 and song_id in ({','.join(['?']*(len(song_list_ftr)-1))})''', tuple(song_list_ftr))
 
             x = self.c.fetchone()
             if x[0] is not None:
                 score_sum += x[0]
 
         if len(song_list_byn) >= 2:
-            self.c.execute('''select sum(score) from best_score where user_id=? and difficulty=3 and song_id in ({0})'''.format(
-                ','.join(['?']*(len(song_list_byn)-1))), tuple(song_list_byn))
+            self.c.execute(
+                f'''select sum(score) from best_score where user_id=? and difficulty=3 and song_id in ({','.join(['?']*(len(song_list_byn)-1))})''', tuple(song_list_byn))
 
             x = self.c.fetchone()
             if x[0] is not None:
@@ -682,13 +684,13 @@ class UserInfo(User):
 
     def select_user_one_column(self, column_name: str, default_value=None) -> None:
         '''
-            查询user表的某个属性\ 
+            查询user表的某个属性
             请注意必须是一个普通属性，不能是一个类的实例
         '''
         if column_name not in self.__dict__:
             raise InputError('No such column.')
-        self.c.execute('''select %s from user where user_id = :a''' %
-                       column_name, {'a': self.user_id})
+        self.c.execute(f'''select {column_name} from user where user_id = :a''', {
+                       'a': self.user_id})
         x = self.c.fetchone()
         if not x:
             raise NoData('No user.', 108, -3)
@@ -697,15 +699,15 @@ class UserInfo(User):
 
     def update_user_one_column(self, column_name: str, value=None) -> None:
         '''
-            更新user表的某个属性\ 
+            更新user表的某个属性
             请注意必须是一个普通属性，不能是一个类的实例
         '''
         if column_name not in self.__dict__:
             raise InputError('No such column.')
         if value is not None:
             self.__dict__[column_name] = value
-        self.c.execute('''update user set %s = :a where user_id = :b''' %
-                       column_name, {'a': self.__dict__[column_name], 'b': self.user_id})
+        self.c.execute(f'''update user set {column_name} = :a where user_id = :b''', {
+                       'a': self.__dict__[column_name], 'b': self.user_id})
 
 
 class UserOnline(UserInfo):

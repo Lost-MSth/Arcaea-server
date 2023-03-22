@@ -52,11 +52,12 @@ def role_required(request, powers=[]):
 
 def request_json_handle(request, required_keys: list = [], optional_keys: list = [], must_change: bool = False, is_batch: bool = False):
     '''
-        提取post参数，返回dict，写成了修饰器\ 
-        parameters: \ 
-        `request`: `Request` - 当前请求\ 
-        `required_keys`: `list` - 必须的参数\ 
-        `optional_keys`: `list` - 可选的参数\ 
+        提取post参数，返回dict，写成了修饰器
+
+        parameters:
+        `request`: `Request` - 当前请求
+        `required_keys`: `list` - 必须的参数
+        `optional_keys`: `list` - 可选的参数
         `must_change`: `bool` - 当全都是可选参数时，是否必须有至少一项修改
     '''
 
@@ -113,8 +114,7 @@ def api_try(view):
             data = view(*args, **kwargs)
             if data is None:
                 return error_return()
-            else:
-                return data
+            return data
         except ArcError as e:
             if Config.ALLOW_WARNING_LOG:
                 current_app.logger.warning(format_exc())

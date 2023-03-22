@@ -1,12 +1,13 @@
 from time import time
-from core.course import CoursePlay
 
+from flask import Blueprint, request
+
+from core.course import CoursePlay
 from core.error import InputError
 from core.rank import RankList
 from core.score import UserPlay
 from core.sql import Connect
 from core.user import UserOnline
-from flask import Blueprint, request
 
 from .auth import auth_required
 from .func import arc_try, success_return

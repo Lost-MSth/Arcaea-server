@@ -96,7 +96,7 @@ class Course:
             '''select * from course where course_id = ?''', (self.course_id,))
         x = self.c.fetchone()
         if x is None:
-            raise NoData('The course `%s` is not found.' % self.course_id)
+            raise NoData(f'The course `{self.course_id}` is not found.')
         return self.from_list(x)
 
     def select_course_chart(self) -> None:
@@ -151,7 +151,8 @@ class Course:
 
 class UserCourse(Course):
     '''
-        用户课题类\ 
+        用户课题类
+
         parameter: `user` - `User`类或子类的实例
     '''
 
@@ -200,7 +201,8 @@ class UserCourse(Course):
 
 class UserCourseList:
     '''
-        用户课题列表类\ 
+        用户课题列表类
+
         parameter: `user` - `User`类或子类的实例
     '''
 
@@ -237,8 +239,9 @@ class UserCourseList:
 
 class CoursePlay(UserCourse):
     '''
-        课题模式打歌类，联动UserPlay\ 
-        parameter: `user` - `UserOnline`类或子类的实例\ 
+        课题模式打歌类，联动UserPlay
+
+        parameter: `user` - `UserOnline`类或子类的实例
         'user_play` - `UserPlay`类的实例
     '''
 

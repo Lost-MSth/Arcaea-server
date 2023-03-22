@@ -103,9 +103,9 @@ class RemoteMultiPlayer:
             sock.sendall(bytes(data + "\n", "utf-8"))
             try:
                 received = str(sock.recv(1024), "utf-8").strip()
-            except socket.timeout:
+            except socket.timeout as e:
                 raise Timeout(
-                    'Timeout when waiting for data from link play server.', status=400)
+                    'Timeout when waiting for data from link play server.', status=400) from e
             # print(received)
             return received
 

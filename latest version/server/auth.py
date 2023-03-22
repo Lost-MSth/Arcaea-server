@@ -1,10 +1,11 @@
 import base64
 from functools import wraps
 
+from flask import Blueprint, current_app, g, jsonify, request
+
 from core.error import ArcError, NoAccess
 from core.sql import Connect
 from core.user import UserAuth, UserLogin
-from flask import Blueprint, g, jsonify, request, current_app
 
 from .func import arc_try, error_return, header_check
 
@@ -35,15 +36,15 @@ def login():
         return jsonify({"success": True, "token_type": "Bearer", 'user_id': user.user_id, 'access_token': user.token})
 
 
-def auth_required(request):
+def auth_required(req):
     # arcaea登录验证，写成了修饰器
     def decorator(view):
         @wraps(view)
         def wrapped_view(*args, **kwargs):
 
-            headers = request.headers
+            headers = req.headers
 
-            e = header_check(request)
+            e = header_check(req)
             if e is not None:
                 current_app.logger.warning(
                     f' - {e.error_code}|{e.api_error_code}: {e}')

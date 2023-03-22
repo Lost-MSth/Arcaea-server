@@ -1,9 +1,10 @@
+from flask import Blueprint, request
+
 from core.constant import Constant
 from core.course import UserCourseList
 from core.item import ItemCore
 from core.sql import Connect
 from core.user import UserOnline
-from flask import Blueprint, request
 
 from .auth import auth_required
 from .func import arc_try, success_return

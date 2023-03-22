@@ -1,10 +1,18 @@
 from time import time
 
-from .error import ArcError, DataExist, NoData
-from .item import ItemFactory
+from .error import ArcError, NoData
+from .item import CollectionItemMixin, ItemFactory
 
 
-class Present:
+class Present(CollectionItemMixin):
+    collection_item_const = {
+        'name': 'present',
+        'table_name': 'present_item',
+        'table_primary_key': 'present_id',
+        'id_name': 'present_id',
+        'items_name': 'items'
+    }
+
     def __init__(self, c=None) -> None:
         self.c = c
         self.present_id: str = None
@@ -109,47 +117,11 @@ class Present:
         self.c.execute('''update present set expire_ts=?, description=? where present_id=?''',
                        (self.expire_ts, self.description, self.present_id))
 
-    def remove_items(self, items: list) -> None:
-        '''删除present_item表中的物品'''
-        for i in items:
-            if i not in self.items:
-                raise NoData(
-                    f'No such item `{i.item_type}`: `{i.item_id}` in present `{self.present_id}`', api_error_code=-124)
-        self.c.executemany('''delete from present_item where present_id=? and item_id=? and type=?''', [
-                           (self.present_id, i.item_id, i.item_type) for i in items])
-        for i in items:
-            self.items.remove(i)
-
-    def add_items(self, items: list) -> None:
-        '''添加物品到present_item表'''
-        for i in items:
-            if not i.select_exists():
-                raise NoData(
-                    f'No such item `{i.item_type}`: `{i.item_id}`', api_error_code=-121)
-            if i in self.items:
-                raise DataExist(
-                    f'Item `{i.item_type}`: `{i.item_id}` already exists in present `{self.present_id}`', api_error_code=-123)
-        self.c.executemany('''insert into present_item values(?,?,?,?)''', [
-                           (self.present_id, i.item_id, i.item_type, i.amount) for i in items])
-        self.items.extend(items)
-
-    def update_items(self, items: list) -> None:
-        '''更新present_item表中的物品'''
-        for i in items:
-            if i not in self.items:
-                raise NoData(
-                    f'No such item `{i.item_type}`: `{i.item_id}` in present `{self.present_id}`', api_error_code=-124)
-        self.c.executemany('''update present_item set amount=? where present_id=? and item_id=? and type=?''', [
-                           (i.amount, self.present_id, i.item_id, i.item_type) for i in items])
-
-        for i in items:
-            self.items[self.items.index(i)].amount = i.amount
-
 
 class UserPresent(Present):
     '''
-        用户登录奖励类\ 
-        忽视了description的多语言\ 
+        用户登录奖励类
+        忽视了description的多语言
         properties: `user` - `User`类或子类的实例
     '''
 

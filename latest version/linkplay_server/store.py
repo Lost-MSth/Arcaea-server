@@ -61,16 +61,16 @@ def memory_clean(now):
     with Store.lock:
         clean_room_list = []
         clean_player_list = []
-        for token in Store.link_play_data:
-            room = Store.link_play_data[token]['room']
+        for token, v in Store.link_play_data.items():
+            room = v['room']
             if now - room.timestamp >= Config.TIME_LIMIT:
                 clean_room_list.append(room.room_id)
 
-            if now - room.players[Store.link_play_data[token]['player_index']].last_timestamp // 1000 >= Config.TIME_LIMIT:
+            if now - room.players[v['player_index']].last_timestamp // 1000 >= Config.TIME_LIMIT:
                 clean_player_list.append(token)
 
-        for room_id in Store.room_id_dict:
-            if now - Store.room_id_dict[room_id].timestamp >= Config.TIME_LIMIT:
+        for room_id, v in Store.room_id_dict.items():
+            if now - v.timestamp >= Config.TIME_LIMIT:
                 clean_room_list.append(room_id)
 
         for room_id in clean_room_list:
@@ -190,10 +190,10 @@ class TCPRouter:
             if player_num == 4:
                 # 满人
                 return '1201'
-            elif player_num == 0:
+            if player_num == 0:
                 # 房间不存在
                 return '1202'
-            elif room.state != 2:
+            if room.state != 2:
                 # 无法加入
                 return '1205'
 

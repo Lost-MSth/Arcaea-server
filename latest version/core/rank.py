@@ -7,8 +7,9 @@ from .user import UserInfo
 
 class RankList:
     '''
-        排行榜类\ 
-        默认limit=20，limit<0认为是all\ 
+        排行榜类
+        默认limit=20，limit<0认为是all
+
         property: `user` - `User`类或者子类的实例
     '''
 
@@ -85,7 +86,8 @@ class RankList:
     @staticmethod
     def get_my_rank_parameter(my_rank: int, amount: int, all_limit: int = 20, max_local_position: int = Constant.MY_RANK_MAX_LOCAL_POSITION, max_global_position: int = Constant.MY_RANK_MAX_GLOBAL_POSITION):
         '''
-            计算我的排名中的查询参数\ 
+            计算我的排名中的查询参数
+
             returns:
             `sql_limit`: int - 查询limit参数
             `sql_offset`: int - 查询offset参数
@@ -103,7 +105,7 @@ class RankList:
             need_myself = True
         elif amount - my_rank < all_limit - max_local_position:  # 后方人数不足，显示排名
             sql_offset = amount - all_limit
-        elif my_rank >= max_local_position and my_rank <= max_global_position - all_limit + max_local_position - 1:  # 前方人数足够，显示排名
+        elif max_local_position <= my_rank <= max_global_position - all_limit + max_local_position - 1:  # 前方人数足够，显示排名
             sql_offset = my_rank - max_local_position
         else:  # 我已经忘了这是什么了
             sql_offset = max_global_position - all_limit

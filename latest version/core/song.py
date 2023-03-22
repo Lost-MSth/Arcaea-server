@@ -7,6 +7,8 @@ class Chart:
 
     def __init__(self, c=None, song_id: str = None, difficulty: int = None) -> None:
         self.c = c
+        self.song_id: str = None
+        self.difficulty: int = None
         self.set_chart(song_id, difficulty)
         self.defnum: int = None
         self.song_name: str = None

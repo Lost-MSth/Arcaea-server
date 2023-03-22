@@ -86,8 +86,7 @@ def arc_try(view):
             data = view(*args, **kwargs)
             if data is None:
                 return error_return()
-            else:
-                return data
+            return data
         except ArcError as e:
             if Config.ALLOW_WARNING_LOG:
                 current_app.logger.warning(format_exc())

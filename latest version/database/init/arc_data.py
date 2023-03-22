@@ -12,7 +12,7 @@ class InitData:
                           0, 0, 0, 8, 0, 14, 0, 0, 8, 8, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     frag1 = [55, 55, 60, 50, 47, 79, 47, 57, 41, 22, 50, 54, 60, 56, 78, 42, 41, 61, 52, 50, 52, 32,
-             42, 55, 45, 58, 43, 0.5, 68, 50, 62, 45, 45, 52, 44, 27, 59, 0, 45, 50, 50, 47, 47, 61, 43, 42, 38, 25, 58, 50, 61, 45, 45, 38, 34, 27, 18, 56, 47, 30, 45, 57, 55.5, 47, 33, 26]
+             42, 55, 45, 58, 43, 0.5, 68, 50, 62, 45, 45, 52, 44, 27, 59, 0, 45, 50, 50, 47, 47, 61, 43, 42, 38, 25, 58, 50, 61, 45, 45, 38, 34, 27, 18, 56, 47, 30, 45, 57, 56, 47, 33, 26]
 
     prog1 = [35, 55, 47, 50, 60, 70, 60, 70, 58, 45, 70, 45, 42, 46, 61, 67, 49, 44, 28, 45, 24, 46, 52,
              59, 62, 33, 58, 25, 63, 69, 50, 45, 45, 51, 34, 70, 62, 70, 45, 32, 32, 61, 47, 47, 37, 42, 50, 50, 45, 41, 61, 45, 45, 58, 50, 130, 18, 57, 55, 50, 45, 70, 37.5, 29, 44, 26]
@@ -21,7 +21,7 @@ class InitData:
                   48, 65, 45, 55, 44, 25, 46, 44, 33, 45, 45, 37, 25, 27, 50, 20, 45, 63, 21, 47, 61, 47, 65, 80, 38, 30, 49, 15, 34, 45, 45, 38, 67, 120, 44, 33, 55, 50, 45, 57, 31, 29, 65, 26]
 
     frag20 = [78, 80, 90, 75, 70, 79, 70, 79, 65, 40, 50, 80, 90, 82, 0, 61, 67, 92, 85, 50, 86, 52,
-              65, 85, 67, 88, 64, 0.5, 95, 70, 95, 50, 80, 87, 71, 50, 85, 0, 80, 75, 50, 70, 70, 90, 65, 80, 61, 50, 68, 60, 90, 67, 50, 60, 51, 50, 35, 85, 47, 50, 75, 80, 89.5, 50, 50, 51]
+              65, 85, 67, 88, 64, 0.5, 95, 70, 95, 50, 80, 87, 71, 50, 85, 0, 80, 75, 50, 70, 70, 90, 65, 80, 61, 50, 68, 60, 90, 67, 50, 60, 51, 50, 35, 85, 47, 50, 75, 80, 90, 80, 50, 51]
 
     prog20 = [61, 80, 70, 75, 90, 70, 90, 102, 84, 78, 105, 67, 63, 68, 0, 99, 80, 66, 46, 83, 40, 73,
               80, 90, 93, 50, 86, 78, 89, 98, 75, 80, 50, 64, 55, 100, 90, 110, 80, 50, 74, 90, 70, 70, 56, 80, 79, 55, 65, 59, 90, 50, 90, 90, 75, 210, 35, 86, 92, 80, 75, 100, 60, 50, 68, 51]
@@ -30,7 +30,7 @@ class InitData:
                    46, 73, 95, 67, 84, 70, 78, 69, 70, 50, 80, 80, 63, 25, 50, 72, 55, 50, 95, 55, 70, 90, 70, 99, 80, 61, 40, 69, 62, 51, 90, 67, 60, 100, 200, 85, 50, 92, 50, 75, 80, 49.5, 50, 100, 51]
 
     frag30 = [88, 90, 100, 75, 80, 89, 70, 79, 65, 40, 50, 90, 100, 92, 0, 61, 67, 92, 85, 50, 86, 62,
-              65, 85, 67, 88, 74, 0.5, 105, 80, 95, 50, 80, 87, 71, 50, 95, 0, 80, 75, 50, 70, 80, 100, 65, 80, 61, 50, 68, 60, 90, 67, 50, 60, 51, 50, 35, 85, 47, 50, 75, 80, 89.5, 50, 50, 51]
+              65, 85, 67, 88, 74, 0.5, 105, 80, 95, 50, 80, 87, 71, 50, 95, 0, 80, 75, 50, 70, 80, 100, 65, 80, 61, 50, 68, 60, 90, 67, 50, 60, 51, 50, 35, 85, 47, 50, 75, 80, 90, 80, 50, 51]
 
     prog30 = [71, 90, 80, 75, 100, 80, 90, 102, 84, 78, 110, 77, 73, 78, 0, 99, 80, 66, 46, 93, 40, 83,
               80, 90, 93, 50, 96, 88, 99, 108, 75, 80, 50, 64, 55, 100, 100, 110, 80, 50, 74, 90, 80, 80, 56, 80, 79, 55, 65, 59, 90, 50, 90, 90, 75, 210, 35, 86, 92, 80, 75, 100, 60, 50, 68, 51]
@@ -58,14 +58,14 @@ class InitData:
         11: [{'core_id': 'core_binary', 'amount': 25}, {'core_id': 'core_hollow', 'amount': 5}],
         12: [{'core_id': 'core_binary', 'amount': 25}, {'core_id': 'core_desolate', 'amount': 5}],
         19: [{'core_id': 'core_colorful', 'amount': 30}],
-        10: [{'core_id': 'core_umbral', 'amount': 30}],  # TODO: check
+        10: [{'core_id': 'core_umbral', 'amount': 30}],
     }
 
     cores = ['core_hollow', 'core_desolate', 'core_chunithm', 'core_crimson',
              'core_ambivalent', 'core_scarlet', 'core_groove', 'core_generic', 'core_binary', 'core_colorful', 'core_course_skip_purchase', 'core_umbral']
 
     world_songs = ["babaroque", "shadesoflight", "kanagawa", "lucifer", "anokumene", "ignotus", "rabbitintheblackroom", "qualia", "redandblue", "bookmaker", "darakunosono", "espebranch", "blacklotus", "givemeanightmare", "vividtheory", "onefr", "gekka", "vexaria3", "infinityheaven3", "fairytale3", "goodtek3", "suomi", "rugie", "faintlight", "harutopia", "goodtek", "dreaminattraction", "syro", "diode", "freefall", "grimheart", "blaster",
-                   "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano", "vandalism", "nexttoyou3", "lostcivilization3", "turbocharger", "bookmaker3", "laqryma3", "kyogenkigo", "hivemind", "seclusion", "quonwacca3", "bluecomet", "energysynergymatrix", "gengaozo", "lastendconductor3", "antithese3", "qualia3", "kanagawa3", "heavensdoor3", "pragmatism3", "nulctrl", "avril", "ddd", "merlin3", "omakeno3", "nekonote", "sanskia", 'altair', 'mukishitsu', 'trapcrow', 'redandblue3', 'ignotus3', 'singularity3', 'dropdead3', 'arcahv', 'freefall3', 'partyvinyl3', 'tsukinimurakumo', 'mantis', 'worldfragments', 'astrawalkthrough', 'chronicle', 'trappola3', 'letsrock']
+                   "cyberneciacatharsis", "monochromeprincess", "revixy", "vector", "supernova", "nhelv", "purgatorium3", "dement3", "crossover", "guardina", "axiumcrisis", "worldvanquisher", "sheriruth", "pragmatism", "gloryroad", "etherstrike", "corpssansorganes", "lostdesire", "blrink", "essenceoftwilight", "lapis", "solitarydream", "lumia3", "purpleverse", "moonheart3", "glow", "enchantedlove", "take", "lifeispiano", "vandalism", "nexttoyou3", "lostcivilization3", "turbocharger", "bookmaker3", "laqryma3", "kyogenkigo", "hivemind", "seclusion", "quonwacca3", "bluecomet", "energysynergymatrix", "gengaozo", "lastendconductor3", "antithese3", "qualia3", "kanagawa3", "heavensdoor3", "pragmatism3", "nulctrl", "avril", "ddd", "merlin3", "omakeno3", "nekonote", "sanskia", 'altair', 'mukishitsu', 'trapcrow', 'redandblue3', 'ignotus3', 'singularity3', 'dropdead3', 'arcahv', 'freefall3', 'partyvinyl3', 'tsukinimurakumo', 'mantis', 'worldfragments', 'astrawalkthrough', 'chronicle', 'trappola3', 'letsrock', 'shadesoflight3']
 
     world_unlocks = ["scenery_chap1", "scenery_chap2",
                      "scenery_chap3", "scenery_chap4", "scenery_chap5", "scenery_chap6", "scenery_chap7"]

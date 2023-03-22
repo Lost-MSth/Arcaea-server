@@ -1,11 +1,11 @@
+from flask import Blueprint, request
+
 from core.character import UserCharacter
-from core.config_manager import Config
-from core.error import ArcError, NoAccess
+from core.error import ArcError
 from core.item import ItemCore
 from core.save import SaveData
 from core.sql import Connect
 from core.user import User, UserLogin, UserOnline, UserRegister
-from flask import Blueprint, request
 
 from .auth import auth_required
 from .func import arc_try, header_check, success_return
@@ -16,7 +16,6 @@ bp = Blueprint('user', __name__, url_prefix='/user')
 @bp.route('', methods=['POST'])  # 注册接口
 @arc_try
 def register():
-    headers = request.headers
     error = header_check(request)
     if error is not None:
         raise error
@@ -155,7 +154,7 @@ def sys_set(user_id, set_arg):
             user.change_favorite_character(int(value))
         else:
             value = 'true' == value
-            if 'is_hide_rating' == set_arg or 'max_stamina_notification_enabled' == set_arg:
+            if set_arg in ('is_hide_rating', 'max_stamina_notification_enabled'):
                 user.update_user_one_column(set_arg, value)
         return success_return(user.to_dict())
 

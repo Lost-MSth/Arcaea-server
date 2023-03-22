@@ -164,8 +164,7 @@ class Room:
                     return False
 
             return True
-        else:
-            return False
+        return False
 
     def is_finish(self):
         # 是否全部进入结算

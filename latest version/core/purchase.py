@@ -1,14 +1,21 @@
 from time import time
 
-from .error import DataExist, InputError, NoData, TicketNotEnough
-from .item import ItemFactory
+from .error import InputError, NoData, TicketNotEnough
+from .item import CollectionItemMixin, ItemFactory
 
 
-class Purchase:
+class Purchase(CollectionItemMixin):
     '''
-        购买类\ 
+        购买类
         properties: `user` - `User`类或子类的实例
     '''
+    collection_item_const = {
+        'name': 'purchase',
+        'table_name': 'purchase_item',
+        'table_primary_key': 'purchase_name',
+        'id_name': 'purchase_name',
+        'items_name': 'items'
+    }
 
     def __init__(self, c=None, user=None):
         self.c = c
@@ -212,45 +219,11 @@ class Purchase:
         self.c.execute('''update purchase set price=:a, orig_price=:b, discount_from=:c, discount_to=:d, discount_reason=:e where purchase_name=:f''', {
                        'a': self.price, 'b': self.orig_price, 'c': self.discount_from, 'd': self.discount_to, 'e': self.discount_reason, 'f': self.purchase_name})
 
-    def add_items(self, items: list) -> None:
-        '''添加purchase_item表'''
-        for i in items:
-            if not i.select_exists():
-                raise NoData(
-                    f'No such item `{i.item_type}`: `{i.item_id}`', api_error_code=-121)
-            if i in self.items:
-                raise DataExist(
-                    f'Item `{i.item_type}`: `{i.item_id}` already exists in purchase `{self.purchase_name}`', api_error_code=-123)
-        self.c.executemany('''insert into purchase_item values (?, ?, ?, ?)''', [
-                           (self.purchase_name, i.item_id, i.item_type, i.amount) for i in items])
-        self.items.extend(items)
-
-    def remove_items(self, items: list) -> None:
-        '''删除purchase_item表'''
-        for i in items:
-            if i not in self.items:
-                raise NoData(
-                    f'No such item `{i.item_type}`: `{i.item_id}` in purchase `{self.purchase_name}`', api_error_code=-124)
-        self.c.executemany('''delete from purchase_item where purchase_name=? and item_id=? and type=?''', [
-                           (self.purchase_name, i.item_id, i.item_type) for i in items])
-        for i in items:
-            self.items.remove(i)
-
-    def update_items(self, items: list) -> None:
-        '''更新purchase_item表，只能更新amount'''
-        for i in items:
-            if i not in self.items:
-                raise NoData(
-                    f'No such item `{i.item_type}`: `{i.item_id}` in purchase `{self.purchase_name}`', api_error_code=-124)
-        self.c.executemany('''update purchase_item set amount=? where purchase_name=? and item_id=? and type=?''', [
-                           (i.amount, self.purchase_name, i.item_id, i.item_type) for i in items])
-        for i in items:
-            self.items[self.items.index(i)].amount = i.amount
-
 
 class PurchaseList:
     '''
-        购买列表类\ 
+        购买列表类
+
         property: `user` - `User`类或子类的实例
     '''
 
