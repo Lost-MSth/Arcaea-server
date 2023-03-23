@@ -83,6 +83,10 @@ class Score:
         return self.get_song_state(self.clear_type)
 
     @property
+    def all_note_count(self) -> int:
+        return self.perfect_count + self.near_count + self.miss_count
+
+    @property
     def is_valid(self) -> bool:
         '''分数有效性检查'''
         if self.shiny_perfect_count < 0 or self.perfect_count < 0 or self.near_count < 0 or self.miss_count < 0 or self.score < 0 or self.time_played <= 0:
@@ -90,7 +94,7 @@ class Score:
         if self.song.difficulty not in (0, 1, 2, 3):
             return False
 
-        all_note = self.perfect_count + self.near_count + self.miss_count
+        all_note = self.all_note_count
         if all_note == 0:
             return False
 
@@ -216,6 +220,8 @@ class UserPlay(UserScore):
         self.course_play_state: int = None
         self.course_play: 'CoursePlay' = None
 
+        self.combo_interval_bonus: int = None  # 不能给 None 以外的默认值
+
     def to_dict(self) -> dict:
         # 不能super
         if self.is_world_mode is None or self.course_play_state is None:
@@ -249,10 +255,15 @@ class UserPlay(UserScore):
         if songfile_hash and songfile_hash != self.song_hash:
             return False
 
-        x = self.song_token + self.song_hash + self.song.song_id + str(self.song.difficulty) + str(self.score) + str(self.shiny_perfect_count) + str(
-            self.perfect_count) + str(self.near_count) + str(self.miss_count) + str(self.health) + str(self.modifier) + str(self.clear_type)
-        y = str(self.user.user_id) + self.song_hash
+        x = f'''{self.song_token}{self.song_hash}{self.song.song_id}{self.song.difficulty}{self.score}{self.shiny_perfect_count}{self.perfect_count}{self.near_count}{self.miss_count}{self.health}{self.modifier}{self.clear_type}'''
+        if self.combo_interval_bonus is not None:
+            if self.combo_interval_bonus < 0 or self.combo_interval_bonus > self.all_note_count / 150:
+                return False
+            x = x + str(self.combo_interval_bonus)
+
+        y = f'{self.user.user_id}{self.song_hash}'
         checksum = md5(x+md5(y))
+
         if checksum != self.submission_hash:
             return False
 

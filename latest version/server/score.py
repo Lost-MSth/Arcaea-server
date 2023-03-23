@@ -95,6 +95,8 @@ def song_score_post(user_id):
                     request.form['miss_count'], request.form['health'], request.form['modifier'], int(time() * 1000), request.form['clear_type'])
         x.beyond_gauge = int(request.form['beyond_gauge'])
         x.submission_hash = request.form['submission_hash']
+        if 'combo_interval_bonus' in request.form:
+            x.combo_interval_bonus = int(request.form['combo_interval_bonus'])
         if not x.is_valid:
             raise InputError('Invalid score.', 107)
         x.upload_score()

@@ -48,9 +48,10 @@ class DatabaseInit:
 
     def character_init(self) -> None:
         '''初始化搭档信息'''
+        uncapped_characters = self.init_data.char_core.keys()
         for i in range(0, len(self.init_data.char)):
             skill_requires_uncap = 1 if i == 2 else 0
-            if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21, 42, 43, 11, 12, 19, 5, 10]:
+            if i in uncapped_characters:
                 max_level = 30
                 uncapable = 1
             else:

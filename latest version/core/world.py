@@ -658,6 +658,8 @@ class WorldPlay:
                 self._special_tempest()
             elif self.character_used.skill_id_displayed == 'ilith_awakened_skill':
                 self._ilith_awakened_skill()
+            elif self.character_used.skill_id_displayed == 'skill_mithra':
+                self._skill_mithra()
         else:
             if self.character_used.skill_id_displayed == 'skill_vita':
                 self._skill_vita()
@@ -767,3 +769,10 @@ class WorldPlay:
                 self.character_used.level)
             self.prog_skill_increase = self.character_used.prog.get_value(
                 self.character_used.level)
+
+    def _skill_mithra(self) -> None:
+        '''
+        mithra 技能，每 150 combo 增加世界模式进度+1，直接理解成 prog 值增加
+        '''
+        if self.user_play.combo_interval_bonus:
+            self.prog_skill_increase = self.user_play.combo_interval_bonus

@@ -36,6 +36,12 @@ def login():
         return jsonify({"success": True, "token_type": "Bearer", 'user_id': user.user_id, 'access_token': user.token})
 
 
+@bp.route('/verify', methods=['POST'])  # 邮箱验证进度查询
+@arc_try
+def email_verify():
+    raise ArcError('Email verification unavailable.', 151, status=404)
+
+
 def auth_required(req):
     # arcaea登录验证，写成了修饰器
     def decorator(view):

@@ -164,3 +164,9 @@ def sys_set(user_id, set_arg):
 @arc_try
 def user_delete(user_id):
     raise ArcError('Cannot delete the account.', 151, status=404)
+
+
+@bp.route('/email/resend_verify', methods=['POST'])  # 邮箱验证重发
+@arc_try
+def email_resend_verify():
+    raise ArcError('Email verification unavailable.', 151, status=404)
