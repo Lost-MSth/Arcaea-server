@@ -11,6 +11,8 @@ class SaveData:
 
     def __init__(self, c=None) -> None:
         self.c = c
+        self.user = None
+
         self.scores_data = []
         self.clearlamps_data = []
         self.clearedsongs_data = []
@@ -127,7 +129,7 @@ class SaveData:
                 'Property `%s` is not found in the instance of `SaveData` class.' % key)
 
         if md5(value) == checksum:
-            if key == 'installid_data' or key == 'devicemodelname_data' or key == 'finalestate_data':
+            if key in ('installid_data', 'devicemodelname_data', 'finalestate_data'):
                 self.__dict__[key] = json.loads(value)['val']
             else:
                 self.__dict__[key] = json.loads(value)['']

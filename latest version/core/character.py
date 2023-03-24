@@ -1,7 +1,7 @@
 from .config_manager import Config
 from .constant import Constant
 from .error import ArcError, InputError, ItemNotEnough, NoData
-from .item import Item, ItemCore
+from .item import CollectionItemMixin, ItemCore
 
 
 class Level:
@@ -9,9 +9,9 @@ class Level:
     min_level = 1
 
     def __init__(self) -> None:
-        self.max_level = None
-        self.level = None
-        self.exp = None
+        self.max_level: int = None
+        self.level: int = None
+        self.exp: float = None
 
     @property
     def level_exp(self):
@@ -29,9 +29,9 @@ class Level:
 
         a = []
         b = []
-        for i in Constant.LEVEL_STEPS:
-            a.append(i)
-            b.append(Constant.LEVEL_STEPS[i])
+        for k, v in Constant.LEVEL_STEPS.items():
+            a.append(k)
+            b.append(v)
 
         if exp < b[0]:  # 向下溢出，是异常状态，不该被try捕获，不然数据库无法回滚
             raise ValueError('EXP value error.')
@@ -46,23 +46,10 @@ class Level:
 
 class Skill:
     def __init__(self) -> None:
-        self.skill_id = None
-        self.skill_id_uncap = None
-        self.skill_unlock_level = None
-        self.skill_requires_uncap = None
-
-
-class Core(Item):
-    item_type = 'core'
-
-    def __init__(self, core_type: str = '', amount: int = 0) -> None:
-        super().__init__()
-        self.item_id = core_type
-        self.amount = amount
-        self.is_available = True
-
-    def to_dict(self):
-        return {'core_type': self.item_id, 'amount': self.amount}
+        self.skill_id: str = None
+        self.skill_id_uncap: str = None
+        self.skill_unlock_level: int = None
+        self.skill_requires_uncap: bool = None
 
 
 class CharacterValue:
@@ -75,8 +62,7 @@ class CharacterValue:
         # 4/6859 = 0.00058317539
         if level <= 10:
             return 0.00058317539 * (level - 1) ** 3 * (value_20 - value_1) + value_1
-        else:
-            return - 0.00058317539 * (20 - level) ** 3 * (value_20 - value_1) + value_20
+        return - 0.00058317539 * (20 - level) ** 3 * (value_20 - value_1) + value_20
 
     # @staticmethod
     # def _calc_char_value_20(level: int, stata, statb, lva=1, lvb=20) -> float:
@@ -95,44 +81,51 @@ class CharacterValue:
         return (level - lva) * (statb - stata) / (lvb - lva) + stata
 
     def set_parameter(self, start: float = 0, mid: float = 0, end: float = 0):
-        self.start = start
-        self.mid = mid
-        self.end = end
+        self.start: float = start
+        self.mid: float = mid
+        self.end: float = end
 
     def get_value(self, level: Level):
         if level.min_level <= level.level <= level.mid_level:
             return self._calc_char_value_20_math(level.level, self.start, self.mid)
-        elif level.mid_level < level.level <= level.max_level:
+        if level.mid_level < level.level <= level.max_level:
             return self._calc_char_value_30(level.level, self.mid, self.end)
-        else:
-            return 0
+        return 0
 
 
-class Character:
+class Character(CollectionItemMixin):
     database_table_name = None
+
+    collection_item_const = {
+        'name': 'character',
+        'table_name': 'char_item',
+        'table_primary_key': 'character_id',
+        'id_name': 'character_id',
+        'items_name': 'uncap_cores'
+    }
 
     def __init__(self, c=None) -> None:
         self.c = c
 
-        self.character_id = None
-        self.name = None
-        self.char_type = None
-        self.is_uncapped = None
-        self.is_uncapped_override = None
+        self.character_id: int = None
+        self.name: str = None
+        self.char_type: int = None
+        self.is_uncapped: bool = None
+        self.is_uncapped_override: bool = None
         self.skill = Skill()
         self.level = Level()
         self.frag = CharacterValue()
         self.prog = CharacterValue()
         self.overdrive = CharacterValue()
-        self.uncap_cores = []
-        self.voice = None
+        self.uncap_cores: list = []
+        self.voice: list = None
 
     @property
     def skill_id_displayed(self) -> str:
         return None
 
     def uncap_cores_to_dict(self):
-        return [x.to_dict() for x in self.uncap_cores]
+        return [x.to_dict(character_format=True) for x in self.uncap_cores]
 
     @property
     def is_uncapped_displayed(self) -> bool:
@@ -144,11 +137,71 @@ class Character:
         # 应该是只有对立这样
         return self.character_id == 1
 
-    def to_dict(self) -> dict:
-        pass
+    def to_dict(self, has_cores=False) -> dict:
+        # 用于API里，游戏内的数据不太一样，故不能super
+        r = {
+            'character_id': self.character_id,
+            'name': self.name,
+            'char_type': self.char_type,
+            'is_uncapped': self.is_uncapped,
+            'max_level': self.level.max_level,
+            'skill_id': self.skill.skill_id,
+            'skill_unlock_level': self.skill.skill_unlock_level,
+            'skill_requires_uncap': self.skill.skill_requires_uncap,
+            'skill_id_uncap': self.skill.skill_id_uncap,
+            'frag1': self.frag.start,
+            'frag20': self.frag.mid,
+            'frag30': self.frag.end,
+            'prog1': self.prog.start,
+            'prog20': self.prog.mid,
+            'prog30': self.prog.end,
+            'overdrive1': self.overdrive.start,
+            'overdrive20': self.overdrive.mid,
+            'overdrive30': self.overdrive.end,
+        }
+        if has_cores:
+            r['uncap_cores'] = self.uncap_cores_to_dict()
+        return r
 
-    def from_list(self, l: list) -> 'Character':
-        pass
+    def from_list(self, l: tuple) -> 'Character':
+        self.character_id = l[0]
+        self.name = l[1]
+        self.level.max_level = l[2]
+        self.frag.set_parameter(l[3], l[6], l[9])
+        self.prog.set_parameter(l[4], l[7], l[10])
+        self.overdrive.set_parameter(l[5], l[8], l[11])
+        self.skill.skill_id = l[12]
+        self.skill.skill_unlock_level = l[13]
+        self.skill.skill_requires_uncap = l[14] == 1
+        self.skill.skill_id_uncap = l[15]
+        self.char_type = l[16]
+        self.is_uncapped = l[17] == 1
+        return self
+
+    def select(self, character_id: int = None) -> 'Character':
+        if character_id is not None:
+            self.character_id = character_id
+        self.c.execute(
+            'select * from character where character_id = ?', (self.character_id,))
+        x = self.c.fetchone()
+        if not x:
+            raise NoData(
+                f'No such character: {self.character_id}', api_error_code=-130)
+        return self.from_list(x)
+
+    def update(self) -> None:
+        self.c.execute('''update character set name = ?, max_level = ?, frag1 = ?, frag20 = ?, frag30 = ?, prog1 = ?, prog20 = ?, prog30 = ?, overdrive1 = ?, overdrive20 = ?, overdrive30 = ?, skill_id = ?, skill_unlock_level = ?, skill_requires_uncap = ?, skill_id_uncap = ?, char_type = ?, is_uncapped = ? where character_id = ?''', (
+            self.name, self.level.max_level, self.frag.start, self.frag.mid, self.frag.end, self.prog.start, self.prog.mid, self.prog.end, self.overdrive.start, self.overdrive.mid, self.overdrive.end, self.skill.skill_id, self.skill.skill_unlock_level, self.skill.skill_requires_uncap, self.skill.skill_id_uncap, self.char_type, self.is_uncapped, self.character_id))
+
+    def select_character_core(self):
+        # 获取此角色所需核心
+        self.c.execute(
+            '''select item_id, amount from char_item where character_id = ? and type="core"''', (self.character_id,))
+        x = self.c.fetchall()
+        if x:
+            self.uncap_cores = []
+            for i in x:
+                self.uncap_cores.append(ItemCore(self.c, i[0], i[1]))
 
 
 class UserCharacter(Character):
@@ -169,27 +222,16 @@ class UserCharacter(Character):
         '''对外显示的技能id'''
         if self.is_uncapped_displayed and self.skill.skill_id_uncap:
             return self.skill.skill_id_uncap
-        elif self.skill.skill_id and self.level.level >= self.skill.skill_unlock_level:
+        if self.skill.skill_id and self.level.level >= self.skill.skill_unlock_level:
             return self.skill.skill_id
-        else:
-            return None
-
-    def select_character_core(self):
-        # 获取此角色所需核心
-        self.c.execute(
-            '''select item_id, amount from char_item where character_id = ? and type="core"''', (self.character_id,))
-        x = self.c.fetchall()
-        if x:
-            self.uncap_cores = []
-            for i in x:
-                self.uncap_cores.append(Core(i[0], i[1]))
+        return None
 
     def select_character_uncap_condition(self, user=None):
         # parameter: user - User类或子类的实例
         # 获取此角色的觉醒信息
         if user:
             self.user = user
-        self.c.execute('''select is_uncapped, is_uncapped_override from %s where user_id = :a and character_id = :b''' % self.database_table_name,
+        self.c.execute(f'''select is_uncapped, is_uncapped_override from {self.database_table_name} where user_id = :a and character_id = :b''',
                        {'a': self.user.user_id, 'b': self.character_id})
 
         x = self.c.fetchone()
@@ -206,7 +248,7 @@ class UserCharacter(Character):
         # 获取所给用户此角色信息
         if user:
             self.user = user
-        self.c.execute('''select * from %s a,character b where a.user_id=? and a.character_id=b.character_id and a.character_id=?''' % self.database_table_name,
+        self.c.execute(f'''select * from {self.database_table_name} a,character b where a.user_id=? and a.character_id=b.character_id and a.character_id=?''',
                        (self.user.user_id, self.character_id))
 
         y = self.c.fetchone()
@@ -228,7 +270,7 @@ class UserCharacter(Character):
         self.skill.skill_unlock_level = y[19]
         self.skill.skill_requires_uncap = y[20] == 1
 
-        if self.character_id == 21 or self.character_id == 46:
+        if self.character_id in (21, 46):
             self.voice = [0, 1, 2, 3, 100, 1000, 1001]
 
         self.select_character_core()
@@ -267,7 +309,7 @@ class UserCharacter(Character):
         # 切换觉醒状态
         if user:
             self.user = user
-        self.c.execute('''select is_uncapped, is_uncapped_override from %s where user_id = :a and character_id = :b''' % self.database_table_name,
+        self.c.execute(f'''select is_uncapped, is_uncapped_override from {self.database_table_name} where user_id = :a and character_id = :b''',
                        {'a': self.user.user_id, 'b': self.character_id})
 
         x = self.c.fetchone()
@@ -277,7 +319,7 @@ class UserCharacter(Character):
         self.c.execute('''update user set is_char_uncapped_override = :a where user_id = :b''', {
             'a': 1 if x[1] == 0 else 0, 'b': self.user.user_id})
 
-        self.c.execute('''update %s set is_uncapped_override = :a where user_id = :b and character_id = :c''' % self.database_table_name, {
+        self.c.execute(f'''update {self.database_table_name} set is_uncapped_override = :a where user_id = :b and character_id = :c''', {
             'a': 1 if x[1] == 0 else 0, 'b': self.user.user_id, 'c': self.character_id})
 
         self.is_uncapped_override = x[1] == 0
@@ -311,7 +353,7 @@ class UserCharacter(Character):
                 raise ItemNotEnough('The cores are not enough.')
 
         for i in self.uncap_cores:
-            ItemCore(self.c, i, reverse=True).user_claim_item(self.user)
+            i.user_claim_item(self.user, reverse=True)
 
         self.c.execute('''update user_char set is_uncapped=1, is_uncapped_override=0 where user_id=? and character_id=?''',
                        (self.user.user_id, self.character_id))
@@ -382,7 +424,7 @@ class UserCharacterList:
 
     def select_user_characters(self):
         self.c.execute(
-            '''select character_id from %s where user_id=?''' % self.database_table_name, (self.user.user_id,))
+            f'''select character_id from {self.database_table_name} where user_id=?''', (self.user.user_id,))
         x = self.c.fetchall()
         self.characters: list = []
         if x:

@@ -53,8 +53,7 @@ class RefreshAllScoreRating(BaseOperation):
                     where_values = []
                     for k in y:
                         ptt = Score.calculate_rating(defnum, k[1])
-                        if ptt < 0:
-                            ptt = 0
+                        ptt = max(ptt, 0)
                         values.append((ptt,))
                         where_values.append((k[0], i[0], j))
                     if values:
@@ -76,7 +75,7 @@ class RefreshSongFileCache(BaseOperation):
 
 class SaveUpdateScore(BaseOperation):
     '''
-        云存档更新成绩，是覆盖式更新\ 
+        云存档更新成绩，是覆盖式更新
         提供user参数时，只更新该用户的成绩，否则更新所有用户的成绩
     '''
     _name = 'save_update_score'
@@ -125,8 +124,7 @@ class SaveUpdateScore(BaseOperation):
                 if i['song_id'] in song_chart_const:
                     rating = Score.calculate_rating(
                         song_chart_const[i['song_id']][i['difficulty']] / 10, i['score'])
-                    if rating < 0:
-                        rating = 0
+                    rating = max(rating, 0)
 
                 y = f'{i["song_id"]}{i["difficulty"]}'
                 if y in clear_state:
@@ -143,7 +141,7 @@ class SaveUpdateScore(BaseOperation):
     def _all_update(self):
         with Connect() as c:
             c.execute(
-                f'''select song_id, rating_pst, rating_prs, rating_ftr, rating_byn from chart''')
+                '''select song_id, rating_pst, rating_prs, rating_ftr, rating_byn from chart''')
             song_chart_const = {i[0]: [i[1], i[2], i[3], i[4]]
                                 for i in c.fetchall()}  # chart const * 10
             c.execute('''select user_id from user_save''')
@@ -162,8 +160,7 @@ class SaveUpdateScore(BaseOperation):
                     if i['song_id'] in song_chart_const:
                         rating = Score.calculate_rating(
                             song_chart_const[i['song_id']][i['difficulty']] / 10, i['score'])
-                        if rating < 0:
-                            rating = 0
+                        rating = max(rating, 0)
 
                     y = f'{i["song_id"]}{i["difficulty"]}'
                     if y in clear_state:
@@ -180,7 +177,7 @@ class SaveUpdateScore(BaseOperation):
 
 class UnlockUserItem(BaseOperation):
     '''
-        全解锁/锁定用户物品\ 
+        全解锁/锁定用户物品
         提供user参数时，只更新该用户的，否则更新所有用户的
     '''
     _name = 'unlock_user_item'
@@ -198,7 +195,7 @@ class UnlockUserItem(BaseOperation):
             self.user.user_id = int(user_id)
         if method in ['unlock', 'lock']:
             self.method = method
-        if isinstance(item_types, list) and all([i in self.ALLOW_TYPES for i in item_types]):
+        if isinstance(item_types, list) and all(i in self.ALLOW_TYPES for i in item_types):
             self.item_types = item_types
 
     def run(self):

@@ -1,6 +1,7 @@
+from flask import Blueprint, request
+
 from core.sql import Connect
 from core.user import UserOnline, code_get_id
-from flask import Blueprint, request
 
 from .auth import auth_required
 from .func import arc_try, success_return

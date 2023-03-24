@@ -1,8 +1,9 @@
+from flask import Blueprint, request
+
 from core.config_manager import Config
 from core.error import ArcError
 from core.linkplay import Player, RemoteMultiPlayer, Room
 from core.sql import Connect
-from flask import Blueprint, request
 
 from .auth import auth_required
 from .func import arc_try, success_return

@@ -41,16 +41,17 @@ class DatabaseInit:
 
     def table_init(self) -> None:
         '''初始化数据库结构'''
-        with open(self.sql_path, 'r') as f:
+        with open(self.sql_path, 'r', encoding='utf-8') as f:
             self.c.executescript(f.read())
         self.c.execute('''insert into config values("version", :a);''', {
             'a': ARCAEA_SERVER_VERSION})
 
     def character_init(self) -> None:
         '''初始化搭档信息'''
+        uncapped_characters = self.init_data.char_core.keys()
         for i in range(0, len(self.init_data.char)):
             skill_requires_uncap = 1 if i == 2 else 0
-            if i in [0, 1, 2, 4, 13, 26, 27, 28, 29, 36, 21, 42, 43, 11, 12, 19, 5, 10]:
+            if i in uncapped_characters:
                 max_level = 30
                 uncapable = 1
             else:
@@ -129,7 +130,7 @@ class DatabaseInit:
 
         x._insert_user_char()
 
-        self.c.execute('''insert into user(user_id, name, password, join_date, user_code, rating_ptt, 
+        self.c.execute('''insert into user(user_id, name, password, join_date, user_code, rating_ptt,
         character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, is_hide_rating, favorite_character, max_stamina_notification_enabled, current_map, ticket, prog_boost, email)
         values(:user_id, :name, :password, :join_date, :user_code, 0, 0, 0, 0, 0, 0, -1, 0, '', :memories, 0, :email)
         ''', {'user_code': x.user_code, 'user_id': x.user_id, 'join_date': now, 'name': x.name, 'password': '41e5653fc7aeb894026d6bb7b2db7f65902b454945fa8fd65a6327047b5277fb', 'memories': 114514, 'email': x.email})

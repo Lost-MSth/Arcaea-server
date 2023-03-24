@@ -88,7 +88,8 @@ class SonglistParser:
 
 class UserDownload:
     '''
-        用户下载类\ 
+        用户下载类
+
         properties: `user` - `User`类或子类的实例
     '''
 
@@ -158,8 +159,7 @@ class UserDownload:
             if prefix[-1] != '/':
                 prefix += '/'
             return f'{prefix}{self.song_id}/{self.file_name}?t={self.token}'
-        else:
-            return url_for('download', file_path=f'{self.song_id}/{self.file_name}', t=self.token, _external=True)
+        return url_for('download', file_path=f'{self.song_id}/{self.file_name}', t=self.token, _external=True)
 
     @property
     def hash(self) -> str:
@@ -243,7 +243,7 @@ class DownloadList(UserDownload):
                     re['audio']['3'] = {"checksum": x.hash, "url": x.url}
                 else:
                     re['audio']['3'] = {"checksum": x.hash}
-            elif i == 'video.mp4' or i == 'video_audio.ogg':
+            elif i in ('video.mp4', 'video_audio.ogg'):
                 if 'additional_files' not in re:
                     re['additional_files'] = []
 

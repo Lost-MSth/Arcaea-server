@@ -13,8 +13,9 @@ class CommandParser:
         self.room = room
         self.player_index = player_index
         self.s = CommandSender(self.room)
+        self.command: bytes = None
 
-    def get_commands(self, command):
+    def get_commands(self, command: bytes):
         self.command = command
         r = getattr(self, self.route[self.command[2]])()
 
@@ -46,8 +47,6 @@ class CommandParser:
 
         self.s.random_code = self.command[16:24]
         self.room.command_queue.append(self.s.command_10())
-
-        return None
 
     def command_02(self):
         self.s.random_code = self.command[16:24]
@@ -81,8 +80,6 @@ class CommandParser:
             self.room.make_finish()
             self.room.command_queue.append(self.s.command_13())
 
-        return None
-
     def command_04(self):
         # 踢人
         self.s.random_code = self.command[16:24]
@@ -109,7 +106,6 @@ class CommandParser:
         self.room.song_idx = 0xffff
 
         self.room.command_queue.append(self.s.command_13())
-        return None
 
     def command_07(self):
         self.s.random_code = self.command[16:24]
@@ -117,14 +113,11 @@ class CommandParser:
         self.room.update_song_unlock()
 
         self.room.command_queue.append(self.s.command_14())
-        return None
 
     def command_08(self):
         self.room.round_switch = bi(self.command[24:25])
         self.s.random_code = self.command[16:24]
         self.room.command_queue.append(self.s.command_13())
-
-        return None
 
     def command_09(self):
         re = []
@@ -196,7 +189,7 @@ class CommandParser:
                     # 将换房主时间提前到此刻
                     self.room.make_round()
 
-            if self.room.state == 4 or self.room.state == 5 or self.room.state == 6:
+            if self.room.state in (4, 5, 6):
                 timestamp = round(time.time() * 1000)
                 self.room.countdown -= timestamp - self.room.timestamp
                 self.room.timestamp = timestamp
@@ -225,10 +218,9 @@ class CommandParser:
                     self.room.countdown = 0xffffffff
                     flag_13 = True
 
-                if self.room.countdown <= 0:
-                    self.room.countdown = 0
+                self.room.countdown = self.room.countdown if self.room.countdown > 0 else 0
 
-            if self.room.state == 7 or self.room.state == 8:
+            if self.room.state in (7, 8):
                 if player.timer < bi(self.command[28:32]) or bi(self.command[28:32]) == 0 and player.timer != 0:
                     player.last_timer = player.timer
                     player.last_score = player.score
@@ -270,13 +262,12 @@ class CommandParser:
 
         self.room.command_queue.append(self.s.command_12(self.player_index))
 
-        if self.room.state == 3 or self.room.state == 2:
+        if self.room.state in (2, 3):
             self.room.state = 1
             self.room.song_idx = 0xffff
         # self.room.command_queue.append(self.s.command_11())
         self.room.command_queue.append(self.s.command_13())
         self.room.command_queue.append(self.s.command_14())
-        return None
 
     def command_0b(self):
         # 推荐歌曲
@@ -285,5 +276,3 @@ class CommandParser:
             if self.player_index != i and self.room.players[i].online == 1:
                 self.room.players[i].extra_command_queue.append(
                     self.s.command_0f(self.player_index, song_idx))
-
-        return None

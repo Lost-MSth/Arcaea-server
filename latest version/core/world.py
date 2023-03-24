@@ -1,6 +1,6 @@
-import json
 import os
 from functools import lru_cache
+from json import load
 from random import random
 from time import time
 
@@ -25,15 +25,15 @@ def get_world_name(file_dir: str = Constant.WORLD_MAP_FOLDER_PATH) -> list:
 def get_world_info(map_id: str) -> dict:
     '''读取json文件内容，返回字典'''
     world_info = {}
-    with open(os.path.join(Constant.WORLD_MAP_FOLDER_PATH, map_id+'.json'), 'r') as f:
-        world_info = json.load(f)
+    with open(os.path.join(Constant.WORLD_MAP_FOLDER_PATH, f'{map_id}.json'), 'rb') as f:
+        world_info = load(f)
 
     return world_info
 
 
 def get_world_all(c, user) -> list:
     '''
-        读取所有地图信息，返回列表\ 
+        读取所有地图信息，返回列表
         parameter: `user` - `User`类或子类的实例
     '''
     worlds = get_world_name()
@@ -44,7 +44,7 @@ class Step:
     '''台阶类'''
 
     def __init__(self) -> None:
-        self.postion: int = None
+        self.position: int = None
         self.capture: int = None
         self.items: list = []
         self.restrict_id: str = None
@@ -198,7 +198,7 @@ class Map:
 
 class UserMap(Map):
     '''
-        用户地图类\ 
+        用户地图类
         parameters: `user` - `User`类或者子类的实例
     '''
 
@@ -413,7 +413,8 @@ class Stamina:
 
 class UserStamina(Stamina):
     '''
-        用户体力类\ 
+        用户体力类
+
         parameter: `user` - `User`类或子类的实例
     '''
 
@@ -439,8 +440,9 @@ class UserStamina(Stamina):
 
 class WorldPlay:
     '''
-        世界模式打歌类，处理特殊角色技能，联动UserMap和UserPlay\ 
-        parameter: `user` - `UserOnline`类或子类的实例\ 
+        世界模式打歌类，处理特殊角色技能，联动UserMap和UserPlay
+
+        parameter: `user` - `UserOnline`类或子类的实例
         'user_play` - `UserPlay`类的实例
     '''
 
@@ -598,8 +600,8 @@ class WorldPlay:
         if self.user_play.beyond_gauge == 0:
             # 更新byd大招蓄力条
             self.user.beyond_boost_gauge += self.beyond_boost_gauge_addition
-            if self.user.beyond_boost_gauge > 200:
-                self.user.beyond_boost_gauge = 200
+            self.user.beyond_boost_gauge = min(
+                self.user.beyond_boost_gauge, 200)
             self.user.update_user_one_column(
                 'beyond_boost_gauge', self.user.beyond_boost_gauge)
         elif self.user_play.beyond_boost_gauge_usage != 0 and self.user_play.beyond_boost_gauge_usage <= self.user.beyond_boost_gauge:
@@ -656,6 +658,8 @@ class WorldPlay:
                 self._special_tempest()
             elif self.character_used.skill_id_displayed == 'ilith_awakened_skill':
                 self._ilith_awakened_skill()
+            elif self.character_used.skill_id_displayed == 'skill_mithra':
+                self._skill_mithra()
         else:
             if self.character_used.skill_id_displayed == 'skill_vita':
                 self._skill_vita()
@@ -684,7 +688,7 @@ class WorldPlay:
 
     def _skill_vita(self) -> None:
         '''
-            vita技能，overdrive随回忆率提升，提升量最多为10\ 
+            vita技能，overdrive随回忆率提升，提升量最多为10
             此处采用线性函数
         '''
         self.over_skill_increase = 0
@@ -745,7 +749,7 @@ class WorldPlay:
         '''
         x: 'Step' = self.user.current_map.steps_for_climbing[0]
         if ('randomsong' in x.step_type or 'speedlimit' in x.step_type) and self.user_play.song_grade < 5:
-            self.character_bonus_progress = -self.step_value / 2 / self.step_times
+            self.character_bonus_progress = -1 * self.step_value / 2 / self.step_times
             self.step_value = self.step_value / 2
             self.user.current_map.reclimb(self.step_value)
 
@@ -765,3 +769,10 @@ class WorldPlay:
                 self.character_used.level)
             self.prog_skill_increase = self.character_used.prog.get_value(
                 self.character_used.level)
+
+    def _skill_mithra(self) -> None:
+        '''
+        mithra 技能，每 150 combo 增加世界模式进度+1，直接理解成 prog 值增加
+        '''
+        if self.user_play.combo_interval_bonus:
+            self.prog_skill_increase = self.user_play.combo_interval_bonus

@@ -1,5 +1,5 @@
 from .config_manager import Config
-from .error import InputError, ItemNotEnough, ItemUnavailable, NoData
+from .error import DataExist, InputError, ItemNotEnough, ItemUnavailable, NoData
 
 
 class Item:
@@ -73,7 +73,8 @@ class UserItem(Item):
 
     def select_user_item(self, user=None):
         '''
-            查询用户item\ 
+            查询用户item
+
             parameter: `user` - `User`类或子类的实例
         '''
         if user is not None:
@@ -102,8 +103,7 @@ class NormalItem(UserItem):
                 if x[0] == 0:
                     self.is_available = False
                     raise ItemUnavailable('The item is unavailable.')
-                else:
-                    self.is_available = True
+                self.is_available = True
             else:
                 raise NoData('No item data.')
 
@@ -142,15 +142,28 @@ class PositiveItem(UserItem):
 class ItemCore(PositiveItem):
     item_type = 'core'
 
-    def __init__(self, c, core=None, reverse=False) -> None:
+    def __init__(self, c, core_type: str = '', amount: int = 0) -> None:
         super().__init__(c)
         self.is_available = True
-        if core:
-            self.item_id = core.item_id
-            self.amount = - core.amount if reverse else core.amount
+        self.item_id = core_type
+        self.amount = amount
 
     def __str__(self) -> str:
         return self.item_id + '_' + str(self.amount)
+
+    def to_dict(self, has_is_available: bool = False, has_amount: bool = True, character_format: bool = False) -> dict:
+        if character_format:
+            # 搭档的core是特殊格式的
+            return {'core_type': self.item_id, 'amount': self.amount}
+        return super().to_dict(has_is_available=has_is_available, has_amount=has_amount)
+
+    def user_claim_item(self, user, reverse: bool = False) -> None:
+        # 骚操作，将amount变为负数后使用再变回来
+        if reverse:
+            self.amount = -self.amount
+        super().user_claim_item(user)
+        if reverse:
+            self.amount = -self.amount
 
 
 class ItemCharacter(UserItem):
@@ -257,15 +270,9 @@ class CourseBanner(NormalItem):
 class Single(NormalItem):
     item_type = 'single'
 
-    def __init__(self, c) -> None:
-        super().__init__(c)
-
 
 class Pack(NormalItem):
     item_type = 'pack'
-
-    def __init__(self, c) -> None:
-        super().__init__(c)
 
 
 class ProgBoost(UserItem):
@@ -276,7 +283,8 @@ class ProgBoost(UserItem):
 
     def user_claim_item(self, user):
         '''
-            世界模式prog_boost\ 
+            世界模式prog_boost
+
             parameters: `user` - `UserOnline`类或子类的实例
         '''
         user.update_user_one_column('prog_boost', 300)
@@ -290,7 +298,7 @@ class Stamina6(UserItem):
 
     def user_claim_item(self, user):
         '''
-            世界模式记忆源点或残片买体力+6\ 
+            世界模式记忆源点或残片买体力+6
             顺手清一下世界模式过载状态
         '''
         user.select_user_about_stamina()
@@ -386,8 +394,8 @@ class ItemFactory:
 
 class UserItemList:
     '''
-        用户的item列表\ 
-        注意只能查在user_item里面的，character不行\ 
+        用户的item列表
+        注意只能查在user_item里面的，character不行
         properties: `user` - `User`类或子类的实例
     '''
 
@@ -420,3 +428,63 @@ class UserItemList:
             self.items.append(ItemFactory.from_dict(
                 {'item_id': i[0], 'amount': amount, 'item_type': item_type}, self.c))
         return self
+
+
+class CollectionItemMixin:
+    '''
+       批量修改一些集合中的items
+    '''
+    collection_item_const = {
+        'name': 'collection',
+        'table_name': 'collection_item',
+        'table_primary_key': 'collection_id',
+        'id_name': 'collection_id',
+        'items_name': 'items'
+    }
+
+    def add_items(self, items: 'list[Item]') -> None:
+        collection_id: 'str' = getattr(
+            self, self.collection_item_const['id_name'])
+        collection_items: 'list[Item]' = getattr(
+            self, self.collection_item_const['items_name'])
+
+        for i in items:
+            if not i.select_exists():
+                raise NoData(
+                    f'No such item `{i.item_type}`: `{i.item_id}`', api_error_code=-121)
+            if i in collection_items:
+                raise DataExist(
+                    f'Item `{i.item_type}`: `{i.item_id}` already exists in {self.collection_item_const["name"]} `{collection_id}`', api_error_code=-123)
+        self.c.executemany(f'''insert into {self.collection_item_const["table_name"]} values (?, ?, ?, ?)''', [
+                           (collection_id, i.item_id, i.item_type, i.amount) for i in items])
+        collection_items.extend(items)
+
+    def remove_items(self, items: 'list[Item]') -> None:
+        collection_id: 'str' = getattr(
+            self, self.collection_item_const['id_name'])
+        collection_items: 'list[Item]' = getattr(
+            self, self.collection_item_const['items_name'])
+
+        for i in items:
+            if i not in collection_items:
+                raise NoData(
+                    f'No such item `{i.item_type}`: `{i.item_id}` in {self.collection_item_const["name"]} `{collection_id}`', api_error_code=-124)
+        self.c.executemany(f'''delete from {self.collection_item_const["table_name"]} where {self.collection_item_const["table_primary_key"]}=? and item_id=? and type=?''', [
+                           (collection_id, i.item_id, i.item_type) for i in items])
+        for i in items:
+            collection_items.remove(i)
+
+    def update_items(self, items: 'list[Item]') -> None:
+        collection_id: 'str' = getattr(
+            self, self.collection_item_const['id_name'])
+        collection_items: 'list[Item]' = getattr(
+            self, self.collection_item_const['items_name'])
+
+        for i in items:
+            if i not in collection_items:
+                raise NoData(
+                    f'No such item `{i.item_type}`: `{i.item_id}` in {self.collection_item_const["name"]} `{collection_id}`', api_error_code=-124)
+        self.c.executemany(f'''update {self.collection_item_const["table_name"]} set amount=? where {self.collection_item_const["table_primary_key"]}=? and item_id=? and type=?''', [
+                           (i.amount, collection_id, i.item_id, i.item_type) for i in items])
+        for i in items:
+            collection_items[collection_items.index(i)].amount = i.amount

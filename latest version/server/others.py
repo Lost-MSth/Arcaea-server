@@ -1,13 +1,14 @@
 import json
 from urllib.parse import parse_qs, urlparse
 
+from flask import Blueprint, jsonify, request
+from werkzeug.datastructures import ImmutableMultiDict
+
 from core.download import DownloadList
 from core.error import RateLimit
 from core.sql import Connect
 from core.system import GameInfo
 from core.user import UserOnline
-from flask import Blueprint, jsonify, request
-from werkzeug.datastructures import ImmutableMultiDict
 
 from .auth import auth_required
 from .func import arc_try, error_return, success_return

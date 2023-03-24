@@ -14,6 +14,8 @@ from .world import WorldPlay
 
 class Score:
     def __init__(self) -> None:
+        self.c = None
+
         self.song: 'Chart' = Chart()
         self.score: int = None
         self.shiny_perfect_count: int = None
@@ -45,18 +47,17 @@ class Score:
         '''分数转换为评级'''
         if score >= 9900000:  # EX+
             return 6
-        elif 9800000 <= score < 9900000:  # EX
+        if score >= 9800000:  # EX
             return 5
-        elif 9500000 <= score < 9800000:  # AA
+        if score >= 9500000:  # AA
             return 4
-        elif 9200000 <= score < 9500000:  # A
+        if score >= 9200000:  # A
             return 3
-        elif 8900000 <= score < 9200000:  # B
+        if score >= 8900000:  # B
             return 2
-        elif 8600000 <= score < 8900000:  # C
+        if score >= 8600000:  # C
             return 1
-        else:
-            return 0
+        return 0
 
     @property
     def song_grade(self) -> int:
@@ -67,20 +68,23 @@ class Score:
         '''clear_type转换为成绩状态，用数字大小标识便于比较'''
         if clear_type == 3:  # PM
             return 5
-        elif clear_type == 2:  # FC
+        if clear_type == 2:  # FC
             return 4
-        elif clear_type == 5:  # Hard Clear
+        if clear_type == 5:  # Hard Clear
             return 3
-        elif clear_type == 1:  # Clear
+        if clear_type == 1:  # Clear
             return 2
-        elif clear_type == 4:  # Easy Clear
+        if clear_type == 4:  # Easy Clear
             return 1
-        else:  # Track Lost
-            return 0
+        return 0  # Track Lost
 
     @property
     def song_state(self) -> int:
         return self.get_song_state(self.clear_type)
+
+    @property
+    def all_note_count(self) -> int:
+        return self.perfect_count + self.near_count + self.miss_count
 
     @property
     def is_valid(self) -> bool:
@@ -90,7 +94,7 @@ class Score:
         if self.song.difficulty not in (0, 1, 2, 3):
             return False
 
-        all_note = self.perfect_count + self.near_count + self.miss_count
+        all_note = self.all_note_count
         if all_note == 0:
             return False
 
@@ -112,8 +116,7 @@ class Score:
             ptt = defnum + 2
         elif score < 9800000:
             ptt = defnum + (score-9500000) / 300000
-            if ptt < 0:
-                ptt = 0
+            ptt = max(ptt, 0)
         else:
             ptt = defnum + 1 + (score-9800000) / 200000
 
@@ -217,7 +220,10 @@ class UserPlay(UserScore):
         self.course_play_state: int = None
         self.course_play: 'CoursePlay' = None
 
+        self.combo_interval_bonus: int = None  # 不能给 None 以外的默认值
+
     def to_dict(self) -> dict:
+        # 不能super
         if self.is_world_mode is None or self.course_play_state is None:
             return {}
         if self.course_play_state == 4:
@@ -249,10 +255,15 @@ class UserPlay(UserScore):
         if songfile_hash and songfile_hash != self.song_hash:
             return False
 
-        x = self.song_token + self.song_hash + self.song.song_id + str(self.song.difficulty) + str(self.score) + str(self.shiny_perfect_count) + str(
-            self.perfect_count) + str(self.near_count) + str(self.miss_count) + str(self.health) + str(self.modifier) + str(self.clear_type)
-        y = str(self.user.user_id) + self.song_hash
+        x = f'''{self.song_token}{self.song_hash}{self.song.song_id}{self.song.difficulty}{self.score}{self.shiny_perfect_count}{self.perfect_count}{self.near_count}{self.miss_count}{self.health}{self.modifier}{self.clear_type}'''
+        if self.combo_interval_bonus is not None:
+            if self.combo_interval_bonus < 0 or self.combo_interval_bonus > self.all_note_count / 150:
+                return False
+            x = x + str(self.combo_interval_bonus)
+
+        y = f'{self.user.user_id}{self.song_hash}'
         checksum = md5(x+md5(y))
+
         if checksum != self.submission_hash:
             return False
 
@@ -302,7 +313,7 @@ class UserPlay(UserScore):
             x = self.c.fetchone()
             if x:
                 self.prog_boost_multiply = 300 if x[0] == 300 else 0
-                if x[1] < self.beyond_boost_gauge_usage or (self.beyond_boost_gauge_usage != 100 and self.beyond_boost_gauge_usage != 200):
+                if x[1] < self.beyond_boost_gauge_usage or self.beyond_boost_gauge_usage not in (100, 200):
                     # 注意：偷懒了，没判断是否是beyond图
                     self.beyond_boost_gauge_usage = 0
 
@@ -374,8 +385,8 @@ class UserPlay(UserScore):
         '''更新此分数对应用户的recent30'''
         old_recent_10 = self.ptt.recent_10
         if self.is_protected:
-            old_r30 = [x for x in self.ptt.r30]
-            old_s30 = [x for x in self.ptt.s30]
+            old_r30 = self.ptt.r30.copy()
+            old_s30 = self.ptt.s30.copy()
 
         # 寻找pop位置
         songs = list(set(self.ptt.s30))
@@ -479,7 +490,8 @@ class UserPlay(UserScore):
 
 class Potential:
     '''
-        用户潜力值计算处理类\ 
+        用户潜力值计算处理类
+
         property: `user` - `User`类或子类的实例
     '''
 
@@ -487,8 +499,8 @@ class Potential:
         self.c = c
         self.user = user
 
-        self.r30: list = None
-        self.s30: list = None
+        self.r30: 'list[float]' = None
+        self.s30: 'list[str]' = None
         self.songs_selected: list = None
 
         self.b30: list = None
@@ -503,7 +515,7 @@ class Potential:
         '''获取用户best30的总潜力值'''
         self.c.execute('''select rating from best_score where user_id = :a order by rating DESC limit 30''', {
             'a': self.user.user_id})
-        return sum([x[0] for x in self.c.fetchall()])
+        return sum(x[0] for x in self.c.fetchall())
 
     def select_recent_30(self) -> None:
         '''获取用户recent30数据'''
@@ -578,7 +590,8 @@ class Potential:
 
 class UserScoreList:
     '''
-        用户分数查询类\ 
+        用户分数查询类
+
         properties: `user` - `User`类或子类的实例
     '''
 

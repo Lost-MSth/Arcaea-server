@@ -73,18 +73,12 @@ It is just so interesting. What it can do is under exploration.
 >
 > Tips: When updating, please keep the original database in case of data loss.
 
-### Version 2.11.0
+### Version 2.11.1
 
-- 适用于Arcaea 4.3.0版本 For Arcaea 4.3.0
-- 新搭档 **霞玛（大～宇～宙）**、**米露可（大～宇～宙）**、**紫黑**、**百合咲美香** 已解锁 Unlock the character **Shama(UNiVERSE)**, **Milk(UNiVERSE)**, **Shikoku**, **Mika Yurisaki**.
-- 搭档 **依莉丝** 已觉醒 Uncap the character **Ilith**.
-- 为觉醒 **依莉丝** 以及 **百合咲美香** 的技能提供支持 Add support for the skills of uncapped **Ilith** and **Mika Yurisaki**.
-- 为 Beyond 图倍增提供支持 Add support for beyond gauge boost.
-- 为 Beyond 连锁图提供支持 Add support for beyond chain maps.
-- 修复联机时无人房间仍可进入的问题 Fix a logic bug that the room without anyone can be entered in multiplayer.
-- 对一些数值的算法进行了更改 Some changes in some values' algorithms.
-- 小重构 Link Play 子程序 Refactor simply for Link Play subprogram.
-- 新增增删改兑换码、购买项目、登陆奖励、物品的API接口 Add some API endpoints, including creating, changing, deleting about redeem, purchase, login present and item.
+- 适用于Arcaea 4.4.0版本 For Arcaea 4.4.0
+- 新搭档 **密特拉·泰尔塞拉**、**不来方斗亚** 已解锁 Unlock the character **Mithra Tercera** and **Toa Kozukata**.
+- 为 **密特拉·泰尔塞拉** 的技能提供支持 Add support for the skill of **Mithra Tercera**.
+- 新增修改搭档的API接口 Add some API endpoints about characters.
 
 ## 运行环境与依赖 Running environment and requirements
 

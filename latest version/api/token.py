@@ -17,21 +17,22 @@ bp = Blueprint('token', __name__, url_prefix='/token')
 @api_try
 def token_post(data):
     '''
-        登录，获取token\ 
+        登录，获取token
+
         {'auth': base64('<user_id>:<password>')}
     '''
     try:
         auth_decode = bytes.decode(b64decode(data['auth']))
-    except:
-        raise PostError(api_error_code=-100)
-    if not ':' in auth_decode:
+    except Exception as e:
+        raise PostError(api_error_code=-100) from e
+    if ':' not in auth_decode:
         raise PostError(api_error_code=-100)
     name, password = auth_decode.split(':', 1)
 
     with Connect() as c:
         user = APIUser(c)
         user.login(name, password, request.remote_addr)
-        return success_return({'token': user.token, 'user_id': user.user_id})
+        return success_return({'token': user.api_token, 'user_id': user.user_id})
 
 
 @bp.route('', methods=['GET'])

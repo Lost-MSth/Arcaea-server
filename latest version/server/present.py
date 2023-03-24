@@ -1,7 +1,8 @@
+from flask import Blueprint, request
+
 from core.present import UserPresent, UserPresentList
 from core.sql import Connect
 from core.user import UserOnline
-from flask import Blueprint, request
 
 from .auth import auth_required
 from .func import arc_try, success_return

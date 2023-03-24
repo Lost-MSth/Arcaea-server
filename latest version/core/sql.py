@@ -12,14 +12,17 @@ class Connect:
 
     def __init__(self, file_path: str = Constant.SQLITE_DATABASE_PATH, in_memory: bool = False, logger=None) -> None:
         """
-            数据库连接，默认连接arcaea_database.db\ 
-            接受：文件路径\ 
+            数据库连接，默认连接arcaea_database.db
+            接受：文件路径
             返回：sqlite3连接操作对象
         """
         self.file_path = file_path
         self.in_memory: bool = in_memory
         if logger is not None:
             self.logger = logger
+
+        self.conn: sqlite3.Connection = None
+        self.c: sqlite3.Cursor = None
 
     def __enter__(self) -> sqlite3.Cursor:
         if self.in_memory:
@@ -144,19 +147,19 @@ class Query:
                         raise InputError(api_error_code=-104)
         self.__sort = sort
 
-    def set_value(self, limit=-1, offset=0, query={}, fuzzy_query={}, sort=[]) -> None:
+    def set_value(self, limit=-1, offset=0, query=None, fuzzy_query=None, sort=None) -> None:
         self.limit = limit
         self.offset = offset
-        self.query = query
-        self.fuzzy_query = fuzzy_query
-        self.sort = sort
+        self.query = query if query is not None else {}
+        self.fuzzy_query = fuzzy_query if fuzzy_query is not None else {}
+        self.sort = sort if sort is not None else []
 
     def from_dict(self, d: dict) -> 'Query':
         self.set_value(d.get('limit', -1), d.get('offset', 0),
                        d.get('query', {}), d.get('fuzzy_query', {}), d.get('sort', []))
         return self
 
-    def from_args(self, query: dict, limit: int = -1, offset: int = 0, sort: list = [], fuzzy_query: dict = {}) -> 'Query':
+    def from_args(self, query: dict, limit: int = -1, offset: int = 0, sort: list = None, fuzzy_query: dict = None) -> 'Query':
         self.set_value(limit, offset, query, fuzzy_query, sort)
         return self
 
@@ -170,7 +173,7 @@ class Sql:
         self.c = c
 
     @staticmethod
-    def get_select_sql(table_name: str, target_column: list = [], query: 'Query' = None):
+    def get_select_sql(table_name: str, target_column: list = None, query: 'Query' = None):
         '''拼接单表内行查询单句sql语句，返回语句和参数列表'''
         sql_list = []
         if not target_column:
@@ -210,8 +213,10 @@ class Sql:
         return sql, sql_list
 
     @staticmethod
-    def get_insert_sql(table_name: str, key: list = [], value_len: int = None, insert_type: str = None) -> str:
+    def get_insert_sql(table_name: str, key: list = None, value_len: int = None, insert_type: str = None) -> str:
         '''拼接insert语句，请注意只返回sql语句，insert_type为replace或ignore'''
+        if key is None:
+            key = []
         insert_type = 'replace' if insert_type in [
             'replace', 'R', 'r', 'REPLACE'] else 'ignore'
         return ('insert into ' if insert_type is None else 'insert or ' + insert_type + ' into ') + table_name + ('(' + ','.join(key) + ')' if key else '') + ' values(' + ','.join(['?'] * (len(key) if value_len is None else value_len)) + ')'
@@ -281,13 +286,13 @@ class Sql:
 
         return sql, sql_list
 
-    def select(self, table_name: str, target_column: list = [], query: 'Query' = None) -> list:
+    def select(self, table_name: str, target_column: list = None, query: 'Query' = None) -> list:
         '''单表内行select单句sql语句，返回fetchall数据'''
         sql, sql_list = self.get_select_sql(table_name, target_column, query)
         self.c.execute(sql, sql_list)
         return self.c.fetchall()
 
-    def select_exists(self, table_name: str, target_column: list = [], query: 'Query' = None) -> bool:
+    def select_exists(self, table_name: str, target_column: list = None, query: 'Query' = None) -> bool:
         '''单表内行select exists单句sql语句，返回bool值'''
         sql, sql_list = self.get_select_sql(table_name, target_column, query)
         self.c.execute('select exists(' + sql + ')', sql_list)
@@ -329,7 +334,7 @@ class Sql:
         pk = []
         name = []
 
-        self.c.execute('''pragma table_info ("%s")''' % table_name)  # 这里无法参数化
+        self.c.execute(f'''pragma table_info ("{table_name}")''')  # 这里无法参数化
         x = self.c.fetchall()
         if x:
             for i in x:
@@ -390,8 +395,8 @@ class DatabaseMigrator:
         '''
         with Connect(self.c2_path) as c2:
             with Connect(self.c1_path) as c1:
-                [self.update_one_table(c1, c2, i)
-                 for i in Constant.DATABASE_MIGRATE_TABLES]
+                for i in Constant.DATABASE_MIGRATE_TABLES:
+                    self.update_one_table(c1, c2, i)
 
                 if not Constant.UPDATE_WITH_NEW_CHARACTER_DATA:
                     self.update_one_table(c1, c2, 'character')
@@ -406,7 +411,7 @@ class MemoryDatabase:
         self.c = self.conn.cursor()
         self.c.execute('''PRAGMA journal_mode = OFF''')
         self.c.execute('''PRAGMA synchronous = 0''')
-        self.c.execute('''create table if not exists download_token(user_id int, 
+        self.c.execute('''create table if not exists download_token(user_id int,
         song_id text,file_name text,token text,time int,primary key(user_id, song_id, file_name));''')
         self.c.execute(
             '''create index if not exists download_token_1 on download_token (song_id, file_name);''')

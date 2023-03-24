@@ -664,5 +664,23 @@
 		],
 		"orig_price": 400,
 		"price": 400
+	},
+	{
+		"name": "chunithm_append_2",
+		"items": [
+			{
+				"type": "pack",
+				"id": "chunithm_append_2",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 5,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 500,
+		"price": 500
 	}
 ]
