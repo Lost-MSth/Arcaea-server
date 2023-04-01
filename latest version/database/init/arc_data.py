@@ -59,7 +59,8 @@ class InitData:
         12: [{'core_id': 'core_binary', 'amount': 25}, {'core_id': 'core_desolate', 'amount': 5}],
         19: [{'core_id': 'core_colorful', 'amount': 30}],
         10: [{'core_id': 'core_umbral', 'amount': 30}],
-        66: [{'core_id': 'core_chunithm', 'amount': 15}]
+        66: [{'core_id': 'core_chunithm', 'amount': 15}],
+        5: [{'core_id': 'core_hollow', 'amount': 0}]
     }
 
     cores = ['core_hollow', 'core_desolate', 'core_chunithm', 'core_crimson',

@@ -349,7 +349,7 @@ class UserCharacter(Character):
             self.c.execute(
                 '''select amount from user_item where user_id=? and item_id=? and type="core"''', (self.user.user_id, i.item_id))
             y = self.c.fetchone()
-            if not y or i.amount > y[0]:
+            if i.amount > 0 and (not y or i.amount > y[0]):
                 raise ItemNotEnough('The cores are not enough.')
 
         for i in self.uncap_cores:
