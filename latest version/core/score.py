@@ -2,12 +2,13 @@ from base64 import b64encode
 from os import urandom
 from time import time
 
+from .bgtask import logdb_execute
 from .constant import Constant
 from .course import CoursePlay
 from .error import NoData, StaminaNotEnough
 from .item import ItemCore
 from .song import Chart
-from .sql import Connect, Query, Sql
+from .sql import Query, Sql
 from .util import md5
 from .world import WorldPlay
 
@@ -427,9 +428,8 @@ class UserPlay(UserScore):
 
     def record_score(self) -> None:
         '''向log数据库记录分数，请注意列名不同'''
-        with Connect(Constant.SQLITE_LOG_DATABASE_PATH) as c2:
-            c2.execute('''insert into user_score values(?,?,?,?,?,?,?,?,?,?,?,?,?)''', (self.user.user_id, self.song.song_id, self.song.difficulty, self.time_played,
-                                                                                        self.score, self.shiny_perfect_count, self.perfect_count, self.near_count, self.miss_count, self.health, self.modifier, self.clear_type, self.rating))
+        logdb_execute('''insert into user_score values(?,?,?,?,?,?,?,?,?,?,?,?,?)''', (self.user.user_id, self.song.song_id, self.song.difficulty, self.time_played,
+                                                                                       self.score, self.shiny_perfect_count, self.perfect_count, self.near_count, self.miss_count, self.health, self.modifier, self.clear_type, self.rating))
 
     def upload_score(self) -> None:
         '''上传分数，包括user的recent更新，best更新，recent30更新，世界模式计算'''
@@ -477,6 +477,7 @@ class UserPlay(UserScore):
         self.user.rating_ptt = int(self.ptt.value * 100)
         self.c.execute('''update user set rating_ptt = :a where user_id = :b''', {
             'a': self.user.rating_ptt, 'b': self.user.user_id})
+        # TODO: PTT log
 
         # 世界模式判断
         if self.is_world_mode:
