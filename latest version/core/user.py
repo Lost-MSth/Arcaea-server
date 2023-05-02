@@ -763,7 +763,7 @@ class UserChanger(UserInfo, UserRegister):
         if columns is not None:
             d = {}
             for column in columns:
-                if column == 'password':
+                if column == 'password' and self.password != '':
                     d[column] = self.hash_pwd
                 else:
                     d[column] = self.__dict__[column]

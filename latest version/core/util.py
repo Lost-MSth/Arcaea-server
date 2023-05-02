@@ -1,5 +1,7 @@
 import hashlib
 import os
+from datetime import date
+from time import mktime
 
 
 def md5(code: str) -> str:
@@ -37,3 +39,8 @@ def try_rename(path: str, new_path: str) -> str:
 
     os.rename(path, final_path)
     return final_path
+
+
+def get_today_timestamp():
+    '''相对于本机本地时间的今天0点的时间戳'''
+    return int(mktime(date.today().timetuple()))

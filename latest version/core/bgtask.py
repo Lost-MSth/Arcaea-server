@@ -35,6 +35,16 @@ def logdb_execute_func(sql, *args, **kwargs):
         c.execute(sql, *args, **kwargs)
 
 
+def logdb_execute_many_func(sql, *args, **kwargs):
+    with Connect(Constant.SQLITE_LOG_DATABASE_PATH) as c:
+        c.executemany(sql, *args, **kwargs)
+
+
 def logdb_execute(sql: str, *args, **kwargs):
     '''异步执行SQL，日志库写入，注意不会直接返回结果'''
     return BGTask(logdb_execute_func, sql, *args, **kwargs)
+
+
+def logdb_execute_many(sql: str, *args, **kwargs):
+    '''异步批量执行SQL，日志库写入，注意不会直接返回结果'''
+    return BGTask(logdb_execute_many_func, sql, *args, **kwargs)

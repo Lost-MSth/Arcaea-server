@@ -1,6 +1,7 @@
 from .config_manager import Config
 
 ARCAEA_SERVER_VERSION = 'v2.11.1.3'
+ARCAEA_LOG_DATBASE_VERSION = 'v1.1'
 
 
 class Constant:
@@ -100,5 +101,7 @@ class Constant:
 
     DATABASE_MIGRATE_TABLES = ['user', 'friend', 'best_score', 'recent30', 'user_world', 'item', 'user_item', 'purchase', 'purchase_item', 'user_save',
                                'login', 'present', 'user_present', 'present_item', 'redeem', 'user_redeem', 'redeem_item', 'api_login', 'chart', 'user_course', 'user_char', 'user_role']
+
+    LOG_DATABASE_MIGRATE_TABLES = ['cache', 'user_score', 'user_rating']
 
     UPDATE_WITH_NEW_CHARACTER_DATA = Config.UPDATE_WITH_NEW_CHARACTER_DATA
