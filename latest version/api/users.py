@@ -1,10 +1,12 @@
 from flask import Blueprint, request
 
 from core.api_user import APIUser
+from core.config_manager import Config
 from core.error import InputError, NoAccess, NoData
 from core.score import Potential, UserScoreList
 from core.sql import Connect, Query, Sql
 from core.user import UserChanger, UserInfo, UserRegister
+from core.util import get_today_timestamp
 
 from .api_auth import api_try, request_json_handle, role_required
 from .api_code import error_return, success_return
@@ -191,3 +193,32 @@ def users_user_role_get(user, user_id):
         x = APIUser(c, user_id)
         x.select_role_and_powers()
         return success_return({'user_id': x.user_id, 'role': x.role.role_id, 'powers': [i.power_id for i in x.role.powers]})
+
+
+@bp.route('/<int:user_id>/rating', methods=['GET'])
+@role_required(request, ['select', 'select_me'])
+@request_json_handle(request, optional_keys=['start_timestamp', 'end_timestamp', 'duration'])
+@api_try
+def users_user_rating_get(data, user, user_id):
+    '''查询用户历史rating，`duration`是相对于今天的天数'''
+    # 查别人需要select权限
+    if user_id != user.user_id and not user.role.has_power('select'):
+        return error_return(NoAccess('No permission', api_error_code=-1), 403)
+
+    start_timestamp = data.get('start_timestamp', None)
+    end_timestamp = data.get('end_timestamp', None)
+    duration = data.get('duration', None)
+    sql = '''select time, rating_ptt from user_rating where user_id = ?'''
+    sql_data = [user_id]
+    if start_timestamp is not None and end_timestamp is not None:
+        sql += ''' and time between ? and ?'''
+        sql_data += [start_timestamp, end_timestamp]
+    elif duration is not None:
+        sql += ''' and time between ? and ?'''
+        t = get_today_timestamp()
+        sql_data += [t - duration * 24 * 3600, t]
+
+    with Connect(Config.SQLITE_LOG_DATABASE_PATH) as c:
+        c.execute(sql, sql_data)
+        r = c.fetchall()
+        return success_return({'user_id': user_id, 'data': [{'time': i[0], 'rating_ptt': i[1]} for i in r]})

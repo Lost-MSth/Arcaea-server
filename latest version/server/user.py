@@ -1,4 +1,4 @@
-from flask import Blueprint, request
+from flask import Blueprint, current_app, request
 
 from core.character import UserCharacter
 from core.error import ArcError
@@ -36,6 +36,7 @@ def register():
         user = UserLogin(c)
         user.login(new_user.name, new_user.password,
                    device_id, request.remote_addr)
+        current_app.logger.info(f'New user `{user.user_id}` registered')
         return success_return({'user_id': user.user_id, 'access_token': user.token})
 
 

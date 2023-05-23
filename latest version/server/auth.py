@@ -32,7 +32,7 @@ def login():
 
         user = UserLogin(c)
         user.login(name, password, device_id, request.remote_addr)
-
+        current_app.logger.info(f'User `{user.user_id}` log in')
         return jsonify({"success": True, "token_type": "Bearer", 'user_id': user.user_id, 'access_token': user.token})
 
 

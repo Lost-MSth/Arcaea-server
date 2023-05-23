@@ -54,6 +54,11 @@ def finale_start():
     return success_return({})
 
 
+@bp.route('/finale/finale_end', methods=['POST'])
+def finale_end():
+    return success_return({})
+
+
 map_dict = {'/user/me': user_me,
             '/purchase/bundle/pack': bundle_pack,
             '/serve/download/me/song': download_song,

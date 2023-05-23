@@ -127,7 +127,8 @@ class APIUser(UserOnline):
         if ip is not None:
             self.ip = ip
         if not self.limiter.hit(name):
-            raise RateLimit('Too many login attempts', api_error_code=-205)
+            raise RateLimit(
+                f'Too many login attempts of username {name}', api_error_code=-205)
 
         self.c.execute('''select user_id, password from user where name = :a''', {
                        'a': self.name})
@@ -136,9 +137,9 @@ class APIUser(UserOnline):
             raise NoData(
                 f'The user `{self.name}` does not exist.', api_error_code=-201, status=401)
         if x[1] == '':
-            raise UserBan(f'The user `{self.name}` is banned.')
+            raise UserBan(f'The user `{x[0]}` is banned.')
         if self.hash_pwd != x[1]:
-            raise NoAccess('The password is incorrect.',
+            raise NoAccess(f'The password of user `{x[0]}` is incorrect.',
                            api_error_code=-201, status=401)
 
         self.user_id = x[0]
