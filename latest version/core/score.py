@@ -2,13 +2,15 @@ from base64 import b64encode
 from os import urandom
 from time import time
 
+from .bgtask import BGTask, logdb_execute
+from .config_manager import Config
 from .constant import Constant
 from .course import CoursePlay
 from .error import NoData, StaminaNotEnough
 from .item import ItemCore
 from .song import Chart
 from .sql import Connect, Query, Sql
-from .util import md5
+from .util import get_today_timestamp, md5
 from .world import WorldPlay
 
 
@@ -427,9 +429,20 @@ class UserPlay(UserScore):
 
     def record_score(self) -> None:
         '''向log数据库记录分数，请注意列名不同'''
-        with Connect(Constant.SQLITE_LOG_DATABASE_PATH) as c2:
-            c2.execute('''insert into user_score values(?,?,?,?,?,?,?,?,?,?,?,?,?)''', (self.user.user_id, self.song.song_id, self.song.difficulty, self.time_played,
-                                                                                        self.score, self.shiny_perfect_count, self.perfect_count, self.near_count, self.miss_count, self.health, self.modifier, self.clear_type, self.rating))
+        logdb_execute('''insert into user_score values(?,?,?,?,?,?,?,?,?,?,?,?,?)''', (self.user.user_id, self.song.song_id, self.song.difficulty, self.time_played,
+                                                                                       self.score, self.shiny_perfect_count, self.perfect_count, self.near_count, self.miss_count, self.health, self.modifier, self.clear_type, self.rating))
+
+    def record_rating_ptt(self, user_rating_ptt: float) -> None:
+        '''向log数据库记录用户ptt变化'''
+        today_timestamp = get_today_timestamp()
+        with Connect(Config.SQLITE_LOG_DATABASE_PATH) as c2:
+            old_ptt = c2.execute('''select rating_ptt from user_rating where user_id=? and time=?''', (
+                self.user.user_id, today_timestamp)).fetchone()
+
+            old_ptt = 0 if old_ptt is None else old_ptt[0]
+            if old_ptt != user_rating_ptt:
+                c2.execute('''insert or replace into user_rating values(?,?,?)''',
+                           (self.user.user_id, today_timestamp, user_rating_ptt))
 
     def upload_score(self) -> None:
         '''上传分数，包括user的recent更新，best更新，recent30更新，世界模式计算'''
@@ -474,7 +487,9 @@ class UserPlay(UserScore):
             self.update_recent30()
 
         # 总PTT更新
-        self.user.rating_ptt = int(self.ptt.value * 100)
+        user_rating_ptt = self.ptt.value
+        self.user.rating_ptt = int(user_rating_ptt * 100)
+        BGTask(self.record_rating_ptt, user_rating_ptt)  # 记录总PTT变换
         self.c.execute('''update user set rating_ptt = :a where user_id = :b''', {
             'a': self.user.rating_ptt, 'b': self.user.user_id})
 

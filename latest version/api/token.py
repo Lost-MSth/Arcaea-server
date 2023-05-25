@@ -1,6 +1,6 @@
 from base64 import b64decode
 
-from flask import Blueprint, request
+from flask import Blueprint, current_app, request
 
 from core.api_user import APIUser
 from core.error import PostError
@@ -32,6 +32,7 @@ def token_post(data):
     with Connect() as c:
         user = APIUser(c)
         user.login(name, password, request.remote_addr)
+        current_app.logger.info(f'API user `{user.user_id}` log in')
         return success_return({'token': user.api_token, 'user_id': user.user_id})
 
 

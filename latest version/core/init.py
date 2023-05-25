@@ -7,11 +7,12 @@ from time import time
 from traceback import format_exc
 
 from core.config_manager import Config
-from core.constant import ARCAEA_SERVER_VERSION
+from core.constant import ARCAEA_LOG_DATBASE_VERSION, ARCAEA_SERVER_VERSION
 from core.course import Course
 from core.download import DownloadList
 from core.purchase import Purchase
-from core.sql import Connect, DatabaseMigrator, MemoryDatabase
+from core.sql import (Connect, DatabaseMigrator, LogDatabaseMigrator,
+                      MemoryDatabase)
 from core.user import UserRegister
 from core.util import try_rename
 
@@ -208,6 +209,29 @@ class FileChecker:
                 self.logger.error(
                     f'Failed to new the file {Config.SQLITE_LOG_DATABASE_PATH}')
                 return False
+        else:
+            # 检查更新
+            with Connect(Config.SQLITE_LOG_DATABASE_PATH) as c:
+                try:
+                    x = c.execute(
+                        '''select value from cache where key="version"''').fetchone()
+                except:
+                    x = None
+            if not x or x[0] != ARCAEA_LOG_DATBASE_VERSION:
+                self.logger.warning(
+                    f'Maybe the file `{Config.SQLITE_LOG_DATABASE_PATH}` is an old version.')
+                try:
+                    self.logger.info(
+                        f'Try to update the file `{Config.SQLITE_LOG_DATABASE_PATH}`')
+                    self.update_log_database()
+                    self.logger.info(
+                        f'Success to update the file `{Config.SQLITE_LOG_DATABASE_PATH}`')
+                except Exception as e:
+                    self.logger.error(format_exc())
+                    self.logger.error(
+                        f'Failed to update the file `{Config.SQLITE_LOG_DATABASE_PATH}`')
+                    return False
+
         if not self.check_file(Config.SQLITE_DATABASE_PATH):
             # 新建数据库
             try:
@@ -274,6 +298,12 @@ class FileChecker:
         if os.path.isfile(old_path) and os.path.isfile(new_path):
             DatabaseMigrator(old_path, new_path).update_database()
             os.remove(old_path)
+
+    @staticmethod
+    def update_log_database(old_path: str = Config.SQLITE_LOG_DATABASE_PATH) -> None:
+        '''直接更新日志数据库'''
+        if os.path.isfile(old_path):
+            LogDatabaseMigrator(old_path).update_database()
 
     def check_song_file(self) -> bool:
         '''检查song有关文件并初始化缓存'''

@@ -1,8 +1,10 @@
+import os
 import sqlite3
 import traceback
 from atexit import register
 
-from .constant import Constant
+from .config_manager import Config
+from .constant import ARCAEA_LOG_DATBASE_VERSION, Constant
 from .error import ArcError, InputError
 
 
@@ -402,6 +404,31 @@ class DatabaseMigrator:
                     self.update_one_table(c1, c2, 'character')
 
             self.update_user_char_full(c2)  # 更新user_char_full
+
+
+class LogDatabaseMigrator:
+
+    def __init__(self, c1_path: str = Config.SQLITE_LOG_DATABASE_PATH) -> None:
+        self.c1_path = c1_path
+        # self.c2_path = c2_path
+        self.init_folder_path = Config.DATABASE_INIT_PATH
+        self.c = None
+
+    @property
+    def sql_path(self) -> str:
+        return os.path.join(self.init_folder_path, 'log_tables.sql')
+
+    def table_update(self) -> None:
+        '''直接更新数据库结构'''
+        with open(self.sql_path, 'r') as f:
+            self.c.executescript(f.read())
+        self.c.execute(
+            '''insert or replace into cache values("version", :a, -1);''', {'a': ARCAEA_LOG_DATBASE_VERSION})
+
+    def update_database(self) -> None:
+        with Connect(self.c1_path) as c:
+            self.c = c
+            self.table_update()
 
 
 class MemoryDatabase:

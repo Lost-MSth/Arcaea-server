@@ -17,6 +17,11 @@ clear_type int,
 rating real,
 primary key(user_id, song_id, difficulty, time_played)
 );
+create table if not exists user_rating(user_id int,
+time int,
+rating_ptt real,
+primary key(user_id, time)
+);
 
 create index if not exists user_score_1 on user_score (song_id, difficulty);
 create index if not exists user_score_2 on user_score (time_played);

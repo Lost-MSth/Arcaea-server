@@ -237,7 +237,8 @@ class UserLogin(User):
             self.set_ip(ip)
 
         if not self.limiter.hit(name):
-            raise RateLimit('Too many login attempts.', 123, -203)
+            raise RateLimit(
+                f'Too many login attempts of username `{name}`', 123, -203)
 
         self.c.execute('''select user_id, password, ban_flag from user where name = :name''', {
                        'name': self.name})
@@ -251,7 +252,7 @@ class UserLogin(User):
             # 自动封号检查
             ban_timestamp = int(x[2].split(':', 1)[1])
             if ban_timestamp > self.now:
-                raise UserBan('Too many devices logging in during 24 hours.', 105, extra_data={
+                raise UserBan(f'Too many devices user `{self.user_id}` logging in during 24 hours.', 105, extra_data={
                               'remaining_ts': ban_timestamp-self.now})
 
         if x[1] == '':
@@ -260,7 +261,7 @@ class UserLogin(User):
                 f'The account `{self.user_id}` has been banned.', 106)
 
         if x[1] != self.hash_pwd:
-            raise NoAccess('Wrong password.', 104)
+            raise NoAccess(f'Wrong password of user `{self.user_id}`', 104)
 
         self.token = base64.b64encode(hashlib.sha256(
             (str(self.user_id) + str(self.now)).encode("utf8") + urandom(8)).digest()).decode()
@@ -763,7 +764,7 @@ class UserChanger(UserInfo, UserRegister):
         if columns is not None:
             d = {}
             for column in columns:
-                if column == 'password':
+                if column == 'password' and self.password != '':
                     d[column] = self.hash_pwd
                 else:
                     d[column] = self.__dict__[column]
