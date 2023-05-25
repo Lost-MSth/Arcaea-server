@@ -1414,5 +1414,59 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "lostintheabyss",
+		"items": [
+			{
+				"type": "single",
+				"id": "lostintheabyss",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "galacticlove",
+		"items": [
+			{
+				"type": "single",
+				"id": "galacticlove",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "tothemilkyway",
+		"items": [
+			{
+				"type": "single",
+				"id": "tothemilkyway",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

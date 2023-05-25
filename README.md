@@ -17,41 +17,52 @@ This procedure is mainly used for study and research, and shall not be used for 
 
 ## 特性 Features
 
-有以下 We have：
+:x: : 不支持 Not supported
+:warning: : 可能存在问题 / 可能与官方不一样 Possible issues / may differ from official
+:wastebasket: : 不再更新，可能会移除或重构 No longer updated, may be removed or refactored
+:construction: : 建设中 In construction
 
 - 登录、注册 Login and registration
-- 多设备登录 Multi device login
+  - 多设备自动封号 Auto-ban of multiple devices
+  - :warning: 多设备登录 Multi device login
+  - 登录频次限制 Login rate limit
+  - :x: 销号 Destroy account
 - 成绩上传 Score upload
-- PTT
-- 世界排名 Global rank
-- 排名 Rank
+  - 成绩校验 Score check
+  - 成绩排名 Score rank
+- 潜力值机制 Potential
+  - Best 30
+  - :warning: Recent Top 10
+- :warning: 世界排名 Global rank
 - 段位系统 Course system
-- Link Play
+- :warning: Link Play
 - 好友系统 Friends
+  - :x: 好友位提升 Max friend number increase
 - 云端存档 Cloud save
-- 爬梯 Climbing steps
-- 自定义世界模式 Customizable World Mode
-- 自定义歌曲下载 Customizable songs download
-- 单曲和曲包购买（没啥用） Single songs and song packs purchase(useless)
+  - 尝试全剧情、曲目解锁 Try to unlock all the stories and songs
+- 世界模式 World mode
+  - 体力系统 Stamina system
+  - :warning: 普通梯子强化和绳子强化 Normal steps boost & beyond boost
+  - :warning: 角色技能 Character skills
+- 歌曲下载 Songs downloading
+  - :x: 加密下载 Encrypted downloading
+  - 下载校验 Download check
+  - 下载频次限制 Download rate limit
+- 购买系统 Purchase system
+  - 单曲和曲包 Single & Pack
+  - :x: 捆绑包 Bundle
+  - 折扣 Discount
+  - 五周年兑换券 5-th anniversary ticket
+  - :x: Extend 包自动降价 Extend pack automatic price reduction
 - 奖励系统 Present system
 - 兑换码系统 Redeem code system
 - 角色系统 Character system
-- 全剧情解锁 Unlock all the stories
-- 后台查询 Background search
-- 后台自定义信息 Customize some things in the background
-- 成绩校验 Score check
-- 下载校验 Download check
+- 数据记录 Data recording
+  - 用户成绩 Users' scores
+  - 用户每日潜力值 Users' daily potential
+- :wastebasket: 简单的网页管理后台 Simple web admin backend
+- :construction: API
 - 服务器日志 Server log
-
-没有以下 We don't have：
-
-- 服务器安全性保证 Server security assurance
-
-可能有问题 There may be problems：
-
-- Recent 30
-- 一些歌曲的解锁 Some songs' unlocking
-- 同设备多共存登录 Multiple app logins on the same device
 
 ## 说明 Statement
 
@@ -69,22 +80,28 @@ It is just so interesting. What it can do is under exploration.
 
 只保留最新版本 Only keep the latest version.
 
-> 提醒：更新时请注意保留原先的数据库，以防数据丢失。
->
+> 提醒：更新时请注意保留原先的数据库，以防数据丢失。  
 > Tips: When updating, please keep the original database in case of data loss.
+>
+> 其它小改动请参考各个 commit 信息  
+> Please refer to the commit messages for other minor changes.
 
-### Version 2.11.1
+### Version 2.11.2
 
-- 适用于Arcaea 4.4.0版本 For Arcaea 4.4.0
-- 新搭档 **密特拉·泰尔塞拉**、**不来方斗亚** 已解锁 Unlock the character **Mithra Tercera** and **Toa Kozukata**.
-- 为 **密特拉·泰尔塞拉** 的技能提供支持 Add support for the skill of **Mithra Tercera**.
-- 新增修改搭档的API接口 Add some API endpoints about characters.
+- 适用于 Arcaea 4.4.6 版本 For Arcaea 4.4.6
+- 新搭档 **奈美（暮光）** 已解锁 Unlock the character **Nami (Twilight)**.
+- 新增用户潜力值每日记录功能 Add support for recording users' potential each day.
+- 修复搭档 **光 & 对立（Reunion）** 无法觉醒的问题 Fix a bug that the character **Hikari & Tairitsu (Reunion)** cannot be uncapped. (#100)
+- 添加 `finale/finale_end` 接口尝试修复最终挑战无法解锁结局的问题 Add the `finale/finale_end` endpoint to try to fix the problem that the endings cannot be unlocked correctly in the finale challenge. (#110)
+- 新增获取用户潜力值记录的 API 接口 Add an API endpoint for getting the user's rating records.
 
 ## 运行环境与依赖 Running environment and requirements
 
-- Windows/Linux/Mac OS/Android...
+- Windows / Linux / Mac OS / Android...
 - Python >= 3.6
-- Flask module >= 2.0, Cryptography module >= 3.0.0, limits >= 2.7.0
+  - Flask >= 2.0
+  - Cryptography >= 3.0.0
+  - limits >= 2.7.0
 - Charles, IDA, proxy app... (optional)
 
 <!--
@@ -105,7 +122,7 @@ It is just so interesting. What it can do is under exploration.
 
 ## Q&A
 
-[中文/English](https://github.com/Lost-MSth/Arcaea-server/wiki/Q&A)
+[中文 / English](https://github.com/Lost-MSth/Arcaea-server/wiki/Q&A)
 
 ## 鸣谢 Thanks
 
