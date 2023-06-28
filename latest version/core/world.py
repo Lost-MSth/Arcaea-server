@@ -665,6 +665,8 @@ class WorldPlay:
                 self._skill_vita()
         if self.character_used.skill_id_displayed == 'skill_mika':
             self._skill_mika()
+        elif self.character_used.skill_id_displayed == 'skill_ilith_ivy':
+            self._skill_ilith_ivy()
 
     def after_climb(self) -> None:
         factory_dict = {'eto_uncap': self._eto_uncap, 'ayu_uncap': self._ayu_uncap,
@@ -776,3 +778,14 @@ class WorldPlay:
         '''
         if self.user_play.combo_interval_bonus:
             self.prog_skill_increase = self.user_play.combo_interval_bonus
+
+    def _skill_ilith_ivy(self) -> None:
+        '''
+        ilith & ivy 技能，根据 skill_ilith_ivy_flag 来增加三个数值，最高生命每过 20 就对应数值 +10
+        '''
+        if not self.user_play.skill_ilith_ivy_flag:
+            return
+        x = self.user_play.skill_ilith_ivy_flag[:
+                                                self.user_play.highest_health // 20]
+        self.over_skill_increase = x.count('2') * 10
+        self.prog_skill_increase = x.count('1') * 10

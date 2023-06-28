@@ -682,5 +682,23 @@
 		],
 		"orig_price": 500,
 		"price": 500
+	},
+	{
+		"name": "cytusii",
+		"items": [
+			{
+				"type": "pack",
+				"id": "cytusii",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 5,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 500,
+		"price": 500
 	}
 ]

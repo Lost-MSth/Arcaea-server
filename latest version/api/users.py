@@ -93,8 +93,12 @@ def users_user_put(data, user, user_id):
             u.set_name(data['name'])
             r['name'] = u.name
         if 'password' in data:
-            u.set_password(data['password'])
-            r['password'] = u.hash_pwd
+            if data['password'] == '':
+                u.password = ''
+                r['password'] = ''
+            else:
+                u.set_password(data['password'])
+                r['password'] = u.hash_pwd
         if 'email' in data:
             u.set_email(data['email'])
             r['email'] = u.email

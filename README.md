@@ -17,9 +17,9 @@ This procedure is mainly used for study and research, and shall not be used for 
 
 ## 特性 Features
 
-:x: : 不支持 Not supported
-:warning: : 可能存在问题 / 可能与官方不一样 Possible issues / may differ from official
-:wastebasket: : 不再更新，可能会移除或重构 No longer updated, may be removed or refactored
+:x: : 不支持 Not supported  
+:warning: : 可能存在问题 / 可能与官方不一样 Possible issues / may differ from official  
+:wastebasket: : 不再更新，可能会移除或重构 No longer updated, may be removed or refactored  
 :construction: : 建设中 In construction
 
 - 登录、注册 Login and registration

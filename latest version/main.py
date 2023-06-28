@@ -26,6 +26,7 @@ import api
 import server
 import web.index
 import web.login
+# import webapi
 from core.constant import Constant
 from core.download import UserDownload
 from core.error import ArcError, NoAccess, RateLimit
@@ -54,6 +55,7 @@ app.register_blueprint(web.login.bp)
 app.register_blueprint(web.index.bp)
 app.register_blueprint(api.bp)
 app.register_blueprint(server.bp)
+# app.register_blueprint(webapi.bp)
 
 
 @app.route('/')
