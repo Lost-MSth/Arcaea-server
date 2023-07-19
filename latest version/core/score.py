@@ -223,8 +223,9 @@ class UserPlay(UserScore):
         self.course_play: 'CoursePlay' = None
 
         self.combo_interval_bonus: int = None  # 不能给 None 以外的默认值
-        self.skill_ilith_ivy_flag: str = None
+        self.skill_cytusii_flag: str = None
         self.highest_health: int = None
+        self.lowest_health: int = None
 
     def to_dict(self) -> dict:
         # 不能super
@@ -302,17 +303,17 @@ class UserPlay(UserScore):
             self.fragment_multiply = int(x[9])
             self.prog_boost_multiply = int(x[10])
             self.beyond_boost_gauge_usage = int(x[11])
-            self.skill_ilith_ivy_flag = x[12]
+            self.skill_cytusii_flag = x[12]
             self.is_world_mode = True
             self.course_play_state = -1
 
-    def set_play_state_for_world(self, stamina_multiply: int = 1, fragment_multiply: int = 100, prog_boost_multiply: int = 0, beyond_boost_gauge_usage: int = 0, skill_ilith_ivy_flag: str = None) -> None:
+    def set_play_state_for_world(self, stamina_multiply: int = 1, fragment_multiply: int = 100, prog_boost_multiply: int = 0, beyond_boost_gauge_usage: int = 0, skill_cytusii_flag: str = None) -> None:
         self.song_token = b64encode(urandom(64)).decode()
         self.stamina_multiply = int(stamina_multiply)
         self.fragment_multiply = int(fragment_multiply)
         self.prog_boost_multiply = int(prog_boost_multiply)
         self.beyond_boost_gauge_usage = int(beyond_boost_gauge_usage)
-        self.skill_ilith_ivy_flag = skill_ilith_ivy_flag
+        self.skill_cytusii_flag = skill_cytusii_flag
         if self.prog_boost_multiply != 0 or self.beyond_boost_gauge_usage != 0:
             self.c.execute('''select prog_boost, beyond_boost_gauge from user where user_id=:a''', {
                            'a': self.user.user_id})
@@ -325,7 +326,7 @@ class UserPlay(UserScore):
 
         self.clear_play_state()
         self.c.execute('''insert into songplay_token values(:t,:a,:b,:c,'',-1,0,0,:d,:e,:f,:g,:h)''', {
-            'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty, 'd': self.stamina_multiply, 'e': self.fragment_multiply, 'f': self.prog_boost_multiply, 'g': self.beyond_boost_gauge_usage, 'h': self.skill_ilith_ivy_flag, 't': self.song_token})
+            'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty, 'd': self.stamina_multiply, 'e': self.fragment_multiply, 'f': self.prog_boost_multiply, 'g': self.beyond_boost_gauge_usage, 'h': self.skill_cytusii_flag, 't': self.song_token})
 
         self.user.select_user_about_current_map()
         self.user.current_map.select_map_info()

@@ -653,20 +653,13 @@ class WorldPlay:
         self.user.current_map.update()
 
     def before_calculate(self) -> None:
-        if self.user_play.beyond_gauge == 0:
-            if self.character_used.character_id == 35 and self.character_used.skill_id_displayed:
-                self._special_tempest()
-            elif self.character_used.skill_id_displayed == 'ilith_awakened_skill':
-                self._ilith_awakened_skill()
-            elif self.character_used.skill_id_displayed == 'skill_mithra':
-                self._skill_mithra()
-        else:
-            if self.character_used.skill_id_displayed == 'skill_vita':
-                self._skill_vita()
-        if self.character_used.skill_id_displayed == 'skill_mika':
-            self._skill_mika()
-        elif self.character_used.skill_id_displayed == 'skill_ilith_ivy':
-            self._skill_ilith_ivy()
+        factory_dict = {'skill_vita': self._skill_vita, 'skill_mika': self._skill_mika, 'skill_ilith_ivy': self._skill_ilith_ivy,
+                        'skill_mithra': self._skill_mithra, 'ilith_awakened_skill': self._ilith_awakened_skill, 'skill_hikari_vanessa': self._skill_hikari_vanessa}
+        if self.user_play.beyond_gauge == 0 and self.character_used.character_id == 35 and self.character_used.skill_id_displayed:
+            self._special_tempest()
+
+        if self.character_used.skill_id_displayed in factory_dict:
+            factory_dict[self.character_used.skill_id_displayed]()
 
     def after_climb(self) -> None:
         factory_dict = {'eto_uncap': self._eto_uncap, 'ayu_uncap': self._ayu_uncap,
@@ -781,11 +774,22 @@ class WorldPlay:
 
     def _skill_ilith_ivy(self) -> None:
         '''
-        ilith & ivy 技能，根据 skill_ilith_ivy_flag 来增加三个数值，最高生命每过 20 就对应数值 +10
+        ilith & ivy 技能，根据 skill_cytusii_flag 来增加三个数值，最高生命每过 20 就对应数值 +10
         '''
-        if not self.user_play.skill_ilith_ivy_flag:
+        if not self.user_play.skill_cytusii_flag:
             return
-        x = self.user_play.skill_ilith_ivy_flag[:
-                                                self.user_play.highest_health // 20]
+        x = self.user_play.skill_cytusii_flag[:
+                                              self.user_play.highest_health // 20]
         self.over_skill_increase = x.count('2') * 10
         self.prog_skill_increase = x.count('1') * 10
+
+    def _skill_hikari_vanessa(self) -> None:
+        '''
+        hikari & vanessa 技能，根据 skill_cytusii_flag 来减少三个数值，最高生命每过 20 就对应数值 -10
+        '''
+        if not self.user_play.skill_cytusii_flag:
+            return
+        x = self.user_play.skill_cytusii_flag[:5 -
+                                              self.user_play.lowest_health // 20]
+        self.over_skill_increase = -x.count('2') * 10
+        self.prog_skill_increase = -x.count('1') * 10

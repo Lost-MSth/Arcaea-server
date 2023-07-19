@@ -185,7 +185,7 @@ stamina_multiply int,
 fragment_multiply int,
 prog_boost_multiply int,
 beyond_boost_gauge_usage int,
-skill_ilith_ivy_flag text
+skill_cytusii_flag text
 );
 create table if not exists item(item_id text,
 type text,
