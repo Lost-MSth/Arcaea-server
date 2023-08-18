@@ -25,7 +25,7 @@ def random_str(randomlength=10):
 
 
 def update_user_char(c):
-    # 用character数据更新user_char
+    # 用character数据更新user_char_full
     c.execute('''select character_id, max_level, is_uncapped from character''')
     x = c.fetchall()
     c.execute('''select user_id from user''')
@@ -36,7 +36,7 @@ def update_user_char(c):
                 c.execute('''delete from user_char_full where user_id=:a and character_id=:b''', {
                           'a': j[0], 'b': i[0]})
                 exp = 25000 if i[1] == 30 else 10000
-                c.execute('''insert into user_char_full values(?,?,?,?,?,?)''',
+                c.execute('''insert into user_char_full values(?,?,?,?,?,?,?)''',
                           (j[0], i[0], i[1], exp, i[2], 0))
 
 

@@ -195,7 +195,7 @@ class ItemCharacter(UserItem):
             '''select exists(select * from user_char where user_id=? and character_id=?)''', (user.user_id, self.item_id))
         if self.c.fetchone() == (0,):
             self.c.execute(
-                '''insert into user_char values(?,?,1,0,0,0)''', (user.user_id, self.item_id))
+                '''insert into user_char values(?,?,1,0,0,0,0)''', (user.user_id, self.item_id))
 
 
 class Memory(UserItem):

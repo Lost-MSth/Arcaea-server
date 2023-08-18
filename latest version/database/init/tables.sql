@@ -69,6 +69,7 @@ level int,
 exp real,
 is_uncapped int,
 is_uncapped_override int,
+skill_flag int,
 primary key(user_id, character_id)
 );
 create table if not exists user_char_full(user_id int,
@@ -77,6 +78,7 @@ level int,
 exp real,
 is_uncapped int,
 is_uncapped_override int,
+skill_flag int,
 primary key(user_id, character_id)
 );
 create table if not exists character(character_id int primary key,
