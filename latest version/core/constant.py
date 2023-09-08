@@ -21,6 +21,9 @@ class Constant:
 
     WORLD_VALUE_NAME_ENUM = ['frag', 'prog', 'over']
 
+    FREE_PACK_NAME = 'base'
+    SINGLE_PACK_NAME = 'single'
+
     ETO_UNCAP_BONUS_PROGRESS = 7
     LUNA_UNCAP_BONUS_PROGRESS = 7
     AYU_UNCAP_BONUS_PROGRESS = 5

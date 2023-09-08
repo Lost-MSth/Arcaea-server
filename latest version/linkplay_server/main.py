@@ -1,4 +1,4 @@
-import binascii
+# import binascii
 import logging
 import socketserver
 import threading
@@ -56,9 +56,13 @@ class UDP_handler(socketserver.BaseRequestHandler):
 
 class TCP_handler(socketserver.StreamRequestHandler):
     def handle(self):
-        self.data = self.rfile.readline().strip()
+        try:
+            self.data = self.rfile.readline().strip()
+            message = self.data.decode('utf-8')
+        except Exception as e:
+            logging.error(e)
+            return None
 
-        message = self.data.decode('utf-8')
         if Config.DEBUG:
             logging.info(f'TCP-From-{self.client_address[0]}-{message}')
         data = message.split('|')
