@@ -126,7 +126,7 @@ class SonglistParser:
         '''解析songlist文件'''
         if not os.path.isfile(self.path):
             return
-        with open(self.path, 'r', encoding='utf-8') as f:
+        with open(self.path, 'rb') as f:
             self.data = loads(f.read()).get('songs', [])
         self.has_songlist = True
         for x in self.data:

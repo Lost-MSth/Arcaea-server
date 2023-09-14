@@ -1,6 +1,6 @@
 from .config_manager import Config
 
-ARCAEA_SERVER_VERSION = 'v2.11.2.3'
+ARCAEA_SERVER_VERSION = 'v2.11.2.4'
 ARCAEA_LOG_DATBASE_VERSION = 'v1.1'
 
 
