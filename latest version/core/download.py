@@ -83,6 +83,7 @@ class SonglistParser:
 
     def parse_one(self, song: dict) -> dict:
         '''解析单个歌曲'''
+        # TODO: byd_local_unlock ???
         if not 'id' in song:
             return {}
         r = 0
@@ -96,11 +97,12 @@ class SonglistParser:
             if any(i['ratingClass'] == 3 for i in song.get('difficulties', [])):
                 r |= 8
 
-        if 'additional_files' in song:
-            if 'video.mp4' in song['additional_files']:
+        for extra_file in song.get('additional_files', []):
+            if extra_file['file_name'] == SonglistParser.FILE_NAMES[6]:
                 r |= 64
-            if 'video_audio.ogg' in song['additional_files']:
+            elif extra_file['file_name'] == SonglistParser.FILE_NAMES[7]:
                 r |= 128
+
         return {song['id']: r}
 
     def parse_one_unlock(self, song: dict) -> None:

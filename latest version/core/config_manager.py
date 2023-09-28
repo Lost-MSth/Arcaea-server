@@ -12,7 +12,7 @@ class Config:
 
     SONG_FILE_HASH_PRE_CALCULATE = True
 
-    GAME_API_PREFIX = '/pollen/22'
+    GAME_API_PREFIX = '/evolution/23'
 
     ALLOW_APPVERSION = []  # list[str]
 
