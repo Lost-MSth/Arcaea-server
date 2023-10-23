@@ -1,3 +1,4 @@
+import logging
 from time import time
 
 from .config import Config
@@ -43,6 +44,10 @@ class Player:
         self.song_unlock: bytes = b'\x00' * Config.LINK_PLAY_UNLOCK_LENGTH
 
         self.start_command_num = 0
+
+    @property
+    def name(self) -> str:
+        return self.player_name.decode('ascii').rstrip('\x00')
 
     def set_player_name(self, player_name: str):
         self.player_name = player_name.encode('ascii')
@@ -133,15 +138,22 @@ class Room:
         for i in range(4):
             if self.players[i].player_id == self.host_id:
                 for j in range(1, 4):
-                    if self.players[(i + j) % 4].player_id != 0:
-                        self.host_id = self.players[(i + j) % 4].player_id
+                    player = self.players[(i + j) % 4]
+                    if player.player_id != 0:
+                        self.host_id = player.player_id
+                        logging.info(
+                            f'Player `{player.name}` becomes the host of room `{self.room_code}`')
                         break
                 break
 
     def delete_player(self, player_index: int):
         # 删除某个玩家
-        if self.players[player_index].player_id == self.host_id:
+        player = self.players[player_index]
+        if player.player_id == self.host_id:
             self.make_round()
+
+        logging.info(
+            f'Player `{player.name}` leaves room `{self.room_code}`')
 
         self.players[player_index].online = 0
         self.players[player_index] = Player()
@@ -203,3 +215,10 @@ class Room:
 
         for i in max_score_i:
             self.players[i].best_player_flag = 1
+
+        logging.info(
+            f'Room `{self.room_code}` finishes song `{self.song_idx}`')
+        for i in self.players:
+            if i.player_id != 0:
+                logging.info(
+                    f'- Player `{i.name}` - Score: {i.last_score}  Cleartype: {i.last_cleartype}  Difficulty: {i.last_difficulty}')

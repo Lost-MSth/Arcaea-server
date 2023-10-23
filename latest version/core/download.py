@@ -25,7 +25,7 @@ class SonglistParser:
     '''songlist文件解析器'''
 
     FILE_NAMES = ['0.aff', '1.aff', '2.aff', '3.aff',
-                  'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg']
+                  'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg', 'video_720.mp4', 'video_1080.mp4']
 
     has_songlist = False
     songs: dict = {}  # {song_id: value, ...}
@@ -55,7 +55,7 @@ class SonglistParser:
             # songlist没有，则只限制文件名
             return file_name in SonglistParser.FILE_NAMES
         rule = SonglistParser.songs[song_id]
-        for i in range(8):
+        for i in range(10):
             if file_name == SonglistParser.FILE_NAMES[i] and rule & (1 << i) != 0:
                 return True
         return False
@@ -98,10 +98,15 @@ class SonglistParser:
                 r |= 8
 
         for extra_file in song.get('additional_files', []):
-            if extra_file['file_name'] == SonglistParser.FILE_NAMES[6]:
+            x = extra_file['file_name']
+            if x == SonglistParser.FILE_NAMES[6]:
                 r |= 64
-            elif extra_file['file_name'] == SonglistParser.FILE_NAMES[7]:
+            elif x == SonglistParser.FILE_NAMES[7]:
                 r |= 128
+            elif x == SonglistParser.FILE_NAMES[8]:
+                r |= 256
+            elif x == SonglistParser.FILE_NAMES[9]:
+                r |= 512
 
         return {song['id']: r}
 
@@ -297,7 +302,7 @@ class DownloadList(UserDownload):
                     re['audio']['3'] = {"checksum": x.hash, "url": x.url}
                 else:
                     re['audio']['3'] = {"checksum": x.hash}
-            elif i in ('video.mp4', 'video_audio.ogg'):
+            elif i in ('video.mp4', 'video_audio.ogg', 'video_720.mp4', 'video_1080.mp4'):
                 if 'additional_files' not in re:
                     re['additional_files'] = []
 
@@ -307,6 +312,7 @@ class DownloadList(UserDownload):
                 else:
                     re['additional_files'].append(
                         {"checksum": x.hash, 'file_name': i})
+                # 有参数 requirement 作用未知
             else:
                 if 'chart' not in re:
                     re['chart'] = {}

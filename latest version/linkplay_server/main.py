@@ -16,6 +16,7 @@ logging.basicConfig(format='[%(asctime)s] %(levelname)s in %(module)s: %(message
 class UDP_handler(socketserver.BaseRequestHandler):
     def handle(self):
         client_msg, server = self.request
+        # print(client_msg)
         try:
             token = client_msg[:8]
             iv = client_msg[8:20]

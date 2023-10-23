@@ -43,7 +43,9 @@ def unique_random(dataset, length=8, random_func=None):
 
 def clear_player(token):
     # 清除玩家信息和token
-    del Store.player_dict[Store.link_play_data[token]['player_id']]
+    player_id = Store.link_play_data[token]['player_id']
+    logging.info(f'Clean player `{Store.player_dict[player_id].name}`')
+    del Store.player_dict[player_id]
     del Store.link_play_data[token]
 
 
@@ -51,6 +53,7 @@ def clear_room(room):
     # 清除房间信息
     room_id = room.room_id
     room_code = room.room_code
+    logging.info(f'Clean room `{room_code}`')
     del Store.room_id_dict[room_id]
     del Store.room_code_dict[room_code]
     del room

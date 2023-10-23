@@ -1,3 +1,4 @@
+import logging
 import time
 
 from .udp_class import Room, bi
@@ -44,6 +45,8 @@ class CommandParser:
         for i in self.room.players:
             if i.player_id == player_id and i.online == 1:
                 self.room.host_id = player_id
+                logging.info(
+                    f'Player `{i.name}` becomes the host of room `{self.room.room_code}`')
 
         self.s.random_code = self.command[16:24]
         self.room.command_queue.append(self.s.command_10())
@@ -188,6 +191,8 @@ class CommandParser:
                 if self.room.round_switch == 1:
                     # 将换房主时间提前到此刻
                     self.room.make_round()
+
+                logging.info(f'Room `{self.room.room_code}` starts playing')
 
             if self.room.state in (4, 5, 6):
                 timestamp = round(time.time() * 1000)
