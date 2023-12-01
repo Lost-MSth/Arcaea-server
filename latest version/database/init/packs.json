@@ -754,5 +754,41 @@
 		],
 		"orig_price": 500,
 		"price": 500
+	},
+	{
+		"name": "eden_append_2",
+		"items": [
+			{
+				"type": "pack",
+				"id": "eden_append_2",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 3,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 300,
+		"price": 300
+	},
+	{
+		"name": "wacca_append_1",
+		"items": [
+			{
+				"type": "pack",
+				"id": "wacca_append_1",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 5,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 500,
+		"price": 500
 	}
 ]
