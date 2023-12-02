@@ -2,6 +2,7 @@
 import logging
 import socketserver
 import threading
+from json import dumps, loads
 
 from .aes import decrypt, encrypt
 from .config import Config
@@ -55,27 +56,52 @@ class UDP_handler(socketserver.BaseRequestHandler):
                           ciphertext, self.client_address)
 
 
+AUTH_LEN = len(Config.AUTHENTICATION)
+TCP_AES_KEY = Config.TCP_SECRET_KEY.encode('utf-8').ljust(16, b'\x00')[:16]
+
+
 class TCP_handler(socketserver.StreamRequestHandler):
+
     def handle(self):
         try:
-            self.data = self.rfile.readline().strip()
+            if self.rfile.read(AUTH_LEN).decode('utf-8') != Config.AUTHENTICATION:
+                self.wfile.write(b'No authentication')
+                logging.warning(
+                    f'TCP-{self.client_address[0]}-No authentication')
+                return None
+
+            cipher_len = int.from_bytes(self.rfile.read(8), byteorder='little')
+            if cipher_len > Config.TCP_MAX_LENGTH:
+                self.wfile.write(b'Body too long')
+                logging.warning(f'TCP-{self.client_address[0]}-Body too long')
+                return None
+
+            iv = self.rfile.read(12)
+            tag = self.rfile.read(12)
+            ciphertext = self.rfile.read(cipher_len)
+
+            self.data = decrypt(TCP_AES_KEY, b'', iv, ciphertext, tag)
             message = self.data.decode('utf-8')
+            data = loads(message)
         except Exception as e:
             logging.error(e)
             return None
 
         if Config.DEBUG:
             logging.info(f'TCP-From-{self.client_address[0]}-{message}')
-        data = message.split('|')
-        if data[0] != Config.AUTHENTICATION:
-            self.wfile.write(b'No authentication')
-            logging.warning(f'TCP-{self.client_address[0]}-No authentication')
-            return None
 
-        r = TCPRouter(data[1:]).handle()
-        if Config.DEBUG:
-            logging.info(f'TCP-To-{self.client_address[0]}-{r}')
-        self.wfile.write(r.encode('utf-8'))
+        r = TCPRouter(data).handle()
+        try:
+            r = dumps(r)
+            if Config.DEBUG:
+                logging.info(f'TCP-To-{self.client_address[0]}-{r}')
+            iv, ciphertext, tag = encrypt(TCP_AES_KEY, r.encode('utf-8'), b'')
+            r = len(ciphertext).to_bytes(8, byteorder='little') + \
+                iv + tag[:12] + ciphertext
+        except Exception as e:
+            logging.error(e)
+            return None
+        self.wfile.write(r)
 
 
 def link_play(ip: str = Config.HOST, udp_port: int = Config.UDP_PORT, tcp_port: int = Config.TCP_PORT):

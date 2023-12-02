@@ -23,6 +23,7 @@ class Config:
     LINKPLAY_TCP_PORT = 10901
     LINKPLAY_AUTHENTICATION = 'my_link_play_server'
     LINKPLAY_DISPLAY_HOST = ''
+    LINKPLAY_TCP_SECRET_KEY = '1145141919810'
 
     SSL_CERT = ''
     SSL_KEY = ''
