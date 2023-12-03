@@ -127,9 +127,9 @@ class UserRegister(User):
 
     def _insert_user_char(self):
         # 为用户添加初始角色
-        self.c.execute('''insert into user_char values(?,?,?,?,?,?)''',
+        self.c.execute('''insert into user_char values(?,?,?,?,?,?,0)''',
                        (self.user_id, 0, 1, 0, 0, 0))
-        self.c.execute('''insert into user_char values(?,?,?,?,?,?)''',
+        self.c.execute('''insert into user_char values(?,?,?,?,?,?,0)''',
                        (self.user_id, 1, 1, 0, 0, 0))
         self.c.execute(
             '''select character_id, max_level, is_uncapped from character''')
@@ -137,7 +137,7 @@ class UserRegister(User):
         if x:
             for i in x:
                 exp = 25000 if i[1] == 30 else 10000
-                self.c.execute('''insert into user_char_full values(?,?,?,?,?,?)''',
+                self.c.execute('''insert into user_char_full values(?,?,?,?,?,?,0)''',
                                (self.user_id, i[0], i[1], exp, i[2], 0))
 
     def register(self):

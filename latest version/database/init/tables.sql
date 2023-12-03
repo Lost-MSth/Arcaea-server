@@ -69,6 +69,7 @@ level int,
 exp real,
 is_uncapped int,
 is_uncapped_override int,
+skill_flag int,
 primary key(user_id, character_id)
 );
 create table if not exists user_char_full(user_id int,
@@ -77,6 +78,7 @@ level int,
 exp real,
 is_uncapped int,
 is_uncapped_override int,
+skill_flag int,
 primary key(user_id, character_id)
 );
 create table if not exists character(character_id int primary key,
@@ -184,7 +186,8 @@ course_clear_type int,
 stamina_multiply int,
 fragment_multiply int,
 prog_boost_multiply int,
-beyond_boost_gauge_usage int
+beyond_boost_gauge_usage int,
+skill_cytusii_flag text
 );
 create table if not exists item(item_id text,
 type text,

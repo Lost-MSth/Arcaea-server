@@ -500,9 +500,12 @@ class WorldPlay:
             r['char_stats']['prog_tempest'] = self.prog_tempest
 
         if self.character_bonus_progress is not None:
-            # 猜的，为了让客户端正确显示，当然结果是没问题的
-            # r['base_progress'] += self.character_bonus_progress # 肯定不是这样的
+            # 猜的，为了让客户端正确显示
+            r['progress'] -= self.character_bonus_progress
             r['character_bonus_progress'] = self.character_bonus_progress
+
+        if self.character_used.skill_id_displayed == 'skill_maya':
+            r['char_stats']['skill_state'] = self.character_used.skill_state
 
         if self.user_play.beyond_gauge == 0:
             r["user_map"]["steps"] = [
@@ -653,22 +656,17 @@ class WorldPlay:
         self.user.current_map.update()
 
     def before_calculate(self) -> None:
-        if self.user_play.beyond_gauge == 0:
-            if self.character_used.character_id == 35 and self.character_used.skill_id_displayed:
-                self._special_tempest()
-            elif self.character_used.skill_id_displayed == 'ilith_awakened_skill':
-                self._ilith_awakened_skill()
-            elif self.character_used.skill_id_displayed == 'skill_mithra':
-                self._skill_mithra()
-        else:
-            if self.character_used.skill_id_displayed == 'skill_vita':
-                self._skill_vita()
-        if self.character_used.skill_id_displayed == 'skill_mika':
-            self._skill_mika()
+        factory_dict = {'skill_vita': self._skill_vita, 'skill_mika': self._skill_mika, 'skill_ilith_ivy': self._skill_ilith_ivy,
+                        'ilith_awakened_skill': self._ilith_awakened_skill, 'skill_hikari_vanessa': self._skill_hikari_vanessa}
+        if self.user_play.beyond_gauge == 0 and self.character_used.character_id == 35 and self.character_used.skill_id_displayed:
+            self._special_tempest()
+
+        if self.character_used.skill_id_displayed in factory_dict:
+            factory_dict[self.character_used.skill_id_displayed]()
 
     def after_climb(self) -> None:
         factory_dict = {'eto_uncap': self._eto_uncap, 'ayu_uncap': self._ayu_uncap,
-                        'luna_uncap': self._luna_uncap, 'skill_fatalis': self._skill_fatalis, 'skill_amane': self._skill_amane}
+                        'luna_uncap': self._luna_uncap, 'skill_fatalis': self._skill_fatalis, 'skill_amane': self._skill_amane, 'skill_maya': self._skill_maya, 'skill_mithra': self._skill_mithra}
         if self.character_used.skill_id_displayed in factory_dict:
             factory_dict[self.character_used.skill_id_displayed]()
 
@@ -709,7 +707,7 @@ class WorldPlay:
 
         if fragment_flag:
             self.character_bonus_progress = Constant.ETO_UNCAP_BONUS_PROGRESS
-            self.step_value += self.character_bonus_progress * self.step_times
+            self.step_value += self.character_bonus_progress
 
         self.user.current_map.reclimb(self.step_value)
 
@@ -718,7 +716,7 @@ class WorldPlay:
         x: 'Step' = self.user.current_map.steps_for_climbing[0]
         if x.restrict_id and x.restrict_type:
             self.character_bonus_progress = Constant.LUNA_UNCAP_BONUS_PROGRESS
-            self.step_value += self.character_bonus_progress * self.step_times
+            self.step_value += self.character_bonus_progress
 
         self.user.current_map.reclimb(self.step_value)
 
@@ -728,9 +726,9 @@ class WorldPlay:
         self.character_bonus_progress = Constant.AYU_UNCAP_BONUS_PROGRESS if random(
         ) >= 0.5 else -Constant.AYU_UNCAP_BONUS_PROGRESS
 
-        self.step_value += self.character_bonus_progress * self.step_times
+        self.step_value += self.character_bonus_progress
         if self.step_value < 0:
-            self.character_bonus_progress += self.step_value / self.step_times
+            self.character_bonus_progress += self.step_value
             self.step_value = 0
 
         self.user.current_map.reclimb(self.step_value)
@@ -749,7 +747,7 @@ class WorldPlay:
         '''
         x: 'Step' = self.user.current_map.steps_for_climbing[0]
         if ('randomsong' in x.step_type or 'speedlimit' in x.step_type) and self.user_play.song_grade < 5:
-            self.character_bonus_progress = -1 * self.step_value / 2 / self.step_times
+            self.character_bonus_progress = -self.step_value / 2
             self.step_value = self.step_value / 2
             self.user.current_map.reclimb(self.step_value)
 
@@ -772,7 +770,41 @@ class WorldPlay:
 
     def _skill_mithra(self) -> None:
         '''
-        mithra 技能，每 150 combo 增加世界模式进度+1，直接理解成 prog 值增加
+        mithra 技能，每 150 combo 增加世界模式进度+1
         '''
         if self.user_play.combo_interval_bonus:
-            self.prog_skill_increase = self.user_play.combo_interval_bonus
+            self.character_bonus_progress = self.user_play.combo_interval_bonus
+            self.step_value += self.character_bonus_progress
+            self.user.current_map.reclimb(self.step_value)
+
+    def _skill_ilith_ivy(self) -> None:
+        '''
+        ilith & ivy 技能，根据 skill_cytusii_flag 来增加三个数值，最高生命每过 20 就对应数值 +10
+        '''
+        if not self.user_play.skill_cytusii_flag:
+            return
+        x = self.user_play.skill_cytusii_flag[:
+                                              self.user_play.highest_health // 20]
+        self.over_skill_increase = x.count('2') * 10
+        self.prog_skill_increase = x.count('1') * 10
+
+    def _skill_hikari_vanessa(self) -> None:
+        '''
+        hikari & vanessa 技能，根据 skill_cytusii_flag 来减少三个数值，最高生命每过 20 就对应数值 -10
+        '''
+        if not self.user_play.skill_cytusii_flag:
+            return
+        x = self.user_play.skill_cytusii_flag[:5 -
+                                              self.user_play.lowest_health // 20]
+        self.over_skill_increase = -x.count('2') * 10
+        self.prog_skill_increase = -x.count('1') * 10
+
+    def _skill_maya(self) -> None:
+        '''
+        maya 技能，skill_flag 为 1 时，世界模式进度翻倍
+        '''
+        if self.character_used.skill_flag:
+            self.character_bonus_progress = self.step_value
+            self.step_value += self.character_bonus_progress
+            self.user.current_map.reclimb(self.step_value)
+        self.character_used.change_skill_state()

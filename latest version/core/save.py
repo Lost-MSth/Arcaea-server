@@ -96,13 +96,16 @@ class SaveData:
                 i['c'] = True
                 i['r'] = True
             for i in self.unlocklist_data:
-                if i['unlock_key'][-3:] == '101':
+                x = i['unlock_key']
+                if x[-3:] == '101':
                     i['complete'] = 100
-                elif i['unlock_key'][:16] == 'aegleseeker|2|3|':
+                elif x[:16] == 'aegleseeker|2|3|':
                     i['complete'] = 10
-                elif i['unlock_key'] == 'saikyostronger|2|3|einherjar|2':
+                elif x == 'saikyostronger|2|3|einherjar|2':
                     i['complete'] = 6
-                elif i['unlock_key'] == 'saikyostronger|2|3|laqryma|2':
+                elif x == 'saikyostronger|2|3|laqryma|2':
+                    i['complete'] = 3
+                elif x[-5:-2] == '109':
                     i['complete'] = 3
                 else:
                     i['complete'] = 1

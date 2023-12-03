@@ -1,12 +1,27 @@
 {
-  "songs": [
-    {
-      "id": "dement",
-      "difficulties": [
+    "songs": [
         {
-          "ratingClass": 3
+            "id": "dement",
+            "set": "base",
+            "purchase": "",
+            "difficulties": [
+                {
+                    "ratingClass": 0,
+                    "rating": 3
+                },
+                {
+                    "ratingClass": 1,
+                    "rating": 6
+                },
+                {
+                    "ratingClass": 2,
+                    "rating": 7
+                },
+                {
+                    "ratingClass": 3,
+                    "rating": 9
+                }
+            ]
         }
-      ]
-    }
-  ]
+    ]
 }

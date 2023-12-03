@@ -12,7 +12,7 @@ class Config:
 
     SONG_FILE_HASH_PRE_CALCULATE = True
 
-    GAME_API_PREFIX = '/pollen/22'
+    GAME_API_PREFIX = '/evolution/23'
 
     ALLOW_APPVERSION = []  # list[str]
 
@@ -23,6 +23,7 @@ class Config:
     LINKPLAY_TCP_PORT = 10901
     LINKPLAY_AUTHENTICATION = 'my_link_play_server'
     LINKPLAY_DISPLAY_HOST = ''
+    LINKPLAY_TCP_SECRET_KEY = '1145141919810'
 
     SSL_CERT = ''
     SSL_KEY = ''
@@ -47,6 +48,8 @@ class Config:
 
     DOWNLOAD_TIMES_LIMIT = 3000
     DOWNLOAD_TIME_GAP_LIMIT = 1000
+
+    DOWNLOAD_FORBID_WHEN_NO_ITEM = False
 
     LOGIN_DEVICE_NUMBER_LIMIT = 1
     ALLOW_LOGIN_SAME_DEVICE = False

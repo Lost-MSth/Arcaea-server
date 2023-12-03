@@ -17,9 +17,9 @@ This procedure is mainly used for study and research, and shall not be used for 
 
 ## 特性 Features
 
-:x: : 不支持 Not supported
-:warning: : 可能存在问题 / 可能与官方不一样 Possible issues / may differ from official
-:wastebasket: : 不再更新，可能会移除或重构 No longer updated, may be removed or refactored
+:x: : 不支持 Not supported  
+:warning: : 可能存在问题 / 可能与官方不一样 Possible issues / may differ from official  
+:wastebasket: : 不再更新，可能会移除或重构 No longer updated, may be removed or refactored  
 :construction: : 建设中 In construction
 
 - 登录、注册 Login and registration
@@ -86,14 +86,32 @@ It is just so interesting. What it can do is under exploration.
 > 其它小改动请参考各个 commit 信息  
 > Please refer to the commit messages for other minor changes.
 
-### Version 2.11.2
+### Version 2.11.3
 
-- 适用于 Arcaea 4.4.6 版本 For Arcaea 4.4.6
-- 新搭档 **奈美（暮光）** 已解锁 Unlock the character **Nami (Twilight)**.
-- 新增用户潜力值每日记录功能 Add support for recording users' potential each day.
-- 修复搭档 **光 & 对立（Reunion）** 无法觉醒的问题 Fix a bug that the character **Hikari & Tairitsu (Reunion)** cannot be uncapped. (#100)
-- 添加 `finale/finale_end` 接口尝试修复最终挑战无法解锁结局的问题 Add the `finale/finale_end` endpoint to try to fix the problem that the endings cannot be unlocked correctly in the finale challenge. (#110)
-- 新增获取用户潜力值记录的 API 接口 Add an API endpoint for getting the user's rating records.
+> v2.11.2.1 ~ v2.11.2.7 for Arcaea 4.5.0 ~ 5.2.0
+
+- 适用于 Arcaea 5.2.0 版本
+  For Arcaea 5.2.0
+- 新搭档 **Ilith & Ivy**、**Hikari & Vanessa**、**摩耶**、**露恩** 已解锁（注意“	洞烛（至高：第八探索者）”因客户端因素不可选用）
+  Unlock the character **Ilith & Ivy**, **Hikari & Vanessa**, **Maya**, and **Luin**. (Note that "Insight(Ascendant - 8th Seeker)" is not available due to the client.)
+- 为以上角色的技能提供服务端支持
+  Provide server-side support for the skills of the above characters.
+- 设置中新增可选选项 `DOWNLOAD_FORBID_WHEN_NO_ITEM` 使得当 `songlist` 文件存在时，没有购买的用户无法下载曲目文件（实验性）
+  An option `DOWNLOAD_FORBID_WHEN_NO_ITEM` has been added to the config file to make that users cannot download the songs' files if they has not bought them when the `songlist` file exists. (Experimental)
+- 支持文件 `video_720.mp4` & `video_1080.mp4` 的下载
+  Add support for downloading `video_720.mp4` & `video_1080.mp4`.
+- 在存档全解锁和 `songlist` 解析器中支持更多东西，以适应游戏更新
+  Support more things in full cloud save unlocking and `songlist` parser, to adapt to game updates.
+- Link Play 拥有更详细的控制台日志了
+  More detailed console log for Link Play.
+- 修复一些搭档的技能在世界模式进度中显示不正确的问题
+  Fix a bug that some characters' skill cannot display proper values in world mode progression.
+- 修复技能 "skill_mithra" 导致了 `prog` 值增加而不是世界模式进度增加的问题
+  Fix a bug that "skill_mithra" results in adding `prog` value instead of world mode progress.
+- 重构 Link Play TCP 数据交换部分，以获得更好的安全性和扩展性
+  Code refactor of Link Play TCP data transmission for better security and scalability.
+- 新增一个 HTTP API 用来获取 Link Play 中当前的房间和玩家信息
+  Add an HTTP API endpoint for getting the information of current rooms and players in Link Play.
 
 ## 运行环境与依赖 Running environment and requirements
 

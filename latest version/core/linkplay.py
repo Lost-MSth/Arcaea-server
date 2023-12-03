@@ -1,10 +1,12 @@
 import socket
 from base64 import b64decode, b64encode
+from json import dumps, loads
 
 from core.error import ArcError, Timeout
 
 from .constant import Constant
 from .user import UserInfo
+from .util import aes_gcm_128_decrypt, aes_gcm_128_encrypt
 
 socket.setdefaulttimeout(Constant.LINKPLAY_TIMEOUT)
 
@@ -86,53 +88,77 @@ class Room:
 
 
 class RemoteMultiPlayer:
+    TCP_AES_KEY = Constant.LINKPLAY_TCP_SECRET_KEY.encode(
+        'utf-8').ljust(16, b'\x00')[:16]
+
     def __init__(self) -> None:
         self.user: 'Player' = None
         self.room: 'Room' = None
 
-        self.data_recv: tuple = None
+        self.data_recv: 'dict | list' = None
 
     def to_dict(self) -> dict:
         return dict(self.room.to_dict(), **self.user.to_dict())
 
     @staticmethod
-    def tcp(data: str) -> str:
+    def tcp(data: bytes) -> bytes:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
             sock.connect((Constant.LINKPLAY_HOST,
                           Constant.LINKPLAY_TCP_PORT))
-            sock.sendall(bytes(data + "\n", "utf-8"))
+
+            sock.sendall(data)
             try:
-                received = str(sock.recv(1024), "utf-8").strip()
+                cipher_len = int.from_bytes(sock.recv(8), byteorder='little')
+                if cipher_len > Constant.LINKPLAY_TCP_MAX_LENGTH:
+                    raise ArcError(
+                        'Too long body from link play server', status=400)
+                iv = sock.recv(12)
+                tag = sock.recv(12)
+                ciphertext = sock.recv(cipher_len)
+                received = aes_gcm_128_decrypt(
+                    RemoteMultiPlayer.TCP_AES_KEY, b'', iv, ciphertext, tag)
             except socket.timeout as e:
                 raise Timeout(
                     'Timeout when waiting for data from link play server.', status=400) from e
             # print(received)
             return received
 
-    def data_swap(self, data: tuple) -> tuple:
+    def data_swap(self, data: dict) -> dict:
 
-        received = self.tcp(Constant.LINKPLAY_AUTHENTICATION +
-                            '|' + '|'.join([str(x) for x in data]))
+        iv, ciphertext, tag = aes_gcm_128_encrypt(
+            self.TCP_AES_KEY, dumps(data).encode('utf-8'), b'')
+        send_data = Constant.LINKPLAY_AUTHENTICATION.encode(
+            'utf-8') + len(ciphertext).to_bytes(8, byteorder='little') + iv + tag[:12] + ciphertext
+        recv_data = self.tcp(send_data)
+        self.data_recv = loads(recv_data)
 
-        self.data_recv = received.split('|')
-        if self.data_recv[0] != '0':
-            code = int(self.data_recv[0])
+        code = self.data_recv['code']
+        if code != 0:
             raise ArcError(f'Link Play error code: {code}', code, status=400)
+
+        return self.data_recv
 
     def create_room(self, user: 'Player' = None) -> None:
         '''创建房间'''
         if user is not None:
             self.user = user
         user.select_user_one_column('name')
-        self.data_swap((1, self.user.name, b64encode(
-            self.user.song_unlock).decode('utf-8')))
+        self.data_swap({
+            'endpoint': 'create_room',
+            'data': {
+                'name': self.user.name,
+                'song_unlock': b64encode(self.user.song_unlock).decode('utf-8')
+            }
+        })
+
         self.room = Room()
-        self.room.room_code = self.data_recv[1]
-        self.room.room_id = int(self.data_recv[2])
+        x = self.data_recv['data']
+        self.room.room_code = x['room_code']
+        self.room.room_id = int(x['room_id'])
         self.room.song_unlock = self.user.song_unlock
-        self.user.token = int(self.data_recv[3])
-        self.user.key = b64decode(self.data_recv[4])
-        self.user.player_id = int(self.data_recv[5])
+        self.user.token = int(x['token'])
+        self.user.key = b64decode(x['key'])
+        self.user.player_id = int(x['player_id'])
 
     def join_room(self, room: 'Room' = None, user: 'Player' = None) -> None:
         '''加入房间'''
@@ -142,23 +168,49 @@ class RemoteMultiPlayer:
             self.room = room
 
         self.user.select_user_one_column('name')
-        self.data_swap(
-            (2, self.user.name, b64encode(self.user.song_unlock).decode('utf-8'), room.room_code))
-        self.room.room_code = self.data_recv[1]
-        self.room.room_id = int(self.data_recv[2])
-        self.room.song_unlock = b64decode(self.data_recv[6])
-        self.user.token = int(self.data_recv[3])
-        self.user.key = b64decode(self.data_recv[4])
-        self.user.player_id = int(self.data_recv[5])
+        self.data_swap({
+            'endpoint': 'join_room',
+            'data': {
+                'name': self.user.name,
+                'song_unlock': b64encode(self.user.song_unlock).decode('utf-8'),
+                'room_code': self.room.room_code
+            }
+        })
+        x = self.data_recv['data']
+        self.room.room_code = x['room_code']
+        self.room.room_id = int(x['room_id'])
+        self.room.song_unlock = b64decode(x['song_unlock'])
+        self.user.token = int(x['token'])
+        self.user.key = b64decode(x['key'])
+        self.user.player_id = int(x['player_id'])
 
     def update_room(self, user: 'Player' = None) -> None:
         '''更新房间'''
         if user is not None:
             self.user = user
-        self.data_swap((3, self.user.token))
+        self.data_swap({
+            'endpoint': 'update_room',
+            'data': {
+                'token': self.user.token
+            }
+        })
+
         self.room = Room()
-        self.room.room_code = self.data_recv[1]
-        self.room.room_id = int(self.data_recv[2])
-        self.room.song_unlock = b64decode(self.data_recv[5])
-        self.user.key = b64decode(self.data_recv[3])
-        self.user.player_id = int(self.data_recv[4])
+        x = self.data_recv['data']
+        self.room.room_code = x['room_code']
+        self.room.room_id = int(x['room_id'])
+        self.room.song_unlock = b64decode(x['song_unlock'])
+        self.user.key = b64decode(x['key'])
+        self.user.player_id = int(x['player_id'])
+
+    def get_rooms(self, offset=0, limit=50) -> dict:
+        '''获取房间列表'''
+        self.data_swap({
+            'endpoint': 'get_rooms',
+            'data': {
+                'offset': offset,
+                'limit': limit
+            }
+        })
+
+        return self.data_recv['data']

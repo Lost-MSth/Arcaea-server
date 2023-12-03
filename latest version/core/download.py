@@ -25,7 +25,9 @@ class SonglistParser:
     '''songlist文件解析器'''
 
     FILE_NAMES = ['0.aff', '1.aff', '2.aff', '3.aff',
-                  'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg']
+                  'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg', 'video_720.mp4', 'video_1080.mp4']
+
+    has_songlist = False
     songs: dict = {}  # {song_id: value, ...}
     # value: bit 76543210
     # 7: video_audio.ogg
@@ -36,6 +38,10 @@ class SonglistParser:
     # 2: 2.aff
     # 1: 1.aff
     # 0: 0.aff
+
+    pack_info: 'dict[str, set]' = {}  # {pack_id: {song_id, ...}, ...}
+    free_songs: set = set()  # {song_id, ...}
+    world_songs: set = set()  # {world_song_id, ...}
 
     def __init__(self, path=Constant.SONGLIST_FILE_PATH) -> None:
         self.path = path
@@ -49,15 +55,37 @@ class SonglistParser:
             # songlist没有，则只限制文件名
             return file_name in SonglistParser.FILE_NAMES
         rule = SonglistParser.songs[song_id]
-        for i in range(8):
+        for i in range(10):
             if file_name == SonglistParser.FILE_NAMES[i] and rule & (1 << i) != 0:
                 return True
         return False
 
+    @staticmethod
+    def get_user_unlocks(user) -> set:
+        '''user: UserInfo类或子类的实例'''
+        x = SonglistParser
+        if user is None:
+            return set()
+
+        r = set()
+        for i in user.packs:
+            if i in x.pack_info:
+                r.update(x.pack_info[i])
+
+        if Constant.SINGLE_PACK_NAME in x.pack_info:
+            r.update(x.pack_info[Constant.SINGLE_PACK_NAME]
+                     & set(user.singles))
+        r.update(set(i if i[-1] != '3' else i[:-1]
+                     for i in (x.world_songs & set(user.world_songs))))
+        r.update(x.free_songs)
+
+        return r
+
     def parse_one(self, song: dict) -> dict:
         '''解析单个歌曲'''
+        # TODO: byd_local_unlock ???
         if not 'id' in song:
-            return None
+            return {}
         r = 0
         if 'remote_dl' in song and song['remote_dl']:
             r |= 16
@@ -69,28 +97,55 @@ class SonglistParser:
             if any(i['ratingClass'] == 3 for i in song.get('difficulties', [])):
                 r |= 8
 
-        if 'additional_files' in song:
-            if 'video.mp4' in song['additional_files']:
+        for extra_file in song.get('additional_files', []):
+            x = extra_file['file_name']
+            if x == SonglistParser.FILE_NAMES[6]:
                 r |= 64
-            if 'video_audio.ogg' in song['additional_files']:
+            elif x == SonglistParser.FILE_NAMES[7]:
                 r |= 128
+            elif x == SonglistParser.FILE_NAMES[8]:
+                r |= 256
+            elif x == SonglistParser.FILE_NAMES[9]:
+                r |= 512
+
         return {song['id']: r}
+
+    def parse_one_unlock(self, song: dict) -> None:
+        '''解析单个歌曲解锁方式'''
+        if not 'id' in song or not 'set' in song or not 'purchase' in song:
+            return {}
+        x = SonglistParser
+        if Constant.FREE_PACK_NAME == song['set']:
+            if any(i['ratingClass'] == 3 for i in song.get('difficulties', [])):
+                x.world_songs.add(song['id'] + '3')
+            x.free_songs.add(song['id'])
+            return None
+
+        if song.get('world_unlock', False):
+            x.world_songs.add(song['id'])
+
+        if song['purchase'] == '':
+            return None
+
+        x.pack_info.setdefault(song['set'], set()).add(song['id'])
 
     def parse(self) -> None:
         '''解析songlist文件'''
         if not os.path.isfile(self.path):
             return
-        with open(self.path, 'r', encoding='utf-8') as f:
+        with open(self.path, 'rb') as f:
             self.data = loads(f.read()).get('songs', [])
+        self.has_songlist = True
         for x in self.data:
             self.songs.update(self.parse_one(x))
+            self.parse_one_unlock(x)
 
 
 class UserDownload:
     '''
         用户下载类
 
-        properties: `user` - `User`类或子类的实例
+        properties: `user` - `UserInfo`类或子类的实例
     '''
 
     limiter = ArcLimiter(
@@ -198,6 +253,10 @@ class DownloadList(UserDownload):
         DownloadList.get_one_song_file_names.cache_clear()
         DownloadList.get_all_song_ids.cache_clear()
         SonglistParser.songs = {}
+        SonglistParser.pack_info = {}
+        SonglistParser.free_songs = set()
+        SonglistParser.world_songs = set()
+        SonglistParser.has_songlist = False
 
     def clear_download_token(self) -> None:
         '''清除过期下载链接'''
@@ -243,7 +302,7 @@ class DownloadList(UserDownload):
                     re['audio']['3'] = {"checksum": x.hash, "url": x.url}
                 else:
                     re['audio']['3'] = {"checksum": x.hash}
-            elif i in ('video.mp4', 'video_audio.ogg'):
+            elif i in ('video.mp4', 'video_audio.ogg', 'video_720.mp4', 'video_1080.mp4'):
                 if 'additional_files' not in re:
                     re['additional_files'] = []
 
@@ -253,6 +312,7 @@ class DownloadList(UserDownload):
                 else:
                     re['additional_files'].append(
                         {"checksum": x.hash, 'file_name': i})
+                # 有参数 requirement 作用未知
             else:
                 if 'chart' not in re:
                     re['chart'] = {}
@@ -277,9 +337,19 @@ class DownloadList(UserDownload):
 
         if not self.song_ids:
             self.song_ids = self.get_all_song_ids()
+            if Config.DOWNLOAD_FORBID_WHEN_NO_ITEM and SonglistParser.has_songlist:
+                # 没有歌曲时不允许下载
+                self.song_ids = list(SonglistParser.get_user_unlocks(
+                    self.user) & set(self.song_ids))
+
             for i in self.song_ids:
                 self.add_one_song(i)
         else:
+            if Config.DOWNLOAD_FORBID_WHEN_NO_ITEM and SonglistParser.has_songlist:
+                # 没有歌曲时不允许下载
+                self.song_ids = list(SonglistParser.get_user_unlocks(
+                    self.user) & set(self.song_ids))
+
             for i in self.song_ids:
                 if os.path.isdir(os.path.join(Constant.SONG_FILE_FOLDER_PATH, i)):
                     self.add_one_song(i)

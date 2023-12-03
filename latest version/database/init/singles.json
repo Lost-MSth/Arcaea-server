@@ -1468,5 +1468,95 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "internetyamero",
+		"items": [
+			{
+				"type": "single",
+				"id": "internetyamero",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "sacrifice",
+		"items": [
+			{
+				"type": "single",
+				"id": "sacrifice",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "tothefurthestdream",
+		"items": [
+			{
+				"type": "single",
+				"id": "tothefurthestdream",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "bbkkbkk",
+		"items": [
+			{
+				"type": "single",
+				"id": "bbkkbkk",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "wishuponasnow",
+		"items": [
+			{
+				"type": "single",
+				"id": "wishuponasnow",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

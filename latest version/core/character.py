@@ -217,6 +217,8 @@ class UserCharacter(Character):
         self.character_id = character_id
         self.user = user
 
+        self.skill_flag: bool = None
+
     @property
     def skill_id_displayed(self) -> str:
         '''对外显示的技能id'''
@@ -224,6 +226,12 @@ class UserCharacter(Character):
             return self.skill.skill_id_uncap
         if self.skill.skill_id and self.level.level >= self.skill.skill_unlock_level:
             return self.skill.skill_id
+        return None
+
+    @property
+    def skill_state(self) -> str:
+        if self.skill_id_displayed == 'skill_maya':
+            return 'add_random' if self.skill_flag else 'remove_random'
         return None
 
     def select_character_uncap_condition(self, user=None):
@@ -255,20 +263,22 @@ class UserCharacter(Character):
         if y is None:
             raise NoData('The character of the user does not exist.')
 
-        self.name = y[7]
-        self.char_type = y[22]
+        self.name = y[8]
+        self.char_type = y[23]
         self.is_uncapped = y[4] == 1
         self.is_uncapped_override = y[5] == 1
         self.level.level = y[2]
         self.level.exp = y[3]
-        self.level.max_level = y[8]
-        self.frag.set_parameter(y[9], y[12], y[15])
-        self.prog.set_parameter(y[10], y[13], y[16])
-        self.overdrive.set_parameter(y[11], y[14], y[17])
-        self.skill.skill_id = y[18]
-        self.skill.skill_id_uncap = y[21]
-        self.skill.skill_unlock_level = y[19]
-        self.skill.skill_requires_uncap = y[20] == 1
+        self.level.max_level = y[9]
+        self.frag.set_parameter(y[10], y[13], y[16])
+        self.prog.set_parameter(y[11], y[14], y[17])
+        self.overdrive.set_parameter(y[12], y[15], y[18])
+        self.skill.skill_id = y[19]
+        self.skill.skill_id_uncap = y[22]
+        self.skill.skill_unlock_level = y[20]
+        self.skill.skill_requires_uncap = y[21] == 1
+
+        self.skill_flag = y[6] == 1
 
         if self.character_id in (21, 46):
             self.voice = [0, 1, 2, 3, 100, 1000, 1001]
@@ -302,6 +312,11 @@ class UserCharacter(Character):
             r['fatalis_is_limited'] = False  # emmmmmmm
         if self.character_id in [1, 6, 7, 17, 18, 24, 32, 35, 52]:
             r['base_character_id'] = 1
+
+        x = self.skill_state
+        if x:
+            r['skill_state'] = x
+
         return r
 
     def change_uncap_override(self, user=None):
@@ -408,6 +423,12 @@ class UserCharacter(Character):
 
         core.user_claim_item(self.user)
         self.upgrade(self.user, - core.amount * Constant.CORE_EXP)
+
+    def change_skill_state(self) -> None:
+        '''翻转技能状态，目前为 skill_miya 专用'''
+        self.skill_flag = not self.skill_flag
+        self.c.execute(f'''update {self.database_table_name} set skill_flag = ? where user_id = ? and character_id = ?''', (
+            1 if self.skill_flag else 0, self.user.user_id, self.character_id))
 
 
 class UserCharacterList:

@@ -387,7 +387,7 @@ class DatabaseMigrator:
         c.execute('''delete from user_char_full''')
         for i in x:
             exp = 25000 if i[1] == 30 else 10000
-            c.executemany('''insert into user_char_full values(?,?,?,?,?,?)''', [
+            c.executemany('''insert into user_char_full values(?,?,?,?,?,?,0)''', [
                           (j[0], i[0], i[1], exp, i[2], 0) for j in y])
 
     def update_database(self) -> None:

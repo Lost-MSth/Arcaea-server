@@ -30,15 +30,16 @@ def game_info():
 @auth_required(request)
 @arc_try
 def download_song(user_id):
-    with Connect(in_memory=True) as c:
-        x = DownloadList(c, UserOnline(None, user_id))
-        x.song_ids = request.args.getlist('sid')
-        x.url_flag = json.loads(request.args.get('url', 'true'))
-        if x.url_flag and x.is_limited:
-            raise RateLimit('You have reached the download limit.', 903)
+    with Connect(in_memory=True) as c_m:
+        with Connect() as c:
+            x = DownloadList(c_m, UserOnline(c, user_id))
+            x.song_ids = request.args.getlist('sid')
+            x.url_flag = json.loads(request.args.get('url', 'true'))
+            if x.url_flag and x.is_limited:
+                raise RateLimit('You have reached the download limit.', 903)
 
-        x.add_songs()
-        return success_return(x.urls)
+            x.add_songs()
+            return success_return(x.urls)
 
 
 @bp.route('/finale/progress', methods=['GET'])
