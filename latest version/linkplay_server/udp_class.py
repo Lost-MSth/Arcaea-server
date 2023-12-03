@@ -49,6 +49,27 @@ class Player:
     def name(self) -> str:
         return self.player_name.decode('ascii').rstrip('\x00')
 
+    def to_dict(self) -> dict:
+        return {
+            'multiplay_player_id': self.player_id,
+            'name': self.name,
+            'is_online': self.online == 1,
+            'character_id': self.character_id,
+            'is_uncapped': self.is_uncapped == 1,
+            'last_song': {
+                'difficulty': self.last_difficulty,
+                'score': self.last_score,
+                'cleartype': self.last_cleartype,
+            },
+            'song': {
+                'difficulty': self.difficulty,
+                'score': self.score,
+                'cleartype': self.cleartype,
+            },
+            'player_state': self.player_state,
+            'last_timestamp': self.last_timestamp,
+        }
+
     def set_player_name(self, player_name: str):
         self.player_name = player_name.encode('ascii')
         if len(self.player_name) > 16:
@@ -79,6 +100,32 @@ class Room:
         self.round_switch = 0
 
         self.command_queue = []
+
+    def to_dict(self) -> dict:
+        p = [i.to_dict() for i in self.players if i.player_id != 0]
+        for i in p:
+            i['is_host'] = i['player_id'] == self.host_id
+        return {
+            'room_id': self.room_id,
+            'room_code': self.room_code,
+            'state': self.state,
+            'song_idx': self.song_idx,
+            'last_song_idx': self.last_song_idx if not self.is_playing else 0xffff,
+            'host_id': self.host_id,
+            'players': p,
+            'round_switch': self.round_switch == 1,
+            'last_timestamp': self.timestamp,
+            'is_enterable': self.is_enterable,
+            'is_playing': self.is_playing,
+        }
+
+    @property
+    def is_enterable(self) -> bool:
+        return 0 < self.player_num < 4 and self.state == 2
+
+    @property
+    def is_playing(self) -> bool:
+        return self.state in (4, 5, 6, 7)
 
     @property
     def command_queue_length(self) -> int:

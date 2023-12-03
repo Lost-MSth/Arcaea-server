@@ -138,35 +138,6 @@ class RemoteMultiPlayer:
 
         return self.data_recv
 
-        # if self.data_recv[0] != '0':
-        #     code = int(self.data_recv[0])
-        #     raise ArcError(f'Link Play error code: {code}', code, status=400)
-
-    # @staticmethod
-    # def tcp(data: str) -> str:
-    #     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-    #         sock.connect((Constant.LINKPLAY_HOST,
-    #                       Constant.LINKPLAY_TCP_PORT))
-    #         send_data =
-    #         sock.sendall(bytes(data + "\n", "utf-8"))
-    #         try:
-    #             received = str(sock.recv(1024), "utf-8").strip()
-    #         except socket.timeout as e:
-    #             raise Timeout(
-    #                 'Timeout when waiting for data from link play server.', status=400) from e
-    #         # print(received)
-    #         return received
-
-    # def data_swap(self, data: tuple) -> tuple:
-
-    #     received = self.tcp(Constant.LINKPLAY_AUTHENTICATION +
-    #                         '|' + '|'.join([str(x) for x in data]))
-
-    #     self.data_recv = received.split('|')
-    #     if self.data_recv[0] != '0':
-    #         code = int(self.data_recv[0])
-    #         raise ArcError(f'Link Play error code: {code}', code, status=400)
-
     def create_room(self, user: 'Player' = None) -> None:
         '''创建房间'''
         if user is not None:
@@ -231,3 +202,15 @@ class RemoteMultiPlayer:
         self.room.song_unlock = b64decode(x['song_unlock'])
         self.user.key = b64decode(x['key'])
         self.user.player_id = int(x['player_id'])
+
+    def get_rooms(self, offset=0, limit=50) -> dict:
+        '''获取房间列表'''
+        self.data_swap({
+            'endpoint': 'get_rooms',
+            'data': {
+                'offset': offset,
+                'limit': limit
+            }
+        })
+
+        return self.data_recv['data']

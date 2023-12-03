@@ -91,6 +91,7 @@ class TCPRouter:
         'create_room',
         'join_room',
         'update_room',
+        'get_rooms',
     }
 
     def __init__(self, raw_data: 'dict | list'):
@@ -115,7 +116,11 @@ class TCPRouter:
         self.clean_check()
         if self.endpoint not in self.router:
             return None
-        r = getattr(self, self.endpoint)()
+        try:
+            r = getattr(self, self.endpoint)()
+        except Exception as e:
+            logging.error(e)
+            return 999
         if isinstance(r, int):
             return {'code': r}
         return {
@@ -257,3 +262,41 @@ class TCPRouter:
                 'player_id': r['player_id'],
                 'song_unlock': b64encode(room.song_unlock).decode('utf-8')
             }
+
+    def get_rooms(self) -> dict:
+        # 获取房间列表与详细信息
+
+        offset = int(self.data.get('offset', 0))
+        if offset < 0:
+            offset = 0
+        limit = min(int(self.data.get('limit', 100)), 100)
+        if limit < 0:
+            limit = 100
+
+        n = 0
+        m = 0
+        rooms = []
+        f = False
+        f2 = False
+        for room in Store.room_id_dict.values():
+            if room.player_num == 0:
+                continue
+            if m < offset:
+                m += 1
+                continue
+            if f:
+                # 处理刚好有 limit 个房间的情况
+                f2 = True
+                break
+            n += 1
+            rooms.append(room.to_dict())
+            if n >= limit:
+                f = True
+
+        return {
+            'amount': n,
+            'offset': offset,
+            'limit': limit,
+            'has_more': f2,
+            'rooms': rooms
+        }
