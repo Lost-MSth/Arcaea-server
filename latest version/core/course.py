@@ -160,13 +160,17 @@ class UserCourse(Course):
         super().__init__(c)
         self.user = user
 
-        self.is_completed: bool = False
+        # self.is_completed: bool = False
         self.high_score: int = None
         self.best_clear_type: int = None
 
+    @property
+    def is_completed(self) -> bool:
+        return self.best_clear_type != 0
+
     def to_dict(self) -> dict:
         r = super().to_dict()
-        if self.is_completed is None:
+        if self.best_clear_type is None:
             self.select_user_course()
         r.update({
             'is_completed': self.is_completed,
@@ -182,21 +186,15 @@ class UserCourse(Course):
                        (self.user.user_id, self.course_id))
         x = self.c.fetchone()
         if x is None:
-            self.is_completed = False
             self.high_score = 0
             self.best_clear_type = 0
         else:
-            self.is_completed = True
             self.high_score = x[2]
             self.best_clear_type = x[3]
 
-    def insert_user_course(self) -> None:
-        self.c.execute('''insert into user_course values (?,?,?,?)''',
+    def insert_or_update_user_course(self) -> None:
+        self.c.execute('''insert or replace into user_course values (?,?,?,?)''',
                        (self.user.user_id, self.course_id, self.high_score, self.best_clear_type))
-
-    def update_user_course(self) -> None:
-        self.c.execute('''update user_course set high_score = ?, best_clear_type = ? where user_id = ? and course_id = ?''',
-                       (self.high_score, self.best_clear_type, self.user.user_id, self.course_id))
 
 
 class UserCourseList:
@@ -262,40 +260,42 @@ class CoursePlay(UserCourse):
 
     def update(self) -> None:
         '''课题模式更新'''
+        self.select_user_course()
+
+        self.score += self.user_play.score
+
+        flag = False
+        if self.score > self.high_score:
+            self.high_score = self.score
+            flag = True
+
         if self.user_play.health < 0:
             # 你挂了
             self.user_play.course_play_state = 5
             self.score = 0
             self.clear_type = 0
             self.user_play.update_play_state_for_course()
+            if flag:
+                self.insert_or_update_user_course()
             return None
+
         self.user_play.course_play_state += 1
-        self.score += self.user_play.score
+
         from .score import Score
         if Score.get_song_state(self.clear_type) > Score.get_song_state(self.user_play.clear_type):
             self.clear_type = self.user_play.clear_type
         self.user_play.update_play_state_for_course()
 
         if self.user_play.course_play_state == 4:
-            self.user.select_user_about_stamina()
-            self.select_course_item()
-            for i in self.items:
-                i.user_claim_item(self.user)
-
-            self.select_user_course()
             if not self.is_completed:
-                self.high_score = self.score
-                self.best_clear_type = self.clear_type
-                self.is_completed = True
-                self.insert_user_course()
-                return None
+                self.user.select_user_about_stamina()
+                self.select_course_item()
+                for i in self.items:
+                    i.user_claim_item(self.user)
 
-            flag = False
-            if self.score > self.high_score:
-                self.high_score = self.score
-                flag = True
             if Score.get_song_state(self.clear_type) > Score.get_song_state(self.best_clear_type):
                 self.best_clear_type = self.clear_type
                 flag = True
-            if flag:
-                self.update_user_course()
+
+        if flag:
+            self.insert_or_update_user_course()
