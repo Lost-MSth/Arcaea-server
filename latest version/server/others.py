@@ -60,6 +60,12 @@ def finale_end():
     return success_return({})
 
 
+@bp.route('/applog/me', methods=['POST'])
+def applog_me():
+    # 异常日志，不处理
+    return success_return({})
+
+
 map_dict = {'/user/me': user_me,
             '/purchase/bundle/pack': bundle_pack,
             '/serve/download/me/song': download_song,
@@ -74,9 +80,9 @@ map_dict = {'/user/me': user_me,
 @bp.route('/compose/aggregate', methods=['GET'])  # 集成式请求
 def aggregate():
     try:
-        #global request
+        # global request
         finally_response = {'success': True, 'value': []}
-        #request_ = request
+        # request_ = request
         get_list = json.loads(request.args.get('calls'))
         if len(get_list) > 10:
             # 请求太多驳回
@@ -101,13 +107,13 @@ def aggregate():
                     'error_code'), 'id': i['id']}
                 if "extra" in resp:
                     finally_response['extra'] = resp['extra']
-                #request = request_
+                # request = request_
                 return jsonify(finally_response)
 
             finally_response['value'].append(
                 {'id': i.get('id'), 'value': resp['value'] if hasattr(resp, 'get') else resp})
 
-        #request = request_
+        # request = request_
         return jsonify(finally_response)
     except KeyError:
         return error_return()

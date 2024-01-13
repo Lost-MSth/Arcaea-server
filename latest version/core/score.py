@@ -11,7 +11,7 @@ from .item import ItemCore
 from .song import Chart
 from .sql import Connect, Query, Sql
 from .util import get_today_timestamp, md5
-from .world import WorldPlay
+from .world import WorldPlay, BeyondWorldPlay
 
 
 class Score:
@@ -500,7 +500,8 @@ class UserPlay(UserScore):
 
         # 世界模式判断
         if self.is_world_mode:
-            self.world_play = WorldPlay(self.c, self.user, self)
+            self.world_play = WorldPlay(
+                self.c, self.user, self) if self.beyond_gauge == 0 else BeyondWorldPlay(self.c, self.user, self)
             self.world_play.update()
 
         # 课题模式判断
