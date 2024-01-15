@@ -308,6 +308,7 @@ class UserInfo(User):
         self.max_stamina_notification_enabled = False
         self.prog_boost: int = 0
         self.beyond_boost_gauge: float = 0
+        self.kanae_stored_prog: float = 0
         self.next_fragstam_ts: int = None
         self.world_mode_locked_end_ts: int = None
         self.current_map: 'Map' = None
@@ -501,6 +502,7 @@ class UserInfo(User):
             "current_map": self.current_map.map_id,
             "prog_boost": self.prog_boost,
             "beyond_boost_gauge": self.beyond_boost_gauge,
+            "kanae_stored_prog": self.kanae_stored_prog,
             "next_fragstam_ts": self.next_fragstam_ts,
             "max_stamina_ts": self.stamina.max_stamina_ts,
             "stamina": self.stamina.stamina,
@@ -559,6 +561,7 @@ class UserInfo(User):
         self.stamina.set_value(x[32], x[33])
         self.world_mode_locked_end_ts = x[34] if x[34] else -1
         self.beyond_boost_gauge = x[35] if x[35] else 0
+        self.kanae_stored_prog = x[36] if x[36] else 0
 
         return self
 
@@ -616,7 +619,7 @@ class UserInfo(User):
             查询user表有关世界模式打歌的信息
         '''
         self.c.execute(
-            '''select character_id, max_stamina_ts, stamina, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, current_map, world_mode_locked_end_ts, beyond_boost_gauge from user where user_id=?''', (self.user_id,))
+            '''select character_id, max_stamina_ts, stamina, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, current_map, world_mode_locked_end_ts, beyond_boost_gauge, kanae_stored_prog from user where user_id=?''', (self.user_id,))
         x = self.c.fetchone()
         if not x:
             raise NoData('No user.', 108, -3)
@@ -630,6 +633,7 @@ class UserInfo(User):
         self.current_map = UserMap(self.c, x[6], self)
         self.world_mode_locked_end_ts = x[7] if x[7] else -1
         self.beyond_boost_gauge = x[8] if x[8] else 0
+        self.kanae_stored_prog = x[9] if x[9] else 0
 
     @property
     def global_rank(self) -> int:

@@ -440,13 +440,14 @@ class UserStamina(Stamina):
 
 class WorldSkillMixin:
     def before_calculate(self) -> None:
-        factory_dict = {'skill_vita': self._skill_vita,
-                        'skill_mika': self._skill_mika,
-                        'skill_ilith_ivy': self._skill_ilith_ivy,
-                        'ilith_awakened_skill': self._ilith_awakened_skill,
-                        'skill_hikari_vanessa': self._skill_hikari_vanessa,
-                        'skill_mithra': self._skill_mithra
-                        }
+        factory_dict = {
+            'skill_vita': self._skill_vita,
+            'skill_mika': self._skill_mika,
+            'skill_ilith_ivy': self._skill_ilith_ivy,
+            'ilith_awakened_skill': self._ilith_awakened_skill,
+            'skill_hikari_vanessa': self._skill_hikari_vanessa,
+            'skill_mithra': self._skill_mithra
+        }
         if self.user_play.beyond_gauge == 0 and self.character_used.character_id == 35 and self.character_used.skill_id_displayed:
             self._special_tempest()
 
@@ -454,14 +455,15 @@ class WorldSkillMixin:
             factory_dict[self.character_used.skill_id_displayed]()
 
     def after_climb(self) -> None:
-        factory_dict = {'eto_uncap': self._eto_uncap,
-                        'ayu_uncap': self._ayu_uncap,
-                        'skill_fatalis': self._skill_fatalis,
-                        'skill_amane': self._skill_amane,
-                        'skill_maya': self._skill_maya,
-                        'luna_uncap': self._luna_uncap,
-                        'skill_kanae_uncap': self._skill_kanae_uncap
-                        }
+        factory_dict = {
+            'eto_uncap': self._eto_uncap,
+            'ayu_uncap': self._ayu_uncap,
+            'skill_fatalis': self._skill_fatalis,
+            'skill_amane': self._skill_amane,
+            'skill_maya': self._skill_maya,
+            'luna_uncap': self._luna_uncap,
+            'skill_kanae_uncap': self._skill_kanae_uncap
+        }
         if self.character_used.skill_id_displayed in factory_dict:
             factory_dict[self.character_used.skill_id_displayed]()
 
@@ -597,8 +599,11 @@ class WorldSkillMixin:
     def _skill_kanae_uncap(self) -> None:
         '''
         kanae 觉醒技能，保存世界模式 progress 并在下次结算
+        直接加减在 progress 最后
+        技能存储 base_progress * PROG / 50，下一次消耗全部存储值（无视技能和搭档，但需要非技能隐藏状态）
         '''
-        pass
+        self.kanae_stored_progress = self.progress_normalized
+        self.user.current_map.reclimb(self.final_progress)
 
 
 class BaseWorldPlay(WorldSkillMixin):
@@ -615,12 +620,8 @@ class BaseWorldPlay(WorldSkillMixin):
         self.user_play = user_play
         self.character_used = None
 
-        self.progress_normalized: float = None
         self.character_bonus_progress_normalized: float = None
 
-        # kanae_stored_progress: float
-        # kanae_added_progress: float
-        # partner_multiply: float
         # wpaid: str
 
     def to_dict(self) -> dict:
@@ -651,10 +652,7 @@ class BaseWorldPlay(WorldSkillMixin):
             "max_stamina_ts": self.user.stamina.max_stamina_ts,
             'world_mode_locked_end_ts': self.user.world_mode_locked_end_ts,
             'beyond_boost_gauge': self.user.beyond_boost_gauge,
-            # 'kanae_stored_progress': 7114000, # 往群愿里塞
-            # 'kanae_added_progress': 514000, # 群愿往外拿
             # 'wpaid': 'helloworld',  # world play id ???
-            # 'partner_multiply': 456, # ？
         }
 
         if self.character_used.skill_id_displayed == 'skill_maya':
@@ -691,11 +689,11 @@ class BaseWorldPlay(WorldSkillMixin):
         raise NotImplementedError
 
     @property
-    def final_progress(self) -> float:
+    def progress_normalized(self) -> float:
         raise NotImplementedError
 
-    def get_step(self) -> None:
-        # to get self.progress_normalized
+    @property
+    def final_progress(self) -> float:
         raise NotImplementedError
 
     def update(self) -> None:
@@ -711,6 +709,9 @@ class BaseWorldPlay(WorldSkillMixin):
         self.user.character.select_character_info()
         if not self.user.is_skill_sealed:
             self.character_used = self.user.character
+            if self.user_play.beyond_gauge == 0 and self.user.kanae_stored_prog > 0:
+                # 实在不想拆开了，在这里判断一下，注意这段不会在 BeyondWorldPlay 中执行
+                self.kanae_added_progress = self.user.kanae_stored_prog
         else:
             self.character_used.character_id = self.user.character.character_id
             self.character_used.level.level = self.user.character.level.level
@@ -721,7 +722,6 @@ class BaseWorldPlay(WorldSkillMixin):
 
         self.user.current_map.select_map_info()
         self.before_calculate()
-        self.get_step()
         self.user.current_map.climb(self.final_progress)
         self.after_climb()
 
@@ -755,6 +755,10 @@ class WorldPlay(BaseWorldPlay):
         self.prog_tempest: float = None
         self.prog_skill_increase: float = None
 
+        self.kanae_added_progress: float = None  # 群愿往外拿
+        self.kanae_stored_progress: float = None  # 往群愿里塞
+        # self.user.kanae_stored_prog: float 群愿有的
+
     def to_dict(self) -> dict:
         r = super().to_dict()
 
@@ -772,6 +776,12 @@ class WorldPlay(BaseWorldPlay):
         if self.prog_tempest is not None:
             r['char_stats']['prog'] += self.prog_tempest  # 没试过要不要这样
             r['char_stats']['prog_tempest'] = self.prog_tempest
+
+        if self.kanae_added_progress is not None:
+            r['kanae_added_progress'] = self.kanae_added_progress
+
+        if self.kanae_stored_progress is not None:
+            r['kanae_stored_progress'] = self.kanae_stored_progress
 
         r['partner_adjusted_prog'] = self.partner_adjusted_prog
 
@@ -793,7 +803,7 @@ class WorldPlay(BaseWorldPlay):
 
     @property
     def final_progress(self) -> float:
-        return (self.progress_normalized + (self.character_bonus_progress_normalized or 0)) * self.step_times
+        return (self.progress_normalized + (self.character_bonus_progress_normalized or 0)) * self.step_times + (self.kanae_added_progress or 0) - (self.kanae_stored_progress or 0)
 
     @property
     def partner_adjusted_prog(self) -> float:
@@ -805,9 +815,9 @@ class WorldPlay(BaseWorldPlay):
             prog += self.prog_skill_increase
         return prog
 
-    def get_step(self) -> None:
-        self.progress_normalized = self.base_progress * \
-            (self.partner_adjusted_prog / 50)
+    @property
+    def progress_normalized(self) -> float:
+        return self.base_progress * (self.partner_adjusted_prog / 50)
 
     def update(self) -> None:
         '''世界模式更新'''
@@ -818,6 +828,17 @@ class WorldPlay(BaseWorldPlay):
         self.user.beyond_boost_gauge = min(self.user.beyond_boost_gauge, 200)
         self.user.update_user_one_column(
             'beyond_boost_gauge', self.user.beyond_boost_gauge)
+
+        # 更新kanae存储进度
+        if self.kanae_stored_progress is not None:
+            self.user.kanae_stored_prog = self.kanae_stored_progress
+            self.user.update_user_one_column(
+                'kanae_stored_prog', self.user.kanae_stored_prog)
+            return
+        if self.kanae_added_progress is None:
+            return
+        self.kanae_stored_progress = 0
+        self.user.update_user_one_column('kanae_stored_prog', 0)
 
 
 class BeyondWorldPlay(BaseWorldPlay):
@@ -844,12 +865,22 @@ class BeyondWorldPlay(BaseWorldPlay):
     def final_progress(self) -> float:
         return self.progress_normalized * self.step_times
 
+    @property
+    def progress_normalized(self) -> float:
+        overdrive = self.character_used.overdrive_value
+        if self.over_skill_increase:
+            overdrive += self.over_skill_increase
+
+        return self.base_progress * (overdrive / 50) * self.affinity_multiplier
+
     def to_dict(self) -> dict:
         r = super().to_dict()
 
         # byd 进度 没有加上源韵强化 和 boost 的数值
         r['pre_boost_progress'] = self.progress_normalized * \
             self.user_play.fragment_multiply / 100
+
+        # r['partner_multiply'] = self.affinity_multiplier  # ?
 
         if self.over_skill_increase is not None:
             r['char_stats']['over_skill_increase'] = self.over_skill_increase
@@ -870,12 +901,3 @@ class BeyondWorldPlay(BaseWorldPlay):
                 self.user.beyond_boost_gauge = 0
             self.user.update_user_one_column(
                 'beyond_boost_gauge', self.user.beyond_boost_gauge)
-
-    def get_step(self) -> None:
-        overdrive = self.character_used.overdrive.get_value(
-            self.character_used.level)
-        if self.over_skill_increase:
-            overdrive += self.over_skill_increase
-
-        self.progress_normalized = self.base_progress * \
-            (overdrive / 50) * self.affinity_multiplier

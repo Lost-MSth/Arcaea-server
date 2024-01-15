@@ -60,7 +60,7 @@ def finale_end():
     return success_return({})
 
 
-@bp.route('/applog/me', methods=['POST'])
+@bp.route('/applog/me/log', methods=['POST'])
 def applog_me():
     # 异常日志，不处理
     return success_return({})

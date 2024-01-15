@@ -34,7 +34,8 @@ next_fragstam_ts int,
 max_stamina_ts int,
 stamina int,
 world_mode_locked_end_ts int,
-beyond_boost_gauge real default 0
+beyond_boost_gauge real default 0,
+kanae_stored_prog real default 0
 );
 create table if not exists login(access_token text,
 user_id int,
