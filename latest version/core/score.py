@@ -11,7 +11,7 @@ from .item import ItemCore
 from .song import Chart
 from .sql import Connect, Query, Sql
 from .util import get_today_timestamp, md5
-from .world import WorldPlay, BeyondWorldPlay
+from .world import WorldPlay, BeyondWorldPlay, BreachedWorldPlay
 
 
 class Score:
@@ -500,8 +500,14 @@ class UserPlay(UserScore):
 
         # 世界模式判断
         if self.is_world_mode:
-            self.world_play = WorldPlay(
-                self.c, self.user, self) if self.beyond_gauge == 0 else BeyondWorldPlay(self.c, self.user, self)
+            self.user.select_user_about_world_play()
+            self.user.current_map.select_map_info()
+            if self.user.current_map.is_breached:
+                self.world_play = BreachedWorldPlay(self.c, self.user, self)
+            elif self.user.current_map.is_beyond:
+                self.world_play = BeyondWorldPlay(self.c, self.user, self)
+            else:
+                self.world_play = WorldPlay(self.c, self.user, self)
             self.world_play.update()
 
         # 课题模式判断

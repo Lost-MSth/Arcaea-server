@@ -2,6 +2,7 @@ from time import time
 
 from flask import Blueprint, request
 
+from core.constant import Constant
 from core.error import InputError, ItemUnavailable, PostError
 from core.item import ItemFactory, Stamina6
 from core.purchase import Purchase, PurchaseList
@@ -130,7 +131,7 @@ def purchase_stamina(user_id, buy_stamina_type):
             return ItemUnavailable('Buying stamina by fragment is not available yet.', 905)
 
         user.update_user_one_column(
-            'next_fragstam_ts', now + 24 * 3600 * 1000)
+            'next_fragstam_ts', now + Constant.FRAGSTAM_RECOVER_TICK)
         s = Stamina6(c)
         s.user_claim_item(user)
         return success_return({

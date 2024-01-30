@@ -99,6 +99,7 @@ class Map:
         self.map_id: str = map_id
         self.is_legacy: bool = None
         self.is_beyond: bool = None
+        self.is_breached: bool = None
         self.beyond_health: int = None
         self.character_affinity: list = []
         self.affinity_multiplier: list = []
@@ -118,6 +119,11 @@ class Map:
         self.require_localunlock_songid: str = None
         self.require_localunlock_challengeid: str = None
         self.chain_info: dict = None
+
+        # self.requires: list[dict] = None
+
+        self.disable_over: bool = None
+        self.new_law: str = None
 
     @property
     def rewards(self) -> list:
@@ -145,6 +151,7 @@ class Map:
             'map_id': self.map_id,
             'is_legacy': self.is_legacy,
             'is_beyond': self.is_beyond,
+            'is_breached': self.is_breached,
             'beyond_health': self.beyond_health,
             'character_affinity': self.character_affinity,
             'affinity_multiplier': self.affinity_multiplier,
@@ -165,11 +172,16 @@ class Map:
         }
         if self.chain_info is not None:
             r['chain_info'] = self.chain_info
+        if self.disable_over:
+            r['disable_over'] = self.disable_over
+        if self.new_law is not None and self.new_law != '':
+            r['new_law'] = self.new_law
         return r
 
     def from_dict(self, raw_dict: dict) -> 'Map':
-        self.is_legacy = raw_dict.get('is_legacy')
-        self.is_beyond = raw_dict.get('is_beyond')
+        self.is_legacy = raw_dict.get('is_legacy', False)
+        self.is_beyond = raw_dict.get('is_beyond', False)
+        self.is_breached = raw_dict.get('is_breached', False)
         self.beyond_health = raw_dict.get('beyond_health')
         self.character_affinity = raw_dict.get('character_affinity', [])
         self.affinity_multiplier = raw_dict.get('affinity_multiplier', [])
@@ -189,6 +201,9 @@ class Map:
             'require_localunlock_challengeid', '')
         self.chain_info = raw_dict.get('chain_info')
         self.steps = [Step().from_dict(s) for s in raw_dict.get('steps')]
+
+        self.disable_over = raw_dict.get('disable_over')
+        self.new_law = raw_dict.get('new_law')
         return self
 
     def select_map_info(self):
@@ -696,13 +711,12 @@ class BaseWorldPlay(WorldSkillMixin):
     def final_progress(self) -> float:
         raise NotImplementedError
 
-    def update(self) -> None:
-        '''世界模式更新'''
+    def before_update(self) -> None:
         if self.user_play.prog_boost_multiply != 0:
             self.user.update_user_one_column('prog_boost', 0)
 
         self.user_play.clear_play_state()
-        self.user.select_user_about_world_play()
+        # self.user.select_user_about_world_play()
 
         self.character_used = Character()
 
@@ -720,10 +734,9 @@ class BaseWorldPlay(WorldSkillMixin):
             self.character_used.prog.set_parameter(50, 50, 50)
             self.character_used.overdrive.set_parameter(50, 50, 50)
 
-        self.user.current_map.select_map_info()
-        self.before_calculate()
-        self.user.current_map.climb(self.final_progress)
-        self.after_climb()
+        # self.user.current_map.select_map_info()
+
+    def after_update(self) -> None:
 
         for i in self.user.current_map.rewards_for_climbing:  # 物品分发
             for j in i['items']:
@@ -746,6 +759,14 @@ class BaseWorldPlay(WorldSkillMixin):
             self.user.current_map.curr_position = 0
 
         self.user.current_map.update()
+
+    def update(self) -> None:
+        '''世界模式更新'''
+        self.before_update()
+        self.before_calculate()
+        self.user.current_map.climb(self.final_progress)
+        self.after_climb()
+        self.after_update()
 
 
 class WorldPlay(BaseWorldPlay):
@@ -819,9 +840,9 @@ class WorldPlay(BaseWorldPlay):
     def progress_normalized(self) -> float:
         return self.base_progress * (self.partner_adjusted_prog / 50)
 
-    def update(self) -> None:
+    def after_update(self) -> None:
         '''世界模式更新'''
-        super().update()
+        super().after_update()
 
         # 更新byd大招蓄力条
         self.user.beyond_boost_gauge += self.beyond_boost_gauge_addition
@@ -892,12 +913,83 @@ class BeyondWorldPlay(BaseWorldPlay):
 
         return r
 
-    def update(self) -> None:
-        super().update()
-
+    def after_update(self) -> None:
+        super().after_update()
         if self.user_play.beyond_boost_gauge_usage != 0 and self.user_play.beyond_boost_gauge_usage <= self.user.beyond_boost_gauge:
             self.user.beyond_boost_gauge -= self.user_play.beyond_boost_gauge_usage
             if abs(self.user.beyond_boost_gauge) <= 1e-5:
                 self.user.beyond_boost_gauge = 0
             self.user.update_user_one_column(
                 'beyond_boost_gauge', self.user.beyond_boost_gauge)
+
+
+class WorldLawMixin:
+    def breached_before_calculate(self) -> None:
+        factory_dict = {
+            'over100_step50': self._over100_step50,
+            'frag50': self._frag50,
+            'lowlevel': self._lowlevel,
+            'antiheroism': self._antiheroism
+        }
+        if self.user.current_map.new_law in factory_dict:
+            factory_dict[self.user.current_map.new_law]()
+
+    def _over100_step50(self) -> None:
+        '''PROG = OVER + STEP / 2'''
+        self.new_law_prog = self.character_used.overdrive_value + \
+            self.character_used.prog_value / 2
+
+    def _frag50(self) -> None:
+        '''PROG x= FRAG'''
+        self.new_law_prog = self.character_used.frag_value
+
+    def _lowlevel(self) -> None:
+        '''PROG x= max(1.0, 2.0 - 0.1 x LEVEL)'''
+        self.new_law_prog = 50 * \
+            max(1, 2 - 0.1 * self.character_used.level.level)
+
+    def _antiheroism(self) -> None:
+        '''PROG = OVER - ||OVER-FRAG|-|OVER-STEP||'''
+        over = self.character_used.overdrive_value
+        x = abs(over - self.character_used.frag_value)
+        y = abs(over - self.character_used.prog_value)
+        self.new_law_prog = over - abs(x - y)
+
+
+class BreachedWorldPlay(BeyondWorldPlay, WorldLawMixin):
+    def __init__(self, c=None, user=None, user_play=None) -> None:
+        super().__init__(c, user, user_play)
+        self.new_law_prog: float = None
+
+    @property
+    def new_law_multiply(self) -> float:
+        if self.new_law_prog is None:
+            return 1
+        return self.new_law_prog / 50
+
+    @property
+    def affinity_multiplier(self) -> float:
+        return 1
+
+    @property
+    def progress_normalized(self) -> float:
+        if self.user.current_map.disable_over:
+            return self.base_progress * self.new_law_multiply
+
+        overdrive = self.character_used.overdrive_value
+        if self.over_skill_increase:
+            overdrive += self.over_skill_increase
+        return self.base_progress * (overdrive / 50) * self.new_law_multiply
+
+    def to_dict(self) -> dict:
+        r = super().to_dict()
+        r['new_law_multiply'] = self.new_law_multiply
+        return r
+
+    def update(self) -> None:
+        self.before_update()
+        self.before_calculate()
+        self.breached_before_calculate()
+        self.user.current_map.climb(self.final_progress)
+        self.after_climb()
+        self.after_update()

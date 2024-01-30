@@ -1,6 +1,6 @@
 from .config_manager import Config
 
-ARCAEA_SERVER_VERSION = 'v2.11.3.2'
+ARCAEA_SERVER_VERSION = 'v2.11.3.3'
 ARCAEA_LOG_DATBASE_VERSION = 'v1.1'
 
 
@@ -11,6 +11,7 @@ class Constant:
     MAX_STAMINA = 12
 
     STAMINA_RECOVER_TICK = 1800000
+    FRAGSTAM_RECOVER_TICK = 23 * 3600 * 1000
 
     COURSE_STAMINA_COST = 4
 

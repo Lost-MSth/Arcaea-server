@@ -12,7 +12,7 @@ class Config:
 
     SONG_FILE_HASH_PRE_CALCULATE = True
 
-    GAME_API_PREFIX = '/akeome/24'
+    GAME_API_PREFIX = '/samusugiru/26'
 
     ALLOW_APPVERSION = []  # list[str]
 
