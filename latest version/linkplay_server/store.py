@@ -120,7 +120,7 @@ class TCPRouter:
             r = getattr(self, self.endpoint)()
         except Exception as e:
             logging.error(e)
-            return 999
+            return {'code': 999}
         if isinstance(r, int):
             return {'code': r}
         return {

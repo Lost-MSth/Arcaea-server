@@ -1,0 +1,80 @@
+{
+  "map_id": "byd_inkarusi",
+  "is_legacy": false,
+  "character_affinity": [],
+  "affinity_multiplier": [],
+  "chapter": 2001,
+  "available_from": -1,
+  "available_to": 9999999999999,
+  "is_repeatable": false,
+  "require_id": "inkarusi2",
+  "require_type": "chart_unlock",
+  "is_breached": true,
+  "stamina_cost": 3,
+  "new_law": "over100_step50",
+  "disable_over": true,
+  "coordinate": "500,0",
+  "beyond_health": 200,
+  "step_count": 5,
+  "custom_bg": "",
+  "is_beyond": true,
+  "requires": [
+    {
+      "type": "chart_unlock",
+      "id": "inkarusi2"
+    }
+  ],
+  "steps": [
+    {
+      "map_id": "byd_inkarusi",
+      "position": 0,
+      "capture": 50
+    },
+    {
+      "map_id": "byd_inkarusi",
+      "position": 1,
+      "capture": 50,
+      "items": [
+        {
+          "type": "core",
+          "id": "core_generic",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "map_id": "byd_inkarusi",
+      "position": 2,
+      "capture": 50,
+      "items": [
+        {
+          "type": "fragment",
+          "amount": 500
+        }
+      ]
+    },
+    {
+      "map_id": "byd_inkarusi",
+      "position": 3,
+      "capture": 50,
+      "items": [
+        {
+          "type": "core",
+          "id": "core_generic",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "map_id": "byd_inkarusi",
+      "position": 4,
+      "capture": 0,
+      "items": [
+        {
+          "id": "inkarusi3",
+          "type": "world_song"
+        }
+      ]
+    }
+  ]
+}

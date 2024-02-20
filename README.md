@@ -74,7 +74,6 @@ It is just so interesting. What it can do is under exploration.
 [这里 Here](https://github.com/Lost-MSth/Arcaea-server/releases)
 
 [Arcaea-CN official](https://arcaea.lowiro.com/zh)  
-[Arcaea-Konmai Academy](https://616.sb)  
 
 ## 更新日志 Update log
 

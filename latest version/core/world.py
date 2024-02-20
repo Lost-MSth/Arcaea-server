@@ -936,8 +936,9 @@ class WorldLawMixin:
 
     def _over100_step50(self) -> None:
         '''PROG = OVER + STEP / 2'''
-        self.new_law_prog = self.character_used.overdrive_value + \
-            self.character_used.prog_value / 2
+        over = self.character_used.overdrive_value + self.over_skill_increase
+        prog = self.character_used.prog_value + self.prog_skill_increase
+        self.new_law_prog = over + prog / 2
 
     def _frag50(self) -> None:
         '''PROG x= FRAG'''
@@ -950,9 +951,10 @@ class WorldLawMixin:
 
     def _antiheroism(self) -> None:
         '''PROG = OVER - ||OVER-FRAG|-|OVER-STEP||'''
-        over = self.character_used.overdrive_value
+        over = self.character_used.overdrive_value + self.over_skill_increase
+        prog = self.character_used.prog_value + self.prog_skill_increase
         x = abs(over - self.character_used.frag_value)
-        y = abs(over - self.character_used.prog_value)
+        y = abs(over - prog)
         self.new_law_prog = over - abs(x - y)
 
 

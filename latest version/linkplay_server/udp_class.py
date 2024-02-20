@@ -104,7 +104,7 @@ class Room:
     def to_dict(self) -> dict:
         p = [i.to_dict() for i in self.players if i.player_id != 0]
         for i in p:
-            i['is_host'] = i['player_id'] == self.host_id
+            i['is_host'] = i['multiplay_player_id'] == self.host_id
         return {
             'room_id': self.room_id,
             'room_code': self.room_code,
