@@ -54,7 +54,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.register_blueprint(web.login.bp)
 app.register_blueprint(web.index.bp)
 app.register_blueprint(api.bp)
-app.register_blueprint(server.bp)
+list(map(app.register_blueprint, server.get_bps()))
 # app.register_blueprint(webapi.bp)
 
 

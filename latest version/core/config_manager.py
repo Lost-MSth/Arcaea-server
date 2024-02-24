@@ -12,7 +12,8 @@ class Config:
 
     SONG_FILE_HASH_PRE_CALCULATE = True
 
-    GAME_API_PREFIX = '/samusugiru/26'
+    GAME_API_PREFIX = '/samusugiru/26'  # str | list[str]
+    OLD_GAME_API_PREFIX = []  # str | list[str]
 
     ALLOW_APPVERSION = []  # list[str]
 

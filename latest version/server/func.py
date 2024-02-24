@@ -106,7 +106,7 @@ def header_check(request) -> ArcError:
     headers = request.headers
     if Config.ALLOW_APPVERSION:  # 版本检查
         if 'AppVersion' not in headers or headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-            return NoAccess('Invalid app version', 1203)
+            return NoAccess('Invalid app version', 5)
 
     if has_arc_hash and not ArcHashChecker(request).check():
         return NoAccess('Invalid request')
