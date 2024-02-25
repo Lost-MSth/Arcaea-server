@@ -177,6 +177,16 @@ class LogDatabaseInit:
             self.table_init()
 
 
+class DeletedDatabaseInit(DatabaseInit):
+    def __init__(self, db_path: str = Config.SQLITE_DATABASE_DELETED_PATH) -> None:
+        super().__init__(db_path)
+
+    def init(self) -> None:
+        with Connect(self.db_path) as c:
+            self.c = c
+            self.table_init()
+
+
 class FileChecker:
     '''文件检查及初始化类'''
 
@@ -195,7 +205,7 @@ class FileChecker:
             self.logger.warning('Folder `%s` is missing.' % folder_path)
         return f
 
-    def check_update_database(self) -> bool:
+    def _check_update_database_log(self) -> bool:
         if not self.check_file(Config.SQLITE_LOG_DATABASE_PATH):
             # 新建日志数据库
             try:
@@ -232,22 +242,22 @@ class FileChecker:
                         f'Failed to update the file `{Config.SQLITE_LOG_DATABASE_PATH}`')
                     return False
 
-        if not self.check_file(Config.SQLITE_DATABASE_PATH):
+        return True
+
+    def _check_update_database_main(self, db_path=Config.SQLITE_DATABASE_PATH, init_class=DatabaseInit) -> bool:
+        if not self.check_file(db_path):
             # 新建数据库
             try:
-                self.logger.info(
-                    'Try to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
-                DatabaseInit().init()
-                self.logger.info(
-                    'Success to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+                self.logger.info(f'Try to new the file `{db_path}`.')
+                init_class().init()
+                self.logger.info(f'Success to new the file `{db_path}`.')
             except Exception as e:
                 self.logger.error(format_exc())
-                self.logger.warning(
-                    'Failed to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+                self.logger.warning(f'Failed to new the file `{db_path}`.')
                 return False
         else:
             # 检查更新
-            with Connect() as c:
+            with Connect(db_path) as c:
                 try:
                     c.execute('''select value from config where id="version"''')
                     x = c.fetchone()
@@ -256,41 +266,44 @@ class FileChecker:
             # 数据库自动更新，不强求
             if not x or x[0] != ARCAEA_SERVER_VERSION:
                 self.logger.warning(
-                    'Maybe the file `%s` is an old version.' % Config.SQLITE_DATABASE_PATH)
+                    f'Maybe the file `{db_path}` is an old version. Version: {x[0] if x else "None"}')
                 try:
                     self.logger.info(
-                        'Try to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+                        f'Try to update the file `{db_path}` to version {ARCAEA_SERVER_VERSION}.')
 
                     if not os.path.isdir(Config.SQLITE_DATABASE_BACKUP_FOLDER_PATH):
                         os.makedirs(Config.SQLITE_DATABASE_BACKUP_FOLDER_PATH)
 
-                    backup_path = try_rename(Config.SQLITE_DATABASE_PATH, os.path.join(
-                        Config.SQLITE_DATABASE_BACKUP_FOLDER_PATH, os.path.split(Config.SQLITE_DATABASE_PATH)[-1] + '.bak'))
+                    backup_path = try_rename(db_path, os.path.join(
+                        Config.SQLITE_DATABASE_BACKUP_FOLDER_PATH, os.path.split(db_path)[-1] + '.bak'))
 
                     try:
-                        copy2(backup_path, Config.SQLITE_DATABASE_PATH)
+                        copy2(backup_path, db_path)
                     except:
-                        copy(backup_path, Config.SQLITE_DATABASE_PATH)
+                        copy(backup_path, db_path)
 
                     temp_path = os.path.join(
-                        *os.path.split(Config.SQLITE_DATABASE_PATH)[:-1], 'old_arcaea_database.db')
+                        *os.path.split(db_path)[:-1], 'old_arcaea_database.db')
                     if os.path.isfile(temp_path):
                         os.remove(temp_path)
 
-                    try_rename(Config.SQLITE_DATABASE_PATH, temp_path)
+                    try_rename(db_path, temp_path)
 
-                    DatabaseInit().init()
-                    self.update_database(temp_path)
+                    init_class().init()
+                    self.update_database(temp_path, db_path)
 
                     self.logger.info(
-                        'Success to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+                        f'Success to update the file `{db_path}`.')
 
                 except Exception as e:
                     self.logger.error(format_exc())
                     self.logger.warning(
-                        'Fail to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+                        f'Fail to update the file `{db_path}`.')
 
         return True
+
+    def check_update_database(self) -> bool:
+        return self._check_update_database_main() and self._check_update_database_log() and self._check_update_database_main(Config.SQLITE_DATABASE_DELETED_PATH, DeletedDatabaseInit)
 
     @staticmethod
     def update_database(old_path: str, new_path: str = Config.SQLITE_DATABASE_PATH) -> None:

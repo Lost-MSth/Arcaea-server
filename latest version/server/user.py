@@ -1,8 +1,10 @@
 from flask import Blueprint, current_app, request
 
 from core.character import UserCharacter
+from core.config_manager import Config
 from core.error import ArcError
 from core.item import ItemCore
+from core.operation import DeleteOneUser
 from core.save import SaveData
 from core.sql import Connect
 from core.user import User, UserLogin, UserOnline, UserRegister
@@ -164,7 +166,10 @@ def sys_set(user_id, set_arg):
 @auth_required(request)
 @arc_try
 def user_delete(user_id):
-    raise ArcError('Cannot delete the account.', 151, status=404)
+    if not Config.ALLOW_SELF_ACCOUNT_DELETE:
+        raise ArcError('Cannot delete the account.', 151, status=404)
+    DeleteOneUser().set_params(user_id).run()
+    return success_return({'user_id': user_id})
 
 
 @bp.route('/email/resend_verify', methods=['POST'])  # 邮箱验证重发

@@ -71,6 +71,8 @@ class Config:
 
     SAVE_FULL_UNLOCK = False
 
+    ALLOW_SELF_ACCOUNT_DELETE = False
+
     # ------------------------------------------
 
     # You can change this to make another PTT mechanism.
@@ -86,6 +88,7 @@ class Config:
     SQLITE_DATABASE_BACKUP_FOLDER_PATH = './database/backup/'
     DATABASE_INIT_PATH = './database/init/'
     SQLITE_LOG_DATABASE_PATH = './database/arcaea_log.db'
+    SQLITE_DATABASE_DELETED_PATH = './database/arcaea_database_deleted.db'
 
     GAME_LOGIN_RATE_LIMIT = '30/5 minutes'
     API_LOGIN_RATE_LIMIT = '10/5 minutes'

@@ -1,3 +1,4 @@
+from .constant import Constant
 from .download import DownloadList
 from .error import NoData
 from .save import SaveData
@@ -245,3 +246,75 @@ class UnlockUserItem(BaseOperation):
         with Connect() as c:
             c.execute(
                 f'''delete from user_item where type in ({','.join(['?'] * len(self.item_types))})''', self.item_types)
+
+
+def _delete_one_table(c, table_name, user_id):
+    c.execute(
+        f'''insert into db_deleted.{table_name} select * from {table_name} where user_id = ?''', (user_id,))
+    c.execute(f'''delete from {table_name} where user_id = ?''', (user_id,))
+
+
+class DeleteUserScore(BaseOperation):
+    '''
+        删除单用户成绩，不包含 recent 数据
+    '''
+    _name = 'delete_user_score'
+
+    def __init__(self, user=None):
+        self.user = user
+
+    def set_params(self, user_id: int = None, *args, **kwargs):
+        if user_id is not None:
+            self.user = User()
+            self.user.user_id = int(user_id)
+        return self
+
+    def run(self):
+        assert self.user is not None
+        with Connect() as c:
+            c.execute('''attach database ? as db_deleted''',
+                      (Constant.SQLITE_DATABASE_DELETED_PATH,))
+            _delete_one_table(c, 'best_score', self.user.user_id)
+            _delete_one_table(c, 'recent30', self.user.user_id)
+
+
+class DeleteOneUser(BaseOperation):
+    '''
+        删除单用户
+    '''
+    _name = 'delete_one_user'
+
+    TABLES = ['best_score', 'recent30', 'user_char', 'user_course', 'user_item',
+              'user_present', 'user_redeem', 'user_role', 'user_save', 'user_world', 'user']
+
+    def __init__(self, user=None):
+        self.user = user
+
+    def set_params(self, user_id: int = None, *args, **kwargs):
+        if user_id is not None:
+            self.user = User()
+            self.user.user_id = int(user_id)
+        return self
+
+    def run(self):
+        assert self.user is not None
+        with Connect() as c:
+            c.execute('''attach database ? as db_deleted''',
+                      (Constant.SQLITE_DATABASE_DELETED_PATH,))
+
+            self._clear_login(c)
+            self._data_save(c)
+
+    def _data_save(self, c):
+        c.execute(
+            f'''insert into db_deleted.friend select * from friend where user_id_me = ? or user_id_other = ?''', (self.user.user_id, self.user.user_id))
+        c.execute(f'''delete from friend where user_id_me = ? or user_id_other = ?''',
+                  (self.user.user_id, self.user.user_id))
+
+        [_delete_one_table(c, x, self.user.user_id) for x in self.TABLES]
+
+    def _clear_login(self, c):
+        c.execute('''delete from login where user_id = ?''',
+                  (self.user.user_id,))
+        c.execute('''delete from api_login where user_id = ?''',
+                  (self.user.user_id,))

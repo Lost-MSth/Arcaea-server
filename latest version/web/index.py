@@ -2,7 +2,7 @@ import os
 import time
 
 from core.init import FileChecker
-from core.operation import RefreshAllScoreRating, RefreshSongFileCache, SaveUpdateScore, UnlockUserItem
+from core.operation import RefreshAllScoreRating, RefreshSongFileCache, SaveUpdateScore, UnlockUserItem, DeleteUserScore
 from core.rank import RankList
 from core.sql import Connect
 from core.user import User
@@ -1366,7 +1366,10 @@ def delete_user_score():
             user_id = c.fetchone()
             if user_id:
                 user_id = user_id[0]
-                web.system.clear_user_score(c, user_id)
+                c.execute('''update user set rating_ptt=0, song_id='', difficulty=0, score=0, shiny_perfect_count=0, perfect_count=0, near_count=0, miss_count=0, health=0, time_played=0, rating=0, world_rank_score=0 where user_id=:a''', {
+                          'a': user_id})
+                c.connection.commit()
+                DeleteUserScore().set_params(user_id=user_id).run()
                 flash("用户成绩删除成功 Successfully delete the user's scores.")
 
             else:

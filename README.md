@@ -26,7 +26,7 @@ This procedure is mainly used for study and research, and shall not be used for 
   - 多设备自动封号 Auto-ban of multiple devices
   - :warning: 多设备登录 Multi device login
   - 登录频次限制 Login rate limit
-  - :x: 销号 Destroy account
+  - :warning: 销号 Destroy account
 - 成绩上传 Score upload
   - 成绩校验 Score check
   - 成绩排名 Score rank
