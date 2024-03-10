@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify
 from core.config_manager import Config
 
 from . import (auth, course, friend, multiplayer, others, present, purchase,
-               score, user, world)
+               score, user, world, mission)
 
 
 __bp_old = Blueprint('old_server', __name__)
@@ -24,7 +24,7 @@ def get_bps():
 
     bp = Blueprint('server', __name__)
     list(map(bp.register_blueprint, [user.bp, auth.bp, friend.bp, score.bp,
-                                     world.bp, purchase.bp, present.bp, others.bp, multiplayer.bp, course.bp]))
+                                     world.bp, purchase.bp, present.bp, others.bp, multiplayer.bp, course.bp, mission.bp]))
 
     bps = [Blueprint(x, __name__, url_prefix=x)
            for x in string_to_list(Config.GAME_API_PREFIX)]

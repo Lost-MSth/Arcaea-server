@@ -92,12 +92,17 @@ class DatabaseInit:
                        ('memory', 'memory', 1))
         self.c.execute('''insert into item values(?,?,?)''',
                        ('anni5tix', 'anni5tix', 1))
+        self.c.execute('''insert into item values(?,?,?)''',
+                       ('pick_ticket', 'pick_ticket', 1))
 
         with open(self.pack_path, 'rb') as f:
             self.insert_purchase_item(load(f))
 
         with open(self.single_path, 'rb') as f:
             self.insert_purchase_item(load(f))
+
+        self.c.execute('''insert into item values(?,?,?)''',  # 新手任务奖励曲
+                       ('innocence', 'world_song', 1))
 
     def course_init(self) -> None:
         '''初始化课题信息'''

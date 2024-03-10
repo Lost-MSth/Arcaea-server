@@ -13,7 +13,7 @@ from core.user import UserOnline
 from .auth import auth_required
 from .func import arc_try, error_return, success_return
 from .present import present_info
-from .purchase import bundle_bundle, bundle_pack
+from .purchase import bundle_bundle, get_single, bundle_pack
 from .score import song_score_friend
 from .user import user_me
 from .world import world_all
@@ -24,6 +24,28 @@ bp = Blueprint('others', __name__)
 @bp.route('/game/info', methods=['GET'])  # 系统信息
 def game_info():
     return success_return(GameInfo().to_dict())
+
+
+# @bp.route('/game/content_bundle', methods=['GET'])  # 热更新
+# def game_content_bundle():
+#     app_version = request.headers.get('AppVersion')
+#     bundle_version = request.headers.get('ContentBundle')
+#     import os
+#     if bundle_version != '5.4.0':
+#         r = {'orderedResults': [
+#             {
+#                 'appVersion': '5.4.0',
+#                 'contentBundleVersion': '5.4.0',
+#                 'jsonUrl': 'http://192.168.0.110/bundle_download/bundle.json',
+#                 'jsonSize': os.path.getsize('./database/bundle/bundle.json'),
+#                 'bundleUrl': 'http://192.168.0.110/bundle_download/bundle',
+#                 'bundleSize': os.path.getsize('./database/bundle/bundle')
+#             },
+#         ]
+#         }
+#     else:
+#         r = {}
+#     return success_return(r)
 
 
 @bp.route('/serve/download/me/song', methods=['GET'])  # 歌曲下载
@@ -66,15 +88,18 @@ def applog_me():
     return success_return({})
 
 
-map_dict = {'/user/me': user_me,
-            '/purchase/bundle/pack': bundle_pack,
-            '/serve/download/me/song': download_song,
-            '/game/info': game_info,
-            '/present/me': present_info,
-            '/world/map/me': world_all,
-            '/score/song/friend': song_score_friend,
-            '/purchase/bundle/bundle': bundle_bundle,
-            '/finale/progress': finale_progress}
+map_dict = {
+    '/user/me': user_me,
+    '/purchase/bundle/pack': bundle_pack,
+    '/serve/download/me/song': download_song,
+    '/game/info': game_info,
+    '/present/me': present_info,
+    '/world/map/me': world_all,
+    '/score/song/friend': song_score_friend,
+    '/purchase/bundle/bundle': bundle_bundle,
+    '/finale/progress': finale_progress,
+    '/purchase/bundle/single': get_single
+}
 
 
 @bp.route('/compose/aggregate', methods=['GET'])  # 集成式请求

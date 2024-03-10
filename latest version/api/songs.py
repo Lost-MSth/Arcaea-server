@@ -63,7 +63,7 @@ def songs_get(data, user):
     '''查询全歌曲信息'''
     A = ['song_id', 'name']
     B = ['song_id', 'name', 'rating_pst',
-         'rating_prs', 'rating_ftr', 'rating_byn']
+         'rating_prs', 'rating_ftr', 'rating_byn', 'rating_etr']
     with Connect() as c:
         query = Query(A, A, B).from_dict(data)
         x = Sql(c).select('chart', query=query)
@@ -97,8 +97,8 @@ def songs_post(data, user):
 @api_try
 def songs_song_difficulty_rank_get(data, user, song_id, difficulty):
     '''查询歌曲某个难度的成绩排行榜，和游戏内接口相似，只允许limit'''
-    if difficulty not in [0, 1, 2, 3]:
-        raise InputError('Difficulty must be 0, 1, 2 or 3')
+    if difficulty not in [0, 1, 2, 3, 4]:
+        raise InputError('Difficulty must be 0, 1, 2, 3 or 4')
     limit = data.get('limit', 20)
     if not isinstance(limit, int):
         raise InputError('Limit must be int')

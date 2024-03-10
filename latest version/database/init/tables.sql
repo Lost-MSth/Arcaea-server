@@ -241,10 +241,11 @@ primary key(present_id, item_id, type)
 );
 create table if not exists chart(song_id text primary key,
 name text,
-rating_pst int,
-rating_prs int,
-rating_ftr int,
-rating_byn int
+rating_pst int default -1,
+rating_prs int default -1,
+rating_ftr int default -1,
+rating_byn int default -1,
+rating_etr int default -1
 );
 create table if not exists redeem(code text primary key,
 type int
@@ -310,6 +311,12 @@ item_id text,
 type text,
 amount int,
 primary key(course_id, item_id, type)
+);
+create table if not exists user_mission(
+user_id int,
+mission_id text,
+status int,
+primary key(user_id, mission_id)
 );
 
 create index if not exists best_score_1 on best_score (song_id, difficulty);

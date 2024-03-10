@@ -1612,5 +1612,77 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "ionostream",
+		"items": [
+			{
+				"type": "single",
+				"id": "ionostream",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "masqueradelegion",
+		"items": [
+			{
+				"type": "single",
+				"id": "masqueradelegion",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "kyorenromance",
+		"items": [
+			{
+				"type": "single",
+				"id": "kyorenromance",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "qovat",
+		"items": [
+			{
+				"type": "single",
+				"id": "qovat",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

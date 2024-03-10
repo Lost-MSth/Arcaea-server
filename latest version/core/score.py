@@ -207,7 +207,7 @@ class UserPlay(UserScore):
         self.submission_hash: str = None
         self.beyond_gauge: int = None
         self.unrank_flag: bool = None
-        self.first_protect_flag: bool = None
+        self.new_best_protect_flag: bool = None
         self.ptt: 'Potential' = None
 
         self.is_world_mode: bool = None
@@ -245,7 +245,7 @@ class UserPlay(UserScore):
 
     @property
     def is_protected(self) -> bool:
-        return self.health == -1 or int(self.score) >= 9800000 or self.first_protect_flag
+        return self.health == -1 or int(self.score) >= 9800000 or self.new_best_protect_flag
 
     @property
     def is_valid(self) -> bool:
@@ -473,16 +473,17 @@ class UserPlay(UserScore):
             'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty})
         x = self.c.fetchone()
         if not x:
-            self.first_protect_flag = True  # 初见保护
+            self.new_best_protect_flag = True  # 初见保护
             self.c.execute('''insert into best_score values(:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n)''', {
                 'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty, 'd': self.score, 'e': self.shiny_perfect_count, 'f': self.perfect_count, 'g': self.near_count, 'h': self.miss_count, 'i': self.health, 'j': self.modifier, 'k': self.time_played, 'l': self.clear_type, 'm': self.clear_type, 'n': self.rating})
             self.user.update_global_rank()
         else:
-            self.first_protect_flag = False
+            self.new_best_protect_flag = False
             if self.song_state > self.get_song_state(int(x[1])):  # best状态更新
                 self.c.execute('''update best_score set best_clear_type = :a where user_id = :b and song_id = :c and difficulty = :d''', {
                     'a': self.clear_type, 'b': self.user.user_id, 'c': self.song.song_id, 'd': self.song.difficulty})
             if self.score >= int(x[0]):  # best成绩更新
+                self.new_best_protect_flag = True
                 self.c.execute('''update best_score set score = :d, shiny_perfect_count = :e, perfect_count = :f, near_count = :g, miss_count = :h, health = :i, modifier = :j, clear_type = :k, rating = :l, time_played = :m  where user_id = :a and song_id = :b and difficulty = :c ''', {
                     'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty, 'd': self.score, 'e': self.shiny_perfect_count, 'f': self.perfect_count, 'g': self.near_count, 'h': self.miss_count, 'i': self.health, 'j': self.modifier, 'k': self.clear_type, 'l': self.rating, 'm': self.time_played})
                 self.user.update_global_rank()

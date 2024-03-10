@@ -1,10 +1,10 @@
 # Arcaea-server
 
-一个微型的Arcaea本地服务器  A small local server for Arcaea
+一个微型的 Arcaea 本地服务器  A small local server for Arcaea
 
 ## 简介 Introduction
 
-这是基于Python以及Flask的微型本地Arcaea服务器，可以模拟游戏的主要功能。这可能是我第一次写这种大程序，若有不妥之处，敬请谅解。  
+这是基于 Python 以及 Flask 的微型本地 Arcaea 服务器，可以模拟游戏的主要功能。这可能是我第一次写这种大程序，若有不妥之处，敬请谅解。  
 
 本程序主要用于学习研究，不得用于任何商业行为，否则后果自负，这不是强制要求，只是一个提醒与警告。  
 
@@ -50,12 +50,14 @@ This procedure is mainly used for study and research, and shall not be used for 
   - 下载频次限制 Download rate limit
 - 购买系统 Purchase system
   - 单曲和曲包 Single & Pack
-  - :x: 捆绑包 Bundle
+  - :x: 捆绑包 Pack bundle
   - 折扣 Discount
   - 五周年兑换券 5-th anniversary ticket
+  - 单曲兑换券 Pick ticket
   - :x: Extend 包自动降价 Extend pack automatic price reduction
 - 奖励系统 Present system
 - 兑换码系统 Redeem code system
+- 新手任务 Missions
 - 角色系统 Character system
 - 数据记录 Data recording
   - 用户成绩 Users' scores
@@ -117,7 +119,7 @@ It is just so interesting. What it can do is under exploration.
 - Windows / Linux / Mac OS / Android...
 - Python >= 3.6
   - Flask >= 2.0
-  - Cryptography >= 3.0.0
+  - Cryptography >= 35.0.0
   - limits >= 2.7.0
 - Charles, IDA, proxy app... (optional)
 

@@ -33,7 +33,7 @@ class Chart:
 
     def select(self) -> None:
         self.c.execute(
-            '''select rating_pst, rating_prs, rating_ftr, rating_byn from chart where song_id=:a''', {'a': self.song_id})
+            '''select rating_pst, rating_prs, rating_ftr, rating_byn, rating_etr from chart where song_id=:a''', {'a': self.song_id})
         x = self.c.fetchone()
         if x is None:
             if Config.ALLOW_SCORE_WITH_NO_SONG:
@@ -63,11 +63,12 @@ class Song:
             self.song_id = x[0]
         self.name = x[1]
         self.charts = [Chart(self.c, self.song_id, 0), Chart(self.c, self.song_id, 1), Chart(
-            self.c, self.song_id, 2), Chart(self.c, self.song_id, 3)]
+            self.c, self.song_id, 2), Chart(self.c, self.song_id, 3), Chart(self.c, self.song_id, 4)]
         self.charts[0].defnum = x[2]
         self.charts[1].defnum = x[3]
         self.charts[2].defnum = x[4]
         self.charts[3].defnum = x[5]
+        self.charts[4].defnum = x[6]
         return self
 
     def from_dict(self, d: dict) -> 'Song':
@@ -89,11 +90,11 @@ class Song:
     def update(self) -> None:
         '''全部更新'''
         self.c.execute(
-            '''update chart set name=?, rating_pst=?, rating_prs=?, rating_ftr=?, rating_byn=? where song_id=?''', (self.name, self.charts[0].defnum, self.charts[1].defnum, self.charts[2].defnum, self.charts[3].defnum, self.song_id))
+            '''update chart set name=?, rating_pst=?, rating_prs=?, rating_ftr=?, rating_byn=?, rating_etr=? where song_id=?''', (self.name, self.charts[0].defnum, self.charts[1].defnum, self.charts[2].defnum, self.charts[3].defnum, self.charts[4].defnum, self.song_id))
 
     def insert(self) -> None:
         self.c.execute(
-            '''insert into chart values (?,?,?,?,?,?)''', (self.song_id, self.name, self.charts[0].defnum, self.charts[1].defnum, self.charts[2].defnum, self.charts[3].defnum))
+            '''insert into chart values (?,?,?,?,?,?,?)''', (self.song_id, self.name, self.charts[0].defnum, self.charts[1].defnum, self.charts[2].defnum, self.charts[3].defnum, self.charts[4].defnum))
 
     def select_exists(self, song_id: str = None) -> bool:
         if song_id is not None:

@@ -11,6 +11,7 @@ from .error import (ArcError, DataExist, FriendError, InputError, NoAccess,
                     NoData, RateLimit, UserBan)
 from .item import UserItemList
 from .limiter import ArcLimiter
+from .mission import UserMissionList
 from .score import Score
 from .sql import Query, Sql
 from .world import Map, UserMap, UserStamina
@@ -350,6 +351,13 @@ class UserInfo(User):
         return self.__packs
 
     @property
+    def pick_ticket(self) -> int:
+        x = UserItemList(self.c, self).select_from_type('pick_ticket')
+        if not x.items:
+            return 0
+        return x.items[0].amount
+
+    @property
     def world_unlocks(self) -> list:
         if self.__world_unlocks is None:
             x = UserItemList(self.c, self).select_from_type(
@@ -520,7 +528,9 @@ class UserInfo(User):
             'country': '',
             'course_banners': self.course_banners,
             'world_mode_locked_end_ts': self.world_mode_locked_end_ts,
-            'locked_char_ids': []  # [1]
+            'locked_char_ids': [],  # [1]
+            'user_missions': UserMissionList(self.c, self).select_all().to_dict_list(),
+            'pick_ticket': self.pick_ticket
         }
 
     def from_list(self, x: list) -> 'UserInfo':
