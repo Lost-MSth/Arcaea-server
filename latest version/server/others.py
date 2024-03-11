@@ -4,6 +4,7 @@ from urllib.parse import parse_qs, urlparse
 from flask import Blueprint, jsonify, request
 from werkzeug.datastructures import ImmutableMultiDict
 
+from core.bundle import BundleDownload
 from core.download import DownloadList
 from core.error import RateLimit
 from core.sql import Connect
@@ -26,26 +27,19 @@ def game_info():
     return success_return(GameInfo().to_dict())
 
 
-# @bp.route('/game/content_bundle', methods=['GET'])  # 热更新
-# def game_content_bundle():
-#     app_version = request.headers.get('AppVersion')
-#     bundle_version = request.headers.get('ContentBundle')
-#     import os
-#     if bundle_version != '5.4.0':
-#         r = {'orderedResults': [
-#             {
-#                 'appVersion': '5.4.0',
-#                 'contentBundleVersion': '5.4.0',
-#                 'jsonUrl': 'http://192.168.0.110/bundle_download/bundle.json',
-#                 'jsonSize': os.path.getsize('./database/bundle/bundle.json'),
-#                 'bundleUrl': 'http://192.168.0.110/bundle_download/bundle',
-#                 'bundleSize': os.path.getsize('./database/bundle/bundle')
-#             },
-#         ]
-#         }
-#     else:
-#         r = {}
-#     return success_return(r)
+@bp.route('/game/content_bundle', methods=['GET'])  # 热更新
+@arc_try
+def game_content_bundle():
+    # error code 5, 9 work
+    app_version = request.headers.get('AppVersion')
+    bundle_version = request.headers.get('ContentBundle')
+    device_id = request.headers.get('DeviceId')
+    with Connect(in_memory=True) as c_m:
+        x = BundleDownload(c_m)
+        x.set_client_info(app_version, bundle_version, device_id)
+        return success_return({
+            'orderedResults': x.get_bundle_list()
+        })
 
 
 @bp.route('/serve/download/me/song', methods=['GET'])  # 歌曲下载

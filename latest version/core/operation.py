@@ -1,3 +1,4 @@
+from .bundle import BundleParser
 from .constant import Constant
 from .download import DownloadList
 from .error import NoData
@@ -72,6 +73,16 @@ class RefreshSongFileCache(BaseOperation):
     def run(self):
         DownloadList.clear_all_cache()
         DownloadList.initialize_cache()
+
+
+class RefreshBundleCache(BaseOperation):
+    '''
+        刷新 bundle 缓存
+    '''
+    _name = 'refresh_content_bundle_cache'
+
+    def run(self):
+        BundleParser().re_init()
 
 
 class SaveUpdateScore(BaseOperation):

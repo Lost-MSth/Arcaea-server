@@ -6,6 +6,7 @@ from shutil import copy, copy2
 from time import time
 from traceback import format_exc
 
+from core.bundle import BundleParser
 from core.config_manager import Config
 from core.constant import ARCAEA_LOG_DATBASE_VERSION, ARCAEA_SERVER_VERSION
 from core.course import Course
@@ -331,14 +332,27 @@ class FileChecker:
             DownloadList.initialize_cache()
             if not Config.SONG_FILE_HASH_PRE_CALCULATE:
                 self.logger.info('Song file hash pre-calculate is disabled.')
-            self.logger.info('Complete!')
+            self.logger.info('Song data initialization is complete!')
         except Exception as e:
             self.logger.error(format_exc())
-            self.logger.warning('Initialization error!')
+            self.logger.warning('Song data initialization error!')
+            f = False
+        return f
+
+    def check_content_bundle(self) -> bool:
+        '''检查 content bundle 有关文件并初始化缓存'''
+        f = self.check_folder(Config.CONTENT_BUNDLE_FOLDER_PATH)
+        self.logger.info("Start to initialize content bundle data...")
+        try:
+            BundleParser()
+            self.logger.info('Content bundle data initialization is complete!')
+        except Exception as e:
+            self.logger.error(format_exc())
+            self.logger.warning('Content bundle data initialization error!')
             f = False
         return f
 
     def check_before_run(self) -> bool:
         '''运行前检查，返回布尔值'''
         MemoryDatabase()  # 初始化内存数据库
-        return self.check_song_file() & self.check_update_database()
+        return self.check_song_file() and self.check_content_bundle() and self.check_update_database()

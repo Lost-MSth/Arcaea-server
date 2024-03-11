@@ -2,7 +2,7 @@ import os
 import time
 
 from core.init import FileChecker
-from core.operation import RefreshAllScoreRating, RefreshSongFileCache, SaveUpdateScore, UnlockUserItem, DeleteUserScore
+from core.operation import RefreshAllScoreRating, RefreshBundleCache, RefreshSongFileCache, SaveUpdateScore, UnlockUserItem, DeleteUserScore
 from core.rank import RankList
 from core.sql import Connect
 from core.user import User
@@ -293,6 +293,18 @@ def update_song_hash():
     # 更新数据库内谱面文件hash值
     try:
         RefreshSongFileCache().run()
+        flash('数据刷新成功 Success refresh data.')
+    except:
+        flash('Something error!')
+    return render_template('web/updatedatabase.html')
+
+
+@bp.route('/updatedatabase/refreshsbundle', methods=['POST'])
+@login_required
+def update_content_bundle():
+    # 更新 bundle
+    try:
+        RefreshBundleCache().run()
         flash('数据刷新成功 Success refresh data.')
     except:
         flash('Something error!')

@@ -440,6 +440,8 @@ class MemoryDatabase:
         self.c.execute('''PRAGMA synchronous = 0''')
         self.c.execute('''create table if not exists download_token(user_id int,
         song_id text,file_name text,token text,time int,primary key(user_id, song_id, file_name));''')
+        self.c.execute('''create table if not exists bundle_download_token(token text primary key,
+                       file_path text, time int, device_id text);''')
         self.c.execute(
             '''create index if not exists download_token_1 on download_token (song_id, file_name);''')
         self.conn.commit()

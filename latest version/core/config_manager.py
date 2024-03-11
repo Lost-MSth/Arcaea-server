@@ -42,7 +42,8 @@ class Config:
 
     API_TOKEN = ''
 
-    DOWNLOAD_LINK_PREFIX = ''
+    DOWNLOAD_LINK_PREFIX = ''  # http(s)://host(:port)/download/
+    BUNDLE_DOWNLOAD_LINK_PREFIX = ''  # http(s)://host(:port)/bundle_download/
 
     DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT = False
     NGINX_X_ACCEL_REDIRECT_PREFIX = '/nginx_download/'
@@ -51,6 +52,9 @@ class Config:
     DOWNLOAD_TIME_GAP_LIMIT = 1000
 
     DOWNLOAD_FORBID_WHEN_NO_ITEM = False
+
+    BUNDLE_DOWNLOAD_TIMES_LIMIT = '100/60 minutes'
+    BUNDLE_DOWNLOAD_TIME_GAP_LIMIT = 3000
 
     LOGIN_DEVICE_NUMBER_LIMIT = 1
     ALLOW_LOGIN_SAME_DEVICE = False
@@ -84,6 +88,7 @@ class Config:
     WORLD_MAP_FOLDER_PATH = './database/map/'
     SONG_FILE_FOLDER_PATH = './database/songs/'
     SONGLIST_FILE_PATH = './database/songs/songlist'
+    CONTENT_BUNDLE_FOLDER_PATH = './database/bundle/'
     SQLITE_DATABASE_PATH = './database/arcaea_database.db'
     SQLITE_DATABASE_BACKUP_FOLDER_PATH = './database/backup/'
     DATABASE_INIT_PATH = './database/init/'
