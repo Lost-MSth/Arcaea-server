@@ -93,7 +93,7 @@ class Score:
         '''分数有效性检查'''
         if self.shiny_perfect_count < 0 or self.perfect_count < 0 or self.near_count < 0 or self.miss_count < 0 or self.score < 0 or self.time_played <= 0:
             return False
-        if self.song.difficulty not in (0, 1, 2, 3):
+        if self.song.difficulty not in (0, 1, 2, 3, 4):
             return False
 
         all_note = self.all_note_count
