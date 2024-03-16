@@ -24,7 +24,7 @@ def get_song_file_md5(song_id: str, file_name: str) -> str:
 class SonglistParser:
     '''songlist文件解析器'''
 
-    FILE_NAMES = ['0.aff', '1.aff', '2.aff', '3.aff',
+    FILE_NAMES = ['0.aff', '1.aff', '2.aff', '3.aff', '4.aff',
                   'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg', 'video_720.mp4', 'video_1080.mp4']
 
     has_songlist = False
