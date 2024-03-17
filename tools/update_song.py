@@ -34,7 +34,7 @@ class Connect():
         return True
 
 
-def insert(cursor, song_id, name, a, b, c, d, update_type=0):
+def insert(cursor, song_id, name, a, b, c, d, e, update_type=0):
     '''Insert a new song into database.'''
     if update_type == 0 or update_type == 1:
         cursor.execute(
@@ -45,12 +45,12 @@ def insert(cursor, song_id, name, a, b, c, d, update_type=0):
                 return
             elif update_type == 1:
                 # 重复则更新，以`arcsong.db`数据为准
-                cursor.execute('''update chart set name=?, rating_pst=?, rating_prs=?, rating_ftr=?, rating_byn=? where song_id=?''',
-                               (name, a, b, c, d, song_id))
+                cursor.execute('''update chart set name=?, rating_pst=?, rating_prs=?, rating_ftr=?, rating_byn=?, rating_etr=? where song_id=?''',
+                               (name, a, b, c, d, e, song_id))
                 return
 
     cursor.execute(
-        '''insert into chart values (?,?,?,?,?,?)''', (song_id, name, a, b, c, d))
+        '''insert into chart values (?,?,?,?,?,?,?)''', (song_id, name, a, b, c, d, e))
 
 
 def from_song_datebase():
@@ -61,17 +61,19 @@ def from_song_datebase():
         if 'songs' in tables:
             c.execute(
                 '''select sid, name_en, rating_pst, rating_prs, rating_ftr, rating_byn from songs''')
-            data = c.fetchall()
+            data = []
+            for x in c.fetchall():
+                data.append((x[0], x[1], x[2], x[3], x[4], x[5], -1))
         elif 'charts' in tables:
             c.execute(
                 '''select song_id, rating_class, name_en, rating from charts''')
             songs = {}
             for song_id, rating_class, name_en, rating in c.fetchall():
                 if song_id not in songs:
-                    songs[song_id] = [-1, -1, -1, -1, name_en]
+                    songs[song_id] = [-1, -1, -1, -1, -1, name_en]
                 songs[song_id][rating_class] = rating
 
-            data = [(x, y[-1], y[0], y[1], y[2], y[3])
+            data = [(x, y[-1], y[0], y[1], y[2], y[3], y[4])
                     for x, y in songs.items()]
         else:
             print('Error: Cannot find table `songs` or `charts` in the database.')
@@ -91,7 +93,7 @@ def from_song_datebase():
             # 清空数据表后更新
             c.execute('''delete from chart''')
         for x in data:
-            insert(c, x[0], x[1], x[2], x[3], x[4], x[5], update_type)
+            insert(c, x[0], x[1], x[2], x[3], x[4], x[5], x[6], update_type)
 
     print('Seems to be done.')
 

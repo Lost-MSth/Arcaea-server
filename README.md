@@ -48,6 +48,7 @@ This procedure is mainly used for study and research, and shall not be used for 
   - :x: 加密下载 Encrypted downloading
   - 下载校验 Download check
   - 下载频次限制 Download rate limit
+- 内容捆绑包热更新 Content bundle hot update
 - 购买系统 Purchase system
   - 单曲和曲包 Single & Pack
   - :x: 捆绑包 Pack bundle
@@ -129,6 +130,11 @@ It is just so interesting. What it can do is under exploration.
 [English](https://github.com/Lost-MSth/Arcaea-server/wiki/Environment-construction)
 -->
 
+## 子项目 Sub repositories
+
+[Arcaea-Bundler](https://github.com/Lost-MSth/Arcaea-Bundler)
+: 用于生成和解包内容捆绑包  Used to pack or unpack content bundles
+
 ## 使用说明 Instruction for use
 
 [中文](https://github.com/Lost-MSth/Arcaea-server/wiki/%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E)  
@@ -148,6 +154,7 @@ It is just so interesting. What it can do is under exploration.
 歌曲数据库来自 Using song database from
 ~~[BotArcAPI releases](https://github.com/TheSnowfield/BotArcAPI/releases)~~
 [ArcaeaSongDatabase](https://github.com/Arcaea-Infinity/ArcaeaSongDatabase)
+[ArcaeaSongDatabase Fork](https://github.com/CuSO4Deposit/ArcaeaSongDatabase)
 
 > 从v2.9开始不再提供歌曲数据  
 > Since v2.9, song data will not be provided.

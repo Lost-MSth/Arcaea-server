@@ -110,9 +110,8 @@ def header_check(request) -> ArcError:
     if Config.ALLOW_APPVERSION:  # 版本检查
         if 'AppVersion' not in headers or headers['AppVersion'] not in Config.ALLOW_APPVERSION:
             return LowVersion('Invalid app version', 5)
-
-        if 'ContentBundle' in headers and headers['ContentBundle'] != BundleParser.max_bundle_version[headers['AppVersion']]:
-            return LowVersion('Invalid content bundle version', 11)
+    if 'ContentBundle' in headers and headers['ContentBundle'] != BundleParser.max_bundle_version[headers['AppVersion']]:
+        return LowVersion('Invalid content bundle version', 11)
 
     if has_arc_hash and not ArcHashChecker(request).check():
         return NoAccess('Invalid request')
