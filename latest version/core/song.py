@@ -75,8 +75,8 @@ class Song:
         self.song_id = d['song_id']
         self.name = d.get('name', '')
         self.charts = [Chart(self.c, self.song_id, 0), Chart(self.c, self.song_id, 1), Chart(
-            self.c, self.song_id, 2), Chart(self.c, self.song_id, 3)]
-        for i in range(4):
+            self.c, self.song_id, 2), Chart(self.c, self.song_id, 3), Chart(self.c, self.song_id, 4)]
+        for i in range(5):
             self.charts[i].defnum = -10
         for chart in d['charts']:
             self.charts[chart['difficulty']].defnum = round(

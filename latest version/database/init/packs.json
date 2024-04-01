@@ -790,5 +790,23 @@
 		],
 		"orig_price": 500,
 		"price": 500
+	},
+	{
+		"name": "extend_3",
+		"items": [
+			{
+				"type": "pack",
+				"id": "extend_3",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 7,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"price": 700,
+		"orig_price": 700
 	}
 ]
