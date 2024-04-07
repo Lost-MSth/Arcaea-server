@@ -29,15 +29,7 @@ class SonglistParser:
 
     has_songlist = False
     songs: dict = {}  # {song_id: value, ...}
-    # value: bit 76543210
-    # 7: video_audio.ogg
-    # 6: video.mp4
-    # 5: 3.ogg
-    # 4: base.ogg
-    # 3: 3.aff
-    # 2: 2.aff
-    # 1: 1.aff
-    # 0: 0.aff
+    # value: bitmap
 
     pack_info: 'dict[str, set]' = {}  # {pack_id: {song_id, ...}, ...}
     free_songs: set = set()  # {song_id, ...}
@@ -88,10 +80,10 @@ class SonglistParser:
             return {}
         r = 0
         if 'remote_dl' in song and song['remote_dl']:
-            r |= 16
+            r |= 32
             for i in song.get('difficulties', []):
                 if i['ratingClass'] == 3 and i.get('audioOverride', False):
-                    r |= 32
+                    r |= 64
                 r |= 1 << i['ratingClass']
         else:
             if any(i['ratingClass'] == 3 for i in song.get('difficulties', [])):
@@ -99,14 +91,14 @@ class SonglistParser:
 
         for extra_file in song.get('additional_files', []):
             x = extra_file['file_name']
-            if x == SonglistParser.FILE_NAMES[6]:
-                r |= 64
-            elif x == SonglistParser.FILE_NAMES[7]:
+            if x == SonglistParser.FILE_NAMES[7]:
                 r |= 128
             elif x == SonglistParser.FILE_NAMES[8]:
                 r |= 256
             elif x == SonglistParser.FILE_NAMES[9]:
                 r |= 512
+            elif x == SonglistParser.FILE_NAMES[10]:
+                r |= 1024
 
         return {song['id']: r}
 
