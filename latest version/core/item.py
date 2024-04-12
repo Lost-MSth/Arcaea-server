@@ -1,5 +1,6 @@
 from .config_manager import Config
-from .error import DataExist, InputError, ItemNotEnough, ItemUnavailable, NoData
+from .error import (DataExist, InputError, ItemNotEnough, ItemUnavailable,
+                    NoData)
 
 
 class Item:

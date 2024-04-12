@@ -11,7 +11,7 @@ from .item import ItemCore
 from .song import Chart
 from .sql import Connect, Query, Sql
 from .util import get_today_timestamp, md5
-from .world import WorldPlay, BeyondWorldPlay, BreachedWorldPlay
+from .world import BeyondWorldPlay, BreachedWorldPlay, WorldPlay
 
 
 class Score:

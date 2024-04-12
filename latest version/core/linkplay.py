@@ -11,33 +11,17 @@ from .util import aes_gcm_128_decrypt, aes_gcm_128_encrypt
 socket.setdefaulttimeout(Constant.LINKPLAY_TIMEOUT)
 
 
-def get_song_unlock(client_song_map: dict) -> bytes:
+def get_song_unlock(client_song_map: 'dict[str, list]') -> bytes:
     '''处理可用歌曲bit，返回bytes'''
 
     user_song_unlock = [0] * Constant.LINKPLAY_UNLOCK_LENGTH
-    for i in range(0, Constant.LINKPLAY_UNLOCK_LENGTH*2, 2):
-        x = 0
-        y = 0
-        if str(i) in client_song_map:
-            if client_song_map[str(i)][0]:
-                x += 1
-            if client_song_map[str(i)][1]:
-                x += 2
-            if client_song_map[str(i)][2]:
-                x += 4
-            if client_song_map[str(i)][3]:
-                x += 8
-        if str(i+1) in client_song_map:
-            if client_song_map[str(i+1)][0]:
-                y += 1
-            if client_song_map[str(i+1)][1]:
-                y += 2
-            if client_song_map[str(i+1)][2]:
-                y += 4
-            if client_song_map[str(i+1)][3]:
-                y += 8
 
-        user_song_unlock[i // 2] = y*16 + x
+    for k, v in client_song_map.items():
+        for i in range(5):
+            if not v[i]:
+                continue
+            index = int(k) * 5 + i
+            user_song_unlock[index // 8] |= 1 << (index % 8)
 
     return bytes(user_song_unlock)
 
