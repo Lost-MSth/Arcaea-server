@@ -86,7 +86,7 @@ class Step:
         self.restrict_ids = d.get('restrict_ids')
         self.restrict_type = d.get('restrict_type')
         self.restrict_difficulty = d.get('restrict_difficulty')
-        self.step_type = d.get('step_type')
+        self.step_type = d.get('step_type', [])
         self.speed_limit_value = d.get('speed_limit_value')
         self.plus_stamina_value = d.get('plus_stamina_value')
         if 'items' in d:

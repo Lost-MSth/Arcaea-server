@@ -1,11 +1,13 @@
 import json
 import os
+from functools import lru_cache
 from time import time
 
 from flask import url_for
 
+from .config_manager import Config
 from .constant import Constant
-from .error import NoAccess, RateLimit
+from .error import NoAccess, NoData, RateLimit
 from .limiter import ArcLimiter
 
 
@@ -44,6 +46,8 @@ class ContentBundle:
         x.prev_version = json_data['previousVersionNumber']
         x.app_version = json_data['applicationVersionNumber']
         x.uuid = json_data['uuid']
+        if x.prev_version is None:
+            x.prev_version = '0.0.0'
         return x
 
     def to_dict(self) -> dict:
@@ -69,7 +73,13 @@ class BundleParser:
 
     # {app_version: [ List[ContentBundle] ]}
     bundles: 'dict[str, list[ContentBundle]]' = {}
+    # {app_version: max bundle version}
     max_bundle_version: 'dict[str, str]' = {}
+
+    # {bundle version: [next versions]} 宽搜索引
+    next_versions: 'dict[str, list[str]]' = {}
+    # {(bver, b prev version): ContentBundle} 正向索引
+    version_tuple_bundles: 'dict[tuple[str, str], ContentBundle]' = {}
 
     def __init__(self) -> None:
         self.parse()
@@ -106,14 +116,56 @@ class BundleParser:
                         f'Bundle file not found: {bundle_path}')
                 x.calculate_size()
 
-                if x.app_version not in self.bundles:
-                    self.bundles[x.app_version] = []
-                self.bundles[x.app_version].append(x)
+                self.bundles.setdefault(x.app_version, []).append(x)
+
+                self.version_tuple_bundles[(x.version, x.prev_version)] = x
+                self.next_versions.setdefault(
+                    x.prev_version, []).append(x.version)
 
         # sort by version
         for k, v in self.bundles.items():
             v.sort(key=lambda x: x.version_tuple)
             self.max_bundle_version[k] = v[-1].version
+
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def get_bundles(app_ver: str, b_ver: str) -> 'list[ContentBundle]':
+        if Config.BUNDLE_STRICT_MODE:
+            return BundleParser.bundles.get(app_ver, [])
+
+        k = b_ver if b_ver else '0.0.0'
+
+        target_version = BundleParser.max_bundle_version.get(app_ver, '0.0.0')
+        if k == target_version:
+            return []
+
+        # BFS
+        q = [[k]]
+        ans = None
+        while True:
+            qq = []
+            for x in q:
+                if x[-1] == target_version:
+                    ans = x
+                    break
+                for y in BundleParser.next_versions.get(x[-1], []):
+                    if y in x:
+                        continue
+                    qq.append(x + [y])
+
+            if ans is not None or not qq:
+                break
+            q = qq
+
+        if not ans:
+            raise NoData(
+                f'No bundles found for app version: {app_ver}, bundle version: {b_ver}', status=404)
+
+        r = []
+        for i in range(1, len(ans)):
+            r.append(BundleParser.version_tuple_bundles[(ans[i], ans[i-1])])
+
+        return r
 
 
 class BundleDownload:
@@ -134,8 +186,9 @@ class BundleDownload:
         self.device_id = device_id
 
     def get_bundle_list(self) -> list:
-        bundles: 'list[ContentBundle]' = BundleParser.bundles.get(
-            self.client_app_version, [])
+        bundles: 'list[ContentBundle]' = BundleParser.get_bundles(
+            self.client_app_version, self.client_bundle_version)
+
         if not bundles:
             return []
 

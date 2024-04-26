@@ -16,6 +16,8 @@ class Config:
     OLD_GAME_API_PREFIX = []  # str | list[str]
 
     ALLOW_APPVERSION = []  # list[str]
+    
+    BUNDLE_STRICT_MODE = True
 
     SET_LINKPLAY_SERVER_AS_SUB_PROCESS = True
 

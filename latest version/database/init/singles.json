@@ -1720,5 +1720,59 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "distortedfate",
+		"items": [
+			{
+				"type": "single",
+				"id": "distortedfate",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "floatingworld",
+		"items": [
+			{
+				"type": "single",
+				"id": "floatingworld",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "chromafill",
+		"items": [
+			{
+				"type": "single",
+				"id": "chromafill",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]
