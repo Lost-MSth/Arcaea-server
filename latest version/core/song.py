@@ -18,6 +18,9 @@ class Chart:
             'difficulty': self.difficulty,
             'chart_const': self.chart_const
         }
+    
+    def to_tuple(self) -> tuple:
+        return (self.song_id, self.difficulty)
 
     @property
     def chart_const(self) -> float:

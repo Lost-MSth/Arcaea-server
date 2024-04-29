@@ -1,8 +1,9 @@
 import hashlib
 import os
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from datetime import date
 from time import mktime
+
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 
 def aes_gcm_128_encrypt(key, plaintext, associated_data):
@@ -65,3 +66,9 @@ def try_rename(path: str, new_path: str) -> str:
 def get_today_timestamp():
     '''相对于本机本地时间的今天0点的时间戳'''
     return int(mktime(date.today().timetuple()))
+
+
+def parse_version(s: str) -> 'list[int]':
+    '''解析版本号'''
+    s_number = "".join(x for x in s if x.isdigit() or x == '.')
+    return list(map(int, [x for x in s_number.split('.') if x != '']))

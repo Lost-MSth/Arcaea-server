@@ -6,6 +6,7 @@ from atexit import register
 from .config_manager import Config
 from .constant import ARCAEA_LOG_DATBASE_VERSION, Constant
 from .error import ArcError, InputError
+from .util import parse_version
 
 
 class Connect:
@@ -349,9 +350,18 @@ class Sql:
 
 class DatabaseMigrator:
 
+    SPECIAL_UPDATE_VERSION = {
+        '2.11.3.11': '_version_2_11_3_11'
+    }
+
     def __init__(self, c1_path: str, c2_path: str) -> None:
         self.c1_path = c1_path
         self.c2_path = c2_path
+
+        self.c1 = None
+        self.c2 = None
+
+        self.tables = Constant.DATABASE_MIGRATE_TABLES
 
     @staticmethod
     def update_one_table(c1, c2, table_name: str) -> bool:
@@ -397,13 +407,61 @@ class DatabaseMigrator:
         '''
         with Connect(self.c2_path) as c2:
             with Connect(self.c1_path) as c1:
-                for i in Constant.DATABASE_MIGRATE_TABLES:
+                self.c1 = c1
+                self.c2 = c2
+                self.special_update()
+
+                for i in self.tables:
                     self.update_one_table(c1, c2, i)
 
                 if not Constant.UPDATE_WITH_NEW_CHARACTER_DATA:
                     self.update_one_table(c1, c2, 'character')
 
             self.update_user_char_full(c2)  # 更新user_char_full
+
+    def special_update(self):
+        old_version = self.c1.execute(
+            '''select value from config where id = "version"''').fetchone()
+        new_version = self.c2.execute(
+            '''select value from config where id = "version"''').fetchone()
+        old_version = old_version[0] if old_version else '0.0.0'
+        new_version = new_version[0] if new_version else '0.0.0'
+        old_version = parse_version(old_version)
+        new_version = parse_version(new_version)
+
+        for k, v in self.SPECIAL_UPDATE_VERSION.items():
+            if old_version < parse_version(k) <= new_version:
+                getattr(self, v)()
+
+    def _version_2_11_3_11(self):
+        '''
+        2.11.3.11 版本特殊更新，调整 recent30 表结构
+        recent30 表从 (user_id: int PK, song_id<index>: text, rating<index>: real, ...) \
+        更改为 (user_id: int PK, r_index: int PK, time_played: int, song_id: text, difficulty: int, score: int, sp, p, n, m, hp, mod, clear_type, rating: real)
+        '''
+
+        self.tables = [x for x in self.tables if x != 'recent30']
+
+        x = self.c1.execute('''select * from recent30''')
+        sql_list = []
+        for i in x:
+            user_id = int(i[0])
+            for j in range(30):
+                rating = i[1 + j * 2]
+                rating = float(rating) if rating else 0
+                song_id_difficulty = i[2 + j * 2]
+                if song_id_difficulty:
+                    song_id = song_id_difficulty[:-1]
+                    difficulty = int(song_id_difficulty[-1])
+                else:
+                    song_id = ''
+                    difficulty = 0
+
+                sql_list.append(
+                    (user_id, j, 100-j, song_id, difficulty, rating))
+
+        self.c2.executemany(
+            '''insert into recent30(user_id, r_index, time_played, song_id, difficulty, rating) values(?,?,?,?,?,?)''', sql_list)
 
 
 class LogDatabaseMigrator:

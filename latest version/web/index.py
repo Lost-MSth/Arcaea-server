@@ -1,16 +1,19 @@
 import os
 import time
 
-from core.init import FileChecker
-from core.operation import RefreshAllScoreRating, RefreshBundleCache, RefreshSongFileCache, SaveUpdateScore, UnlockUserItem, DeleteUserScore
-from core.rank import RankList
-from core.sql import Connect
-from core.user import User
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
 import web.system
 import web.webscore
+from core.init import FileChecker
+from core.operation import (DeleteUserScore, RefreshAllScoreRating,
+                            RefreshBundleCache, RefreshSongFileCache,
+                            SaveUpdateScore, UnlockUserItem)
+from core.rank import RankList
+from core.score import Potential
+from core.sql import Connect
+from core.user import User
 from web.login import login_required
 
 UPLOAD_FOLDER = 'database'
@@ -97,8 +100,11 @@ def single_player_ptt():
                     user_id = user_id[0]
                     user = web.webscore.get_user(c, user_id)
                     posts = web.webscore.get_user_score(c, user_id, 30)
-                    recent, recentptt = web.webscore.get_user_recent30(
-                        c, user_id)
+                    u = User()
+                    u.user_id = user_id
+                    p = Potential(c, u)
+                    recentptt = p.recent_10 / 10
+                    recent = p.recent_30_to_dict_list()
                     if not posts:
                         error = '无成绩 No score.'
                     else:

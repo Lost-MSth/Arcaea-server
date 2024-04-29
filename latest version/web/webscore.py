@@ -1,5 +1,7 @@
 import time
 
+from core.score import Potential
+
 
 def get_user_score(c, user_id, limit=-1, offset=0):
     # 返回用户的所有歌曲数据，带排名，返回字典列表
@@ -74,37 +76,3 @@ def get_user(c, user_id):
              }
 
     return r
-
-
-def get_user_recent30(c, user_id):
-    # 获取玩家recent30信息并计算recent10的ptt，返回字典列表和一个值
-    c.execute('''select * from recent30 where user_id=:a''', {'a': user_id})
-    sumr = 0
-    x = c.fetchone()
-    r = []
-    if x is not None:
-        r30 = []
-        s30 = []
-        for i in range(1, 61, 2):
-            if x[i] is not None:
-                r30.append(float(x[i]))
-                s30.append(x[i+1])
-            else:
-                r30.append(0)
-                s30.append('')
-        r30, s30 = (list(t) for t in zip(*sorted(zip(r30, s30), reverse=True)))
-        songs = []
-        i = 0
-        while len(songs) < 10 and i <= 29 and s30[i] != '' and s30[i] is not None:
-            if s30[i] not in songs:
-                sumr += r30[i]
-                songs.append(s30[i])
-            i += 1
-        for i in range(0, 30):
-            if s30[i]:
-                r.append({
-                    'song_id': s30[i][:-1],
-                    'difficulty': int(s30[i][-1]),
-                    'rating': r30[i]
-                })
-    return r, sumr / 10
