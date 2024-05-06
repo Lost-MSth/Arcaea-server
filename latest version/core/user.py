@@ -155,7 +155,6 @@ class UserRegister(User):
         ''', {'user_code': self.user_code, 'user_id': self.user_id, 'join_date': now, 'name': self.name, 'password': self.hash_pwd, 'memories': Config.DEFAULT_MEMORIES, 'email': self.email})
 
 
-
 class UserLogin(User):
     # 密码和token的加密方式为 SHA-256
     limiter = ArcLimiter(Config.GAME_LOGIN_RATE_LIMIT, 'game_login')
@@ -663,38 +662,28 @@ class UserInfo(User):
     def update_global_rank(self) -> None:
         '''用户世界排名计算，有新增成绩则要更新'''
 
-        self.c.execute('''select song_id, rating_ftr, rating_byn from chart''')
-        x = self.c.fetchall()
+        self.c.execute(
+            '''
+            with user_scores as (
+            select song_id, difficulty, score from best_score where user_id = ? and difficulty in (2, 3, 4)
+            )
+            select sum(a) from(
+            select sum(score) as a from user_scores where difficulty = 2 and song_id in (select song_id from chart where rating_ftr > 0)
+            union
+            select sum(score) as a from user_scores where difficulty = 3 and song_id in (select song_id from chart where rating_byn > 0)
+            union
+            select sum(score) as a from user_scores where difficulty = 4 and song_id in (select song_id from chart where rating_etr > 0)
+            )
+            ''',
+            (self.user_id,)
+        )
+        x = self.c.fetchone()
+        if x[0] is None:
+            return
 
-        song_list_ftr = [self.user_id]
-        song_list_byn = [self.user_id]
-        for i in x:
-            if i[1] > 0:
-                song_list_ftr.append(i[0])
-            if i[2] > 0:
-                song_list_byn.append(i[0])
-
-        score_sum = 0
-        if len(song_list_ftr) >= 2:
-            self.c.execute(
-                f'''select sum(score) from best_score where user_id=? and difficulty=2 and song_id in ({','.join(['?']*(len(song_list_ftr)-1))})''', tuple(song_list_ftr))
-
-            x = self.c.fetchone()
-            if x[0] is not None:
-                score_sum += x[0]
-
-        if len(song_list_byn) >= 2:
-            self.c.execute(
-                f'''select sum(score) from best_score where user_id=? and difficulty=3 and song_id in ({','.join(['?']*(len(song_list_byn)-1))})''', tuple(song_list_byn))
-
-            x = self.c.fetchone()
-            if x[0] is not None:
-                score_sum += x[0]
-
-        self.c.execute('''update user set world_rank_score = :b where user_id = :a''', {
-            'a': self.user_id, 'b': score_sum})
-
-        self.world_rank_score = score_sum
+        self.c.execute(
+            '''update user set world_rank_score = ? where user_id = ?''', (x[0], self.user_id))
+        self.world_rank_score = x[0]
 
     def select_user_one_column(self, column_name: str, default_value=None) -> None:
         '''

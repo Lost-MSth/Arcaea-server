@@ -7,6 +7,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 from core.bundle import BundleDownload
 from core.download import DownloadList
 from core.error import RateLimit
+from core.item import ItemCharacter
 from core.sql import Connect
 from core.system import GameInfo
 from core.user import UserOnline
@@ -14,7 +15,7 @@ from core.user import UserOnline
 from .auth import auth_required
 from .func import arc_try, error_return, success_return
 from .present import present_info
-from .purchase import bundle_bundle, get_single, bundle_pack
+from .purchase import bundle_bundle, bundle_pack, get_single
 from .score import song_score_friend
 from .user import user_me
 from .world import world_all
@@ -65,15 +66,29 @@ def finale_progress():
 
 
 @bp.route('/finale/finale_start', methods=['POST'])
-def finale_start():
+@auth_required(request)
+@arc_try
+def finale_start(user_id):
     # testify开始，对立再见
-    # 没数据
-    return success_return({})
+    # 但是对立不再见
+
+    with Connect() as c:
+        item = ItemCharacter(c)
+        item.set_id('55')  # Hikari (Fatalis)
+        item.user_claim_item(UserOnline(c, user_id))
+        return success_return({})
 
 
 @bp.route('/finale/finale_end', methods=['POST'])
-def finale_end():
-    return success_return({})
+@auth_required(request)
+@arc_try
+def finale_end(user_id):
+
+    with Connect() as c:
+        item = ItemCharacter(c)
+        item.set_id('5')  # Hikari & Tairitsu (Reunion)
+        item.user_claim_item(UserOnline(c, user_id))
+        return success_return({})
 
 
 @bp.route('/applog/me/log', methods=['POST'])
