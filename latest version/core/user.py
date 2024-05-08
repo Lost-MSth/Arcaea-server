@@ -138,7 +138,7 @@ class UserRegister(User):
         if x:
             for i in x:
                 exp = 25000 if i[1] == 30 else 10000
-                self.c.execute('''insert into user_char_full values(?,?,?,?,?,?,0)''',
+                self.c.execute('''insert or replace into user_char_full values(?,?,?,?,?,?,0)''',
                                (self.user_id, i[0], i[1], exp, i[2], 0))
 
     def register(self):
