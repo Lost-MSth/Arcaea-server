@@ -106,6 +106,8 @@ def buy_special(user_id):
         x.discount_from = -1
         x.discount_to = -1
         x.items = [ItemFactory(c).get_item(item_id)]
+        # request.form['ticket_used'] == 'true'
+        # memory_boost_ticket: x-1
         x.buy()
 
         r = {'user_id': x.user.user_id, 'ticket': x.user.ticket}

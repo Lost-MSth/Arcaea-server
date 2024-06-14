@@ -30,6 +30,7 @@ class Score:
         self.best_clear_type: int = None
         self.clear_type: int = None
         self.rating: float = None
+        self.score_v2: float = None  # for `world_rank_score` of global rank
 
     def set_score(self, score: int, shiny_perfect_count: int, perfect_count: int, near_count: int, miss_count: int, health: int, modifier: int, time_played: int, clear_type: int):
         self.score = int(score) if score is not None else 0
@@ -124,12 +125,31 @@ class Score:
 
         return ptt
 
+    @staticmethod
+    def calculate_score_v2(defnum: float, shiny_perfect_count: int, perfect_count: int, near_count: int, miss_count: int) -> float:
+        # 计算score_v2 refer: https://www.bilibili.com/video/BV1ys421u7BY
+        # 谱面定数小于等于 0 视为 unranked，返回值会为 0
+        if not defnum or defnum <= 0:
+            return 0
+        
+        all_note = perfect_count + near_count + miss_count
+        if all_note == 0:
+            return 0
+        shiny_ratio = shiny_perfect_count / all_note
+        score_ratio = (perfect_count + near_count/2) / \
+            all_note + shiny_perfect_count / 10000000
+        acc_rating = max(0, min(shiny_ratio - 0.9, 0.095)) / 9.5 * 25
+        score_rating = max(0, min(score_ratio - 0.99, 0.01)) * 75
+        return defnum * (acc_rating + score_rating)
+
     def get_rating_by_calc(self) -> float:
-        # 通过计算得到本成绩的rating
+        # 通过计算得到本成绩的 rating & score_v2
         if not self.song.defnum:
             self.song.c = self.c
             self.song.select()
         self.rating = self.calculate_rating(self.song.chart_const, self.score)
+        self.score_v2 = self.calculate_score_v2(
+            self.song.chart_const, self.shiny_perfect_count, self.perfect_count, self.near_count, self.miss_count)
         return self.rating
 
     def to_dict(self) -> dict:
@@ -181,6 +201,7 @@ class UserScore(Score):
         self.set_score(x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[12])
         self.best_clear_type = int(x[11])
         self.rating = float(x[13])
+        self.score_v2 = float(x[14])
 
         return self
 
@@ -430,8 +451,9 @@ class UserPlay(UserScore):
         x = self.c.fetchone()
         if not x:
             self.new_best_protect_flag = True  # 初见保护
-            self.c.execute('''insert into best_score values(:a,:b,:c,:d,:e,:f,:g,:h,:i,:j,:k,:l,:m,:n)''', {
-                'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty, 'd': self.score, 'e': self.shiny_perfect_count, 'f': self.perfect_count, 'g': self.near_count, 'h': self.miss_count, 'i': self.health, 'j': self.modifier, 'k': self.time_played, 'l': self.clear_type, 'm': self.clear_type, 'n': self.rating})
+            self.c.execute('''insert into best_score values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                           (self.user.user_id, self.song.song_id, self.song.difficulty, self.score, self.shiny_perfect_count, self.perfect_count, self.near_count, self.miss_count,
+                            self.health, self.modifier, self.time_played, self.clear_type, self.clear_type, self.rating, self.score_v2))
             self.user.update_global_rank()
         else:
             self.new_best_protect_flag = False
@@ -440,8 +462,8 @@ class UserPlay(UserScore):
                     'a': self.clear_type, 'b': self.user.user_id, 'c': self.song.song_id, 'd': self.song.difficulty})
             if self.score >= int(x[0]):  # best成绩更新
                 self.new_best_protect_flag = True
-                self.c.execute('''update best_score set score = :d, shiny_perfect_count = :e, perfect_count = :f, near_count = :g, miss_count = :h, health = :i, modifier = :j, clear_type = :k, rating = :l, time_played = :m  where user_id = :a and song_id = :b and difficulty = :c ''', {
-                    'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty, 'd': self.score, 'e': self.shiny_perfect_count, 'f': self.perfect_count, 'g': self.near_count, 'h': self.miss_count, 'i': self.health, 'j': self.modifier, 'k': self.clear_type, 'l': self.rating, 'm': self.time_played})
+                self.c.execute('''update best_score set score = :d, shiny_perfect_count = :e, perfect_count = :f, near_count = :g, miss_count = :h, health = :i, modifier = :j, clear_type = :k, rating = :l, time_played = :m, score_v2 = :n  where user_id = :a and song_id = :b and difficulty = :c ''', {
+                    'a': self.user.user_id, 'b': self.song.song_id, 'c': self.song.difficulty, 'd': self.score, 'e': self.shiny_perfect_count, 'f': self.perfect_count, 'g': self.near_count, 'h': self.miss_count, 'i': self.health, 'j': self.modifier, 'k': self.clear_type, 'l': self.rating, 'm': self.time_played, 'n': self.score_v2})
                 self.user.update_global_rank()
 
         self.ptt = Potential(self.c, self.user)

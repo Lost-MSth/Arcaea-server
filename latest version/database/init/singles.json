@@ -1774,5 +1774,59 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "backtobasics",
+		"items": [
+			{
+				"type": "single",
+				"id": "backtobasics",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "tasogare",
+		"items": [
+			{
+				"type": "single",
+				"id": "tasogare",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "beautifuldreamer",
+		"items": [
+			{
+				"type": "single",
+				"id": "beautifuldreamer",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

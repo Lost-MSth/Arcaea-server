@@ -528,7 +528,11 @@ class UserInfo(User):
             'world_mode_locked_end_ts': self.world_mode_locked_end_ts,
             'locked_char_ids': [],  # [1]
             'user_missions': UserMissionList(self.c, self).select_all().to_dict_list(),
-            'pick_ticket': self.pick_ticket
+            'pick_ticket': self.pick_ticket,
+
+            # 'custom_banner': 'online_banner_2024_06',
+            # 'subscription_multiplier': 114,
+            # 'memory_boost_ticket': 5,
         }
 
     def from_list(self, x: list) -> 'UserInfo':
@@ -648,8 +652,8 @@ class UserInfo(User):
         '''用户世界排名，如果超过设定最大值，返回0'''
         if self.world_rank_score is None:
             self.select_user_one_column('world_rank_score', 0)
-            if self.world_rank_score is None:
-                return 0
+        if not self.world_rank_score:
+            return 0
 
         self.c.execute(
             '''select count(*) from user where world_rank_score > ?''', (self.world_rank_score,))
@@ -665,14 +669,14 @@ class UserInfo(User):
         self.c.execute(
             '''
             with user_scores as (
-            select song_id, difficulty, score from best_score where user_id = ? and difficulty in (2, 3, 4)
+            select song_id, difficulty, score_v2 from best_score where user_id = ? and difficulty in (2, 3, 4)
             )
             select sum(a) from(
-            select sum(score) as a from user_scores where difficulty = 2 and song_id in (select song_id from chart where rating_ftr > 0)
+            select sum(score_v2) as a from user_scores where difficulty = 2 and song_id in (select song_id from chart where rating_ftr > 0)
             union
-            select sum(score) as a from user_scores where difficulty = 3 and song_id in (select song_id from chart where rating_byn > 0)
+            select sum(score_v2) as a from user_scores where difficulty = 3 and song_id in (select song_id from chart where rating_byn > 0)
             union
-            select sum(score) as a from user_scores where difficulty = 4 and song_id in (select song_id from chart where rating_etr > 0)
+            select sum(score_v2) as a from user_scores where difficulty = 4 and song_id in (select song_id from chart where rating_etr > 0)
             )
             ''',
             (self.user_id,)

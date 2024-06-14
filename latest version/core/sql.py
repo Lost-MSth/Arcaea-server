@@ -351,7 +351,8 @@ class Sql:
 class DatabaseMigrator:
 
     SPECIAL_UPDATE_VERSION = {
-        '2.11.3.11': '_version_2_11_3_11'
+        '2.11.3.11': '_version_2_11_3_11',
+        '2.11.3.13': '_version_2_11_3.13'
     }
 
     def __init__(self, c1_path: str, c2_path: str) -> None:
@@ -462,6 +463,12 @@ class DatabaseMigrator:
 
         self.c2.executemany(
             '''insert into recent30(user_id, r_index, time_played, song_id, difficulty, rating) values(?,?,?,?,?,?)''', sql_list)
+
+    def _version_2_11_3_13(self):
+        '''
+        2.11.3.13 版本特殊更新，world_rank_score 机制调整，需清空用户分数
+        '''
+        self.c1.execute('''update user set world_rank_score = 0''')
 
 
 class LogDatabaseMigrator:

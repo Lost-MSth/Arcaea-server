@@ -27,6 +27,7 @@ class BaseOperation:
 class RefreshAllScoreRating(BaseOperation):
     '''
         刷新所有成绩的评分
+        包括 score_v2
     '''
     _name = 'refresh_all_score_rating'
 
@@ -44,11 +45,11 @@ class RefreshAllScoreRating(BaseOperation):
 
             for i in x:
                 for j in range(0, 4):
-                    defnum = -10  # 没在库里的全部当做定数-10
+                    defnum = -10  # 没在库里的全部当做定数 -10
                     if i[j+1] is not None and i[j+1] > 0:
                         defnum = float(i[j+1]) / 10
 
-                    c.execute('''select user_id, score from best_score where song_id=:a and difficulty=:b''', {
+                    c.execute('''select user_id, score, shiny_perfect_count, perfect_count, near_count, miss_count from best_score where song_id=:a and difficulty=:b''', {
                               'a': i[0], 'b': j})
                     y = c.fetchall()
                     values = []
@@ -56,10 +57,12 @@ class RefreshAllScoreRating(BaseOperation):
                     for k in y:
                         ptt = Score.calculate_rating(defnum, k[1])
                         ptt = max(ptt, 0)
-                        values.append((ptt,))
+                        score_v2 = Score.calculate_score_v2(
+                            defnum, k[2], k[3], k[4], k[5])
+                        values.append((ptt, score_v2,))
                         where_values.append((k[0], i[0], j))
                     if values:
-                        Sql(c).update_many('best_score', ['rating'], values, [
+                        Sql(c).update_many('best_score', ['rating', 'score_v2'], values, [
                             'user_id', 'song_id', 'difficulty'], where_values)
 
 
@@ -133,10 +136,15 @@ class SaveUpdateScore(BaseOperation):
             new_scores = []
             for i in save.scores_data:
                 rating = 0
+                score_v2 = 0
                 if i['song_id'] in song_chart_const:
-                    rating = Score.calculate_rating(
-                        song_chart_const[i['song_id']][i['difficulty']] / 10, i['score'])
+                    defnum = song_chart_const[i['song_id']
+                                              ][i['difficulty']] / 10
+                    rating = Score.calculate_rating(defnum, i['score'])
                     rating = max(rating, 0)
+
+                    score_v2 = Score.calculate_score_v2(
+                        defnum, i['shiny_perfect_count'], i['perfect_count'], i['near_count'], i['miss_count'])
 
                 y = f'{i["song_id"]}{i["difficulty"]}'
                 if y in clear_state:
@@ -145,10 +153,10 @@ class SaveUpdateScore(BaseOperation):
                     clear_type = 0
 
                 new_scores.append((self.user.user_id, i['song_id'], i['difficulty'], i['score'], i['shiny_perfect_count'], i['perfect_count'],
-                                   i['near_count'], i['miss_count'], i['health'], i['modifier'], i['time_played'], clear_type, clear_type, rating))
+                                   i['near_count'], i['miss_count'], i['health'], i['modifier'], i['time_played'], clear_type, clear_type, rating, score_v2))
 
             c.executemany(
-                '''insert or replace into best_score values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', new_scores)
+                '''insert or replace into best_score values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', new_scores)
 
     def _all_update(self):
         with Connect() as c:
@@ -169,10 +177,15 @@ class SaveUpdateScore(BaseOperation):
                 new_scores = []
                 for i in save.scores_data:
                     rating = 0
+                    score_v2 = 0
                     if i['song_id'] in song_chart_const:
-                        rating = Score.calculate_rating(
-                            song_chart_const[i['song_id']][i['difficulty']] / 10, i['score'])
+                        defnum = song_chart_const[i['song_id']
+                                                  ][i['difficulty']] / 10
+                        rating = Score.calculate_rating(defnum, i['score'])
                         rating = max(rating, 0)
+
+                        score_v2 = Score.calculate_score_v2(
+                            defnum, i['shiny_perfect_count'], i['perfect_count'], i['near_count'], i['miss_count'])
 
                     y = f'{i["song_id"]}{i["difficulty"]}'
                     if y in clear_state:
@@ -181,10 +194,10 @@ class SaveUpdateScore(BaseOperation):
                         clear_type = 0
 
                     new_scores.append((user.user_id, i['song_id'], i['difficulty'], i['score'], i['shiny_perfect_count'], i['perfect_count'],
-                                       i['near_count'], i['miss_count'], i['health'], i['modifier'], i['time_played'], clear_type, clear_type, rating))
+                                       i['near_count'], i['miss_count'], i['health'], i['modifier'], i['time_played'], clear_type, clear_type, rating, score_v2))
 
                 c.executemany(
-                    '''insert or replace into best_score values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', new_scores)
+                    '''insert or replace into best_score values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', new_scores)
 
 
 class UnlockUserItem(BaseOperation):

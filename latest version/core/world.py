@@ -265,6 +265,7 @@ class UserMap(Map):
             r['curr_capture'] = self.curr_capture
             r['is_locked'] = self.is_locked
             r['user_id'] = self.user.user_id
+            # memory_boost_ticket
             if not has_steps:
                 del r['steps']
             if has_rewards:
@@ -668,6 +669,9 @@ class BaseWorldPlay(WorldSkillMixin):
             'world_mode_locked_end_ts': self.user.world_mode_locked_end_ts,
             'beyond_boost_gauge': self.user.beyond_boost_gauge,
             # 'wpaid': 'helloworld',  # world play id ???
+            # progress_before_sub_boost
+            # progress_sub_boost_amount
+            # subscription_multiply
         }
 
         if self.character_used.skill_id_displayed == 'skill_maya':

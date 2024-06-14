@@ -61,7 +61,8 @@ modifier int,
 time_played int,
 best_clear_type int,
 clear_type int,
-rating real,
+rating real default 0,
+score_v2 real default 0,
 primary key(user_id, song_id, difficulty)
 );
 create table if not exists user_char(user_id int,

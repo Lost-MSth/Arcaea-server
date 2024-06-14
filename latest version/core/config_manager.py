@@ -12,7 +12,7 @@ class Config:
 
     SONG_FILE_HASH_PRE_CALCULATE = True
 
-    GAME_API_PREFIX = '/hanami/29'  # str | list[str]
+    GAME_API_PREFIX = '/natsugakuru/30'  # str | list[str]
     OLD_GAME_API_PREFIX = []  # str | list[str]
 
     ALLOW_APPVERSION = []  # list[str]
