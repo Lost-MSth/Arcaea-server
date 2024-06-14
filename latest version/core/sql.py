@@ -352,7 +352,7 @@ class DatabaseMigrator:
 
     SPECIAL_UPDATE_VERSION = {
         '2.11.3.11': '_version_2_11_3_11',
-        '2.11.3.13': '_version_2_11_3.13'
+        '2.11.3.13': '_version_2_11_3_13'
     }
 
     def __init__(self, c1_path: str, c2_path: str) -> None:
