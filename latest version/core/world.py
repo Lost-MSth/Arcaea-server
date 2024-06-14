@@ -660,9 +660,9 @@ class BaseWorldPlay(WorldSkillMixin):
             },
             "char_stats": {
                 "character_id": self.character_used.character_id,
-                "frag": self.character_used.frag.get_value(self.character_used.level),
-                "prog": self.character_used.prog.get_value(self.character_used.level),
-                "overdrive": self.character_used.overdrive.get_value(self.character_used.level)
+                "frag": self.character_used.frag_value,
+                "prog": self.character_used.prog_value,
+                "overdrive": self.character_used.overdrive_value
             },
             "current_stamina": self.user.stamina.stamina,
             "max_stamina_ts": self.user.stamina.max_stamina_ts,

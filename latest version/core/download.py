@@ -47,8 +47,8 @@ class SonglistParser:
             # songlist没有，则只限制文件名
             return file_name in SonglistParser.FILE_NAMES
         rule = SonglistParser.songs[song_id]
-        for i in range(10):
-            if file_name == SonglistParser.FILE_NAMES[i] and rule & (1 << i) != 0:
+        for i, v in enumerate(SonglistParser.FILE_NAMES):
+            if file_name == v and rule & (1 << i) != 0:
                 return True
         return False
 
