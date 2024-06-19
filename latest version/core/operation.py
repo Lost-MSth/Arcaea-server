@@ -6,6 +6,7 @@ from .save import SaveData
 from .score import Score
 from .sql import Connect, Sql
 from .user import User
+from .world import MapParser
 
 
 class BaseOperation:
@@ -86,6 +87,16 @@ class RefreshBundleCache(BaseOperation):
 
     def run(self):
         BundleParser().re_init()
+
+
+class RefreshWorldMapCache(BaseOperation):
+    '''
+        刷新 map 缓存
+    '''
+    _name = 'refresh_world_map_cache'
+
+    def run(self):
+        MapParser().re_init()
 
 
 class SaveUpdateScore(BaseOperation):

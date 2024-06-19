@@ -82,11 +82,15 @@ class BundleParser:
     version_tuple_bundles: 'dict[tuple[str, str], ContentBundle]' = {}
 
     def __init__(self) -> None:
-        self.parse()
+        if not self.bundles:
+            self.parse()
 
     def re_init(self) -> None:
         self.bundles.clear()
         self.max_bundle_version.clear()
+        self.next_versions.clear()
+        self.version_tuple_bundles.clear()
+        self.get_bundles.cache_clear()
         self.parse()
 
     def parse(self) -> None:

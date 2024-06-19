@@ -16,6 +16,7 @@ from core.sql import (Connect, DatabaseMigrator, LogDatabaseMigrator,
                       MemoryDatabase)
 from core.user import UserRegister
 from core.util import try_rename
+from core.world import MapParser
 
 
 class DatabaseInit:
@@ -326,12 +327,11 @@ class FileChecker:
     def check_song_file(self) -> bool:
         '''检查song有关文件并初始化缓存'''
         f = self.check_folder(Config.SONG_FILE_FOLDER_PATH)
-        self.logger.info("Start to initialize song data...")
+        self.logger.info("Initialize song data...")
         try:
             DownloadList.initialize_cache()
             if not Config.SONG_FILE_HASH_PRE_CALCULATE:
                 self.logger.info('Song file hash pre-calculate is disabled.')
-            self.logger.info('Song data initialization is complete!')
         except Exception as e:
             self.logger.error(format_exc())
             self.logger.warning('Song data initialization error!')
@@ -341,17 +341,28 @@ class FileChecker:
     def check_content_bundle(self) -> bool:
         '''检查 content bundle 有关文件并初始化缓存'''
         f = self.check_folder(Config.CONTENT_BUNDLE_FOLDER_PATH)
-        self.logger.info("Start to initialize content bundle data...")
+        self.logger.info("Initialize content bundle data...")
         try:
             BundleParser()
-            self.logger.info('Content bundle data initialization is complete!')
         except Exception as e:
             self.logger.error(format_exc())
             self.logger.warning('Content bundle data initialization error!')
             f = False
         return f
 
+    def check_world_map(self) -> bool:
+        '''检查 world map 有关文件并初始化缓存'''
+        f = self.check_folder(Config.WORLD_MAP_FOLDER_PATH)
+        self.logger.info("Initialize world map data...")
+        try:
+            MapParser()
+        except Exception as e:
+            self.logger.error(format_exc())
+            self.logger.warning('World map data initialization error!')
+            f = False
+        return f
+
     def check_before_run(self) -> bool:
         '''运行前检查，返回布尔值'''
         MemoryDatabase()  # 初始化内存数据库
-        return self.check_song_file() and self.check_content_bundle() and self.check_update_database()
+        return self.check_song_file() and self.check_content_bundle() and self.check_update_database() and self.check_world_map()

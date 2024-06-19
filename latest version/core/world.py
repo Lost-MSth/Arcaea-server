@@ -10,34 +10,46 @@ from .error import InputError, MapLocked, NoData
 from .item import ItemFactory
 
 
-@lru_cache(maxsize=128)
-def get_world_name(file_dir: str = Constant.WORLD_MAP_FOLDER_PATH) -> list:
-    '''获取所有地图名称，返回列表'''
-    file_list = []
-    for root, dirs, files in os.walk(file_dir):
-        for file in files:
-            if os.path.splitext(file)[1] == '.json':
-                file_list.append(os.path.splitext(file)[0])
-    return file_list
+class MapParser:
 
+    map_id_path: 'dict[str, str]' = {}
 
-@lru_cache(maxsize=128)
-def get_world_info(map_id: str) -> dict:
-    '''读取json文件内容，返回字典'''
-    world_info = {}
-    with open(os.path.join(Constant.WORLD_MAP_FOLDER_PATH, f'{map_id}.json'), 'rb') as f:
-        world_info = load(f)
+    def __init__(self) -> None:
+        if not self.map_id_path:
+            self.parse()
 
-    return world_info
+    def parse(self) -> None:
+        for root, dirs, files in os.walk(Constant.WORLD_MAP_FOLDER_PATH):
+            for file in files:
+                if not file.endswith('.json'):
+                    continue
 
+                path = os.path.join(root, file)
+                self.map_id_path[file[:-5]] = path
 
-def get_world_all(c, user) -> list:
-    '''
-        读取所有地图信息，返回列表
-        parameter: `user` - `User`类或子类的实例
-    '''
-    worlds = get_world_name()
-    return [UserMap(c, map_id, user) for map_id in worlds]
+    def re_init(self) -> None:
+        self.map_id_path.clear()
+        self.get_world_info.cache_clear()
+        self.parse()
+
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def get_world_info(map_id: str) -> dict:
+        '''读取json文件内容，返回字典'''
+        world_info = {}
+        with open(MapParser.map_id_path[map_id], 'rb') as f:
+            world_info = load(f)
+
+        return world_info
+
+    @staticmethod
+    def get_world_all(c, user) -> list:
+        '''
+            读取所有地图信息，返回列表
+            parameter: `user` - `User` 类或子类的实例
+            `c` - 数据库连接
+        '''
+        return [UserMap(c, map_id, user) for map_id in MapParser.map_id_path.keys()]
 
 
 class Step:
@@ -208,7 +220,7 @@ class Map:
 
     def select_map_info(self):
         '''获取地图信息'''
-        self.from_dict(get_world_info(self.map_id))
+        self.from_dict(MapParser.get_world_info(self.map_id))
 
 
 class UserMap(Map):

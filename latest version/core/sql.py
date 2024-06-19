@@ -437,7 +437,7 @@ class DatabaseMigrator:
     def _version_2_11_3_11(self):
         '''
         2.11.3.11 版本特殊更新，调整 recent30 表结构
-        recent30 表从 (user_id: int PK, song_id<index>: text, rating<index>: real, ...) \
+        recent30 表从 (user_id: int PK, rating<index>: real, song_id<index>: text, ...) \
         更改为 (user_id: int PK, r_index: int PK, time_played: int, song_id: text, difficulty: int, score: int, sp, p, n, m, hp, mod, clear_type, rating: real)
         '''
 
