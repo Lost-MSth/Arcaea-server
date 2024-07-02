@@ -111,7 +111,7 @@ def bundle_download(token: str):
                 # nginx X-Accel-Redirect
                 response = make_response()
                 response.headers['Content-Type'] = 'application/octet-stream'
-                response.headers['X-Accel-Redirect'] = Config.NGINX_X_ACCEL_REDIRECT_PREFIX + file_path
+                response.headers['X-Accel-Redirect'] = Config.BUNDLE_NGINX_X_ACCEL_REDIRECT_PREFIX + file_path
                 return response
             return send_from_directory(Constant.CONTENT_BUNDLE_FOLDER_PATH, file_path, as_attachment=True, conditional=True)
         except ArcError as e:

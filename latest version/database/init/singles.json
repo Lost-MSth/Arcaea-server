@@ -1828,5 +1828,41 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "hypervision",
+		"items": [
+			{
+				"type": "single",
+				"id": "hypervision",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "stargateextreme",
+		"items": [
+			{
+				"type": "single",
+				"id": "stargateextreme",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

@@ -226,6 +226,8 @@ class BundleDownload:
         if not sql_list:
             return []
 
+        self.clear_expired_token()
+
         self.c_m.executemany(
             '''insert into bundle_download_token values (?, ?, ?, ?)''', sql_list)
 
@@ -246,3 +248,7 @@ class BundleDownload:
                 f'Too many content bundle downloads, IP: {ip}, DeviceID: {device_id}', status=429)
 
         return file_path
+
+    def clear_expired_token(self) -> None:
+        self.c_m.execute(
+            '''delete from bundle_download_token where time < ?''', (int(time() - Constant.BUNDLE_DOWNLOAD_TIME_GAP_LIMIT),))

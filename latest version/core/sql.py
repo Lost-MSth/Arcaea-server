@@ -450,10 +450,11 @@ class DatabaseMigrator:
             for j in range(30):
                 rating = i[1 + j * 2]
                 rating = float(rating) if rating else 0
-                song_id_difficulty = i[2 + j * 2]
+                song_id_difficulty: str = i[2 + j * 2]
                 if song_id_difficulty:
                     song_id = song_id_difficulty[:-1]
-                    difficulty = int(song_id_difficulty[-1])
+                    difficulty = song_id_difficulty[-1]
+                    difficulty = int(difficulty) if difficulty.isdigit() else 0
                 else:
                     song_id = ''
                     difficulty = 0

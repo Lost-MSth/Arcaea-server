@@ -808,5 +808,23 @@
 		],
 		"price": 700,
 		"orig_price": 700
+	},
+	{
+		"name": "groovecoaster_append_1",
+		"items": [
+			{
+				"type": "pack",
+				"id": "groovecoaster_append_1",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 3,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"price": 300,
+		"orig_price": 300
 	}
 ]

@@ -16,7 +16,7 @@ class Config:
     OLD_GAME_API_PREFIX = []  # str | list[str]
 
     ALLOW_APPVERSION = []  # list[str]
-    
+
     BUNDLE_STRICT_MODE = True
 
     SET_LINKPLAY_SERVER_AS_SUB_PROCESS = True
@@ -49,6 +49,7 @@ class Config:
 
     DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT = False
     NGINX_X_ACCEL_REDIRECT_PREFIX = '/nginx_download/'
+    BUNDLE_NGINX_X_ACCEL_REDIRECT_PREFIX = '/nginx_bundle_download/'
 
     DOWNLOAD_TIMES_LIMIT = 3000
     DOWNLOAD_TIME_GAP_LIMIT = 1000
