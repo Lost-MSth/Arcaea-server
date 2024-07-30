@@ -107,6 +107,8 @@ class SaveData:
                     i['complete'] = 3
                 elif x[-5:-2] == '109':
                     i['complete'] = 3
+                elif x.endswith('112'):
+                    i['complete'] = 999
                 else:
                     i['complete'] = 1
 
