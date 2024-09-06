@@ -8,6 +8,7 @@ from core.bundle import BundleDownload
 from core.download import DownloadList
 from core.error import RateLimit
 from core.item import ItemCharacter
+from core.notification import NotificationFactory
 from core.sql import Connect
 from core.system import GameInfo
 from core.user import UserOnline
@@ -26,6 +27,15 @@ bp = Blueprint('others', __name__)
 @bp.route('/game/info', methods=['GET'])  # 系统信息
 def game_info():
     return success_return(GameInfo().to_dict())
+
+
+@bp.route('/notification/me', methods=['GET'])  # 通知
+@auth_required(request)
+@arc_try
+def notification_me(user_id):
+    with Connect(in_memory=True) as c_m:
+        x = NotificationFactory(c_m, UserOnline(c_m, user_id))
+        return success_return([i.to_dict() for i in x.get_notification()])
 
 
 @bp.route('/game/content_bundle', methods=['GET'])  # 热更新

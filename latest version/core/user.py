@@ -647,6 +647,20 @@ class UserInfo(User):
         self.beyond_boost_gauge = x[8] if x[8] else 0
         self.kanae_stored_prog = x[9] if x[9] else 0
 
+    def select_user_about_link_play(self) -> None:
+        '''
+            查询 user 表有关 link play 的信息
+        '''
+        self.c.execute(
+            '''select name, rating_ptt, is_hide_rating from user where user_id=?''', (self.user_id,))
+        x = self.c.fetchone()
+        if not x:
+            raise NoData('No user.', 108, -3)
+
+        self.name = x[0]
+        self.rating_ptt = x[1]
+        self.is_hide_rating = x[2] == 1
+
     @property
     def global_rank(self) -> int:
         '''用户世界排名，如果超过设定最大值，返回0'''

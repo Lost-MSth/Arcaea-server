@@ -1,4 +1,4 @@
-# import binascii
+import binascii
 import logging
 import socketserver
 import threading
@@ -21,11 +21,12 @@ class UDP_handler(socketserver.BaseRequestHandler):
         try:
             token = client_msg[:8]
             iv = client_msg[8:20]
-            tag = client_msg[20:32]
-            ciphertext = client_msg[32:]
-            if bi(token) not in Store.link_play_data:
+            tag = client_msg[20:36]
+            ciphertext = client_msg[36:]
+
+            user = Store.link_play_data.get(bi(token))
+            if user is None:
                 return None
-            user = Store.link_play_data[bi(token)]
 
             plaintext = decrypt(user['key'], b'', iv, ciphertext, tag)
         except Exception as e:
@@ -52,8 +53,7 @@ class UDP_handler(socketserver.BaseRequestHandler):
             #     logging.info(
             #         f'UDP-To-{self.client_address[0]}-{binascii.b2a_hex(i)}')
 
-            server.sendto(token + iv + tag[:12] +
-                          ciphertext, self.client_address)
+            server.sendto(token + iv + tag + ciphertext, self.client_address)
 
 
 AUTH_LEN = len(Config.AUTHENTICATION)
@@ -77,7 +77,7 @@ class TCP_handler(socketserver.StreamRequestHandler):
                 return None
 
             iv = self.rfile.read(12)
-            tag = self.rfile.read(12)
+            tag = self.rfile.read(16)
             ciphertext = self.rfile.read(cipher_len)
 
             self.data = decrypt(TCP_AES_KEY, b'', iv, ciphertext, tag)
@@ -96,8 +96,8 @@ class TCP_handler(socketserver.StreamRequestHandler):
             if Config.DEBUG:
                 logging.info(f'TCP-To-{self.client_address[0]}-{r}')
             iv, ciphertext, tag = encrypt(TCP_AES_KEY, r.encode('utf-8'), b'')
-            r = len(ciphertext).to_bytes(8, byteorder='little') + \
-                iv + tag[:12] + ciphertext
+            r = len(ciphertext).to_bytes(
+                8, byteorder='little') + iv + tag + ciphertext
         except Exception as e:
             logging.error(e)
             return None

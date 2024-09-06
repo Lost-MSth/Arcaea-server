@@ -510,6 +510,15 @@ class MemoryDatabase:
                        file_path text, time int, device_id text);''')
         self.c.execute(
             '''create index if not exists download_token_1 on download_token (song_id, file_name);''')
+        self.c.execute('''
+            create table if not exists notification(
+                user_id int, id int,
+                type text, content text,
+                sender_user_id int, sender_name text,
+                timestamp int,
+                primary key(user_id, id)
+            )
+        ''')
         self.conn.commit()
 
 

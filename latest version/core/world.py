@@ -490,7 +490,8 @@ class WorldSkillMixin:
             'skill_amane': self._skill_amane,
             'skill_maya': self._skill_maya,
             'luna_uncap': self._luna_uncap,
-            'skill_kanae_uncap': self._skill_kanae_uncap
+            'skill_kanae_uncap': self._skill_kanae_uncap,
+            'skill_eto_hoppe': self._skill_eto_hoppe,
         }
         if self.character_used.skill_id_displayed in factory_dict:
             factory_dict[self.character_used.skill_id_displayed]()
@@ -632,6 +633,14 @@ class WorldSkillMixin:
         '''
         self.kanae_stored_progress = self.progress_normalized
         self.user.current_map.reclimb(self.final_progress)
+
+    def _skill_eto_hoppe(self) -> None:
+        '''
+        eto_hoppe 技能，体力大于等于 6 格时，世界进度翻倍
+        '''
+        if self.user.stamina.stamina >= 6:
+            self.character_bonus_progress_normalized = self.progress_normalized
+            self.user.current_map.reclimb(self.final_progress)
 
 
 class BaseWorldPlay(WorldSkillMixin):

@@ -37,7 +37,7 @@ class RefreshAllScoreRating(BaseOperation):
         # 但其实还是很慢
         with Connect() as c:
             c.execute(
-                '''select song_id, rating_pst, rating_prs, rating_ftr, rating_byn from chart''')
+                '''select song_id, rating_pst, rating_prs, rating_ftr, rating_byn, rating_etr from chart''')
             x = c.fetchall()
 
             songs = [i[0] for i in x]
@@ -45,7 +45,7 @@ class RefreshAllScoreRating(BaseOperation):
                 f'''update best_score set rating=0 where song_id not in ({','.join(['?']*len(songs))})''', songs)
 
             for i in x:
-                for j in range(0, 4):
+                for j in range(0, 5):
                     defnum = -10  # 没在库里的全部当做定数 -10
                     if i[j+1] is not None and i[j+1] > 0:
                         defnum = float(i[j+1]) / 10
@@ -65,6 +65,38 @@ class RefreshAllScoreRating(BaseOperation):
                     if values:
                         Sql(c).update_many('best_score', ['rating', 'score_v2'], values, [
                             'user_id', 'song_id', 'difficulty'], where_values)
+
+            # 更新 recent30
+            song_defum: 'dict[str, list[int]]' = {}
+            for i in x:
+                song_defum[i[0]] = []
+                for j in range(0, 5):
+                    defnum = -10
+                    if i[j+1] is not None and i[j+1] > 0:
+                        defnum = float(i[j+1]) / 10
+                    song_defum[i[0]].append(defnum)
+
+            users = c.execute('''select user_id from user''').fetchall()
+            for i in users:
+                values = []
+                where_values = []
+                user_id = i[0]
+                c.execute(
+                    '''select r_index, song_id, difficulty, score from recent30 where user_id = ?''', (user_id,))
+                for j in c.fetchall():
+                    if j[1] in song_defum:
+                        defnum = song_defum[j[1]][j[2]]
+                    else:
+                        defnum = -10
+                    ptt = Score.calculate_rating(defnum, j[3])
+                    ptt = max(ptt, 0)
+
+                    values.append((ptt,))
+                    where_values.append((user_id, j[0]))
+
+                if values:
+                    Sql(c).update_many('recent30', ['rating'], values, [
+                        'user_id', 'r_index'], where_values)
 
 
 class RefreshSongFileCache(BaseOperation):
