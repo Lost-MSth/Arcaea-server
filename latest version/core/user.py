@@ -305,6 +305,7 @@ class UserInfo(User):
         self.recent_score = Score()
         self.favorite_character = None
         self.max_stamina_notification_enabled = False
+        self.mp_notification_enabled = False
         self.prog_boost: int = 0
         self.beyond_boost_gauge: float = 0
         self.kanae_stored_prog: float = 0
@@ -495,7 +496,8 @@ class UserInfo(User):
             "settings": {
                 "favorite_character": favorite_character_id,
                 "is_hide_rating": self.is_hide_rating,
-                "max_stamina_notification_enabled": self.max_stamina_notification_enabled
+                "max_stamina_notification_enabled": self.max_stamina_notification_enabled,
+                "mp_notification_enabled": self.mp_notification_enabled
             },
             "user_id": self.user_id,
             "name": self.name,
@@ -560,6 +562,7 @@ class UserInfo(User):
         self.favorite_character = None if x[23] == - \
             1 else UserCharacter(self.c, x[23])
         self.max_stamina_notification_enabled = x[24] == 1
+        self.mp_notification_enabled = x[37] == 1
         self.current_map = Map(x[25]) if x[25] is not None else Map('')
         self.ticket = x[26]
         self.prog_boost = x[27] if x[27] is not None else 0
@@ -660,6 +663,20 @@ class UserInfo(User):
         self.name = x[0]
         self.rating_ptt = x[1]
         self.is_hide_rating = x[2] == 1
+
+    def select_user_about_settings(self) -> None:
+        '''
+            查询 user 表有关设置的信息
+        '''
+        self.c.execute(
+            '''select is_hide_rating, max_stamina_notification_enabled, mp_notification_enabled from user where user_id=?''', (self.user_id,)
+        x = self.c.fetchone()
+        if not x:
+            raise NoData('No user.', 108, -3)
+
+        self.is_hide_rating = x[0] == 1
+        self.max_stamina_notification_enabled = x[1] == 1
+        self.mp_notification_enabled = x[2] == 1
 
     @property
     def global_rank(self) -> int:
