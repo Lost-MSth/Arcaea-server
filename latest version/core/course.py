@@ -1,5 +1,6 @@
 from .error import NoData
 from .item import ItemFactory
+from .score import Score
 from .song import Chart
 
 
@@ -281,12 +282,13 @@ class CoursePlay(UserCourse):
 
         self.user_play.course_play_state += 1
 
-        from .score import Score
         if Score.get_song_state(self.clear_type) > Score.get_song_state(self.user_play.clear_type):
             self.clear_type = self.user_play.clear_type
         self.user_play.update_play_state_for_course()
 
         if self.user_play.course_play_state == 4:
+            self.user.select_user_about_stamina()
+            self.items = []
             if not self.is_completed:
                 self.user.select_user_about_stamina()
                 self.select_course_item()
