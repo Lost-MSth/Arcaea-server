@@ -179,7 +179,7 @@ class CommandParser:
             flag_12 = True
             player.online = 1
 
-        if self.room.state in (1, 2) and player.player_state == 8:
+        if self.room.timed_mode and self.room.state in (1, 2) and player.player_state == 8:
             # 还在结算给踢了
             # 冗余，为了保险
             self.room.delete_player(self.player_index)
@@ -248,12 +248,13 @@ class CommandParser:
             logging.info(f'Room `{self.room.room_code}` starts playing')
 
         if self.room.state == 4:
-            if player.download_percent != 0xff:
-                # 有人没下载完把他踢了！
-                self.room.delete_player(self.player_index)
-                self.room.command_queue.append(
-                    self.s.command_12(self.player_index))
-                self.room.command_queue.append(self.s.command_14())
+            # 这好像会误判
+            # if player.download_percent < 99:
+            #     # 有人没下载完把他踢了！
+            #     self.room.delete_player(self.player_index)
+            #     self.room.command_queue.append(
+            #         self.s.command_12(self.player_index))
+            #     self.room.command_queue.append(self.s.command_14())
 
             if self.room.should_next_state:
                 self.room.state = 5
@@ -296,7 +297,7 @@ class CommandParser:
                 self.room.state = 1
                 self.room.song_idx = 0xffff
 
-            if self.room.state in (1, 2) and player.player_state == 8:
+            if self.room.timed_mode and self.room.state in (1, 2) and player.player_state == 8:
                 # 还在结算给踢了
                 self.room.delete_player(self.player_index)
                 self.room.command_queue.append(

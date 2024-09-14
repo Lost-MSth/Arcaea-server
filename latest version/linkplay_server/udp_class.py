@@ -101,7 +101,7 @@ class Player:
 
         self.rating_ptt: int = 0  # 2 bytes
         self.is_hide_rating: int = 0  # 1 byte
-        self.switch_4: int = 0  # 1 byte  只能确定有 00 和 01
+        self.is_staff: int = 0  # 1 byte
 
     @property
     def name(self) -> str:
@@ -162,7 +162,7 @@ class Player:
         re.append(self.switch_2)
         re.extend(b(self.rating_ptt, 2))
         re.append(self.is_hide_rating)
-        re.append(self.switch_4)
+        re.append(self.is_staff)
 
         return bytes(re)
 
@@ -356,7 +356,6 @@ class Room:
             self.song_idx = 0xffff
             self.voting_clear()
 
-        print(self.player_num)
         if self.state in (1, 2) and self.timed_mode and self.player_num <= 1:
             self.next_state_timestamp = 0
             self.countdown = 0xffffffff
@@ -382,7 +381,7 @@ class Room:
 
     def is_finish(self):
         # 是否全部进入结算
-        if self.state == 8:
+        if self.state != 7:
             return False
 
         for i in self.players:
