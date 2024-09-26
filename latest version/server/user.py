@@ -158,7 +158,6 @@ def sys_set(user_id, set_arg):
         else:
             value = 'true' == value
             if set_arg in ('is_hide_rating', 'max_stamina_notification_enabled', 'mp_notification_enabled'):
-                user.select_user_about_settings()
                 user.update_user_one_column(set_arg, value)
         return success_return(user.to_dict())
 

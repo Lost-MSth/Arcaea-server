@@ -305,7 +305,7 @@ class UserInfo(User):
         self.recent_score = Score()
         self.favorite_character = None
         self.max_stamina_notification_enabled = False
-        self.mp_notification_enabled = False
+        self.mp_notification_enabled = True
         self.prog_boost: int = 0
         self.beyond_boost_gauge: float = 0
         self.kanae_stored_prog: float = 0
@@ -497,7 +497,7 @@ class UserInfo(User):
                 "favorite_character": favorite_character_id,
                 "is_hide_rating": self.is_hide_rating,
                 "max_stamina_notification_enabled": self.max_stamina_notification_enabled,
-                "mp_notification_enabled": self.mp_notification_enabled
+                "mp_notification_enabled": self.mp_notification_enabled,
             },
             "user_id": self.user_id,
             "name": self.name,
@@ -562,7 +562,6 @@ class UserInfo(User):
         self.favorite_character = None if x[23] == - \
             1 else UserCharacter(self.c, x[23])
         self.max_stamina_notification_enabled = x[24] == 1
-        self.mp_notification_enabled = x[37] == 1
         self.current_map = Map(x[25]) if x[25] is not None else Map('')
         self.ticket = x[26]
         self.prog_boost = x[27] if x[27] is not None else 0
@@ -577,6 +576,8 @@ class UserInfo(User):
         self.world_mode_locked_end_ts = x[34] if x[34] else -1
         self.beyond_boost_gauge = x[35] if x[35] else 0
         self.kanae_stored_prog = x[36] if x[36] else 0
+
+        self.mp_notification_enabled = x[37] == 1
 
         return self
 
@@ -664,20 +665,6 @@ class UserInfo(User):
         self.rating_ptt = x[1]
         self.is_hide_rating = x[2] == 1
 
-    def select_user_about_settings(self) -> None:
-        '''
-            查询 user 表有关设置的信息
-        '''
-        self.c.execute(
-            '''select is_hide_rating, max_stamina_notification_enabled, mp_notification_enabled from user where user_id=?''', (self.user_id,)
-        x = self.c.fetchone()
-        if not x:
-            raise NoData('No user.', 108, -3)
-
-        self.is_hide_rating = x[0] == 1
-        self.max_stamina_notification_enabled = x[1] == 1
-        self.mp_notification_enabled = x[2] == 1
-
     @property
     def global_rank(self) -> int:
         '''用户世界排名，如果超过设定最大值，返回0'''
@@ -720,7 +707,7 @@ class UserInfo(User):
             '''update user set world_rank_score = ? where user_id = ?''', (x[0], self.user_id))
         self.world_rank_score = x[0]
 
-    def select_user_one_column(self, column_name: str, default_value=None) -> None:
+    def select_user_one_column(self, column_name: str, default_value=None, data_type=None) -> None:
         '''
             查询user表的某个属性
             请注意必须是一个普通属性，不能是一个类的实例
@@ -733,7 +720,12 @@ class UserInfo(User):
         if not x:
             raise NoData('No user.', 108, -3)
 
-        self.__dict__[column_name] = x[0] if x[0] else default_value
+        data = x[0] if x[0] is not None else default_value
+
+        if data_type is not None:
+            data = data_type(data)
+
+        self.__dict__[column_name] = data
 
     def update_user_one_column(self, column_name: str, value=None) -> None:
         '''

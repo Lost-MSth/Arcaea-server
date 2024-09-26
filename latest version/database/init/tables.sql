@@ -36,7 +36,7 @@ stamina int,
 world_mode_locked_end_ts int,
 beyond_boost_gauge real default 0,
 kanae_stored_prog real default 0,
-mp_notification_enabled int
+mp_notification_enabled int default 1
 );
 create table if not exists login(access_token text,
 user_id int,

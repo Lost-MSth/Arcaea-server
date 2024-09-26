@@ -320,12 +320,17 @@ class MatchStore:
         # 加入已有房间
         for i in MatchStore.room_cache:
             f = True
+            num = 0
             for j in i['players']:
-                if j['player_id'] != 0 and abs(user.rating_ptt - j['rating_ptt']) >= ptt_abs:
-                    f = False
-                    break
+                if j['player_id'] != 0:
+                    num += 1
+                    if abs(user.rating_ptt - j['rating_ptt']) >= ptt_abs:
+                        f = False
+                        break
 
-            if f and user.calc_available_chart_num(b64decode(i['song_unlock'])) >= unlock_min and ((time() + 2) * 1000000 < i['next_state_timestamp'] or i['next_state_timestamp'] <= 0):
+            # 有玩家非正常退房时，next_state_timestamp 不为 0，有概率新玩家进不来，所以使用 num 统计玩家数量
+
+            if f and user.calc_available_chart_num(b64decode(i['song_unlock'])) >= unlock_min and ((time() + 2) * 1000000 < i['next_state_timestamp'] or i['next_state_timestamp'] <= 0 or num == 1):
                 room = Room()
                 room.room_code = i['room_code']
                 user.c = self.c

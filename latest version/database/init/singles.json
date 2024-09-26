@@ -1900,5 +1900,23 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "gensounosatellite",
+		"items": [
+			{
+				"type": "single",
+				"id": "gensounosatellite",
+				"is_available": true
+			},
+			{
+				"type": "core",
+				"amount": 1,
+				"id": "core_generic",
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

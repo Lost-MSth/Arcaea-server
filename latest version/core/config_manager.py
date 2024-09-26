@@ -12,7 +12,7 @@ class Config:
 
     SONG_FILE_HASH_PRE_CALCULATE = True
 
-    GAME_API_PREFIX = '/pastatabetai/32'  # str | list[str]
+    GAME_API_PREFIX = '/autumnequinox/33'  # str | list[str]
     OLD_GAME_API_PREFIX = []  # str | list[str]
 
     ALLOW_APPVERSION = []  # list[str]

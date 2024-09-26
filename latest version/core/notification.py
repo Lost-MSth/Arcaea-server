@@ -26,6 +26,10 @@ class BaseNotification:
         raise NotImplementedError()
 
     def insert(self):
+        self.receiver.select_user_one_column('mp_notification_enabled', True, bool)
+        if not self.receiver.mp_notification_enabled:
+            return
+
         self.c_m.execute(
             '''select max(id) from notification where user_id = ?''', (self.receiver.user_id,))
         x = self.c_m.fetchone()
