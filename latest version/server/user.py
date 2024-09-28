@@ -32,12 +32,12 @@ def register():
         else:
             device_id = 'low_version'
 
-        new_user.register()
+        ip = request.remote_addr
+        new_user.register(device_id, ip)
 
         # 注册后自动登录
         user = UserLogin(c)
-        user.login(new_user.name, new_user.password,
-                   device_id, request.remote_addr)
+        user.login(new_user.name, new_user.password, device_id, ip)
         current_app.logger.info(f'New user `{user.user_id}` registered')
         return success_return({'user_id': user.user_id, 'access_token': user.token})
 

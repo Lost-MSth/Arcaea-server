@@ -131,7 +131,7 @@ class Score:
         # 谱面定数小于等于 0 视为 unranked，返回值会为 0
         if not defnum or defnum <= 0:
             return 0
-        
+
         all_note = perfect_count + near_count + miss_count
         if all_note == 0:
             return 0
@@ -281,7 +281,8 @@ class UserPlay(UserScore):
         if songfile_hash and songfile_hash != self.song_hash:
             return False
 
-        x = f'''{self.song_token}{self.song_hash}{self.song.song_id}{self.song.difficulty}{self.score}{self.shiny_perfect_count}{self.perfect_count}{self.near_count}{self.miss_count}{self.health}{self.modifier}{self.clear_type}'''
+        x = f'''{self.song_token}{self.song_hash}{self.song.song_id}{self.song.difficulty}{self.score}{self.shiny_perfect_count}{
+            self.perfect_count}{self.near_count}{self.miss_count}{self.health}{self.modifier}{self.clear_type}'''
         if self.combo_interval_bonus is not None:
             if self.combo_interval_bonus < 0 or self.combo_interval_bonus > self.all_note_count / 150:
                 return False
@@ -568,6 +569,18 @@ class Potential:
         self.c.execute('''insert or replace into recent30 values(?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
                        (self.user.user_id, r_index, user_score.time_played, user_score.song.song_id, user_score.song.difficulty,
                         user_score.score, user_score.shiny_perfect_count, user_score.perfect_count, user_score.near_count, user_score.miss_count, user_score.health, user_score.modifier, user_score.clear_type, user_score.rating))
+
+        # 更新内存中的数据
+        x = (r_index, user_score.song.song_id,
+             user_score.song.difficulty, user_score.rating)
+        if len(self.r30_tuples) < 30:
+            self.r30_tuples.append(x)
+            return
+
+        for i in range(30):
+            if self.r30_tuples[i][0] == r_index:
+                self.r30_tuples[i] = x
+                break
 
     def r30_push_score(self, user_score: 'UserPlay | UserScore') -> None:
         '''根据新成绩调整 r30'''

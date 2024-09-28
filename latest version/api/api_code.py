@@ -32,6 +32,7 @@ CODE_MSG = {
     -210: 'Username exists',
     -211: 'Email address exists',
     -212: 'User code exists',
+    -213: 'Too many register attempts',
     -999: 'Unknown error'
 }
 

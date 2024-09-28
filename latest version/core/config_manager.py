@@ -100,6 +100,8 @@ class Config:
 
     GAME_LOGIN_RATE_LIMIT = '30/5 minutes'
     API_LOGIN_RATE_LIMIT = '10/5 minutes'
+    GAME_REGISTER_IP_RATE_LIMIT = '10/1 day'
+    GAME_REGISTER_DEVICE_RATE_LIMIT = '3/1 day'
 
 
     NOTIFICATION_EXPIRE_TIME = 3 * 60 * 1000

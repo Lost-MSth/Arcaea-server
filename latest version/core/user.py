@@ -54,6 +54,12 @@ class User:
 
 
 class UserRegister(User):
+
+    limiter_ip = ArcLimiter(
+        Config.GAME_REGISTER_IP_RATE_LIMIT, 'game_register_ip')
+    limiter_device = ArcLimiter(
+        Config.GAME_REGISTER_DEVICE_RATE_LIMIT, 'game_register_device')
+
     def __init__(self, c) -> None:
         super().__init__()
         self.c = c
@@ -141,7 +147,13 @@ class UserRegister(User):
                 self.c.execute('''insert or replace into user_char_full values(?,?,?,?,?,?,0)''',
                                (self.user_id, i[0], i[1], exp, i[2], 0))
 
-    def register(self):
+    def register(self, device_id: str = None, ip: str = None):
+        if device_id is not None and not self.limiter_device.hit(device_id):
+            raise RateLimit(f'''Too many register attempts of device `{
+                            device_id}`''', 124, -213)
+        if ip is not None and ip != '127.0.0.1' and not self.limiter_ip.hit(ip):
+            raise RateLimit(f'''Too many register attempts of ip `{
+                            ip}`''', 124, -213)
         now = int(time.time() * 1000)
         if self.user_code is None:
             self._build_user_code()
