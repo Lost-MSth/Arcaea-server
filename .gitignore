@@ -21,3 +21,9 @@ latest version/config.py
 
 # song data
 latest version/database/songs/
+latest version/database/bundle/
+
+!latest version/database/bundle/README.md
+
+# backup
+latest version/database/backup/

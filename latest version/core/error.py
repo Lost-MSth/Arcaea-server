@@ -101,6 +101,13 @@ class NoAccess(ArcError):
         super().__init__(message, error_code, api_error_code, extra_data, status)
 
 
+class LowVersion(ArcError):
+    '''版本过低'''
+
+    def __init__(self, message=None, error_code=5, api_error_code=-999, extra_data=None, status=403) -> None:
+        super().__init__(message, error_code, api_error_code, extra_data, status)
+
+
 class Timeout(ArcError):
     '''超时'''
     pass

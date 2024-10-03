@@ -1,16 +1,19 @@
 import os
 import time
 
-from core.init import FileChecker
-from core.operation import RefreshAllScoreRating, RefreshSongFileCache, SaveUpdateScore, UnlockUserItem
-from core.rank import RankList
-from core.sql import Connect
-from core.user import User
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
 import web.system
 import web.webscore
+from core.init import FileChecker
+from core.operation import (DeleteUserScore, RefreshAllScoreRating,
+                            RefreshBundleCache, RefreshSongFileCache,
+                            SaveUpdateScore, UnlockUserItem)
+from core.rank import RankList
+from core.score import Potential
+from core.sql import Connect
+from core.user import User
 from web.login import login_required
 
 UPLOAD_FOLDER = 'database'
@@ -97,8 +100,11 @@ def single_player_ptt():
                     user_id = user_id[0]
                     user = web.webscore.get_user(c, user_id)
                     posts = web.webscore.get_user_score(c, user_id, 30)
-                    recent, recentptt = web.webscore.get_user_recent30(
-                        c, user_id)
+                    u = User()
+                    u.user_id = user_id
+                    p = Potential(c, u)
+                    recentptt = p.recent_10 / 10
+                    recent = p.recent_30_to_dict_list()
                     if not posts:
                         error = '无成绩 No score.'
                     else:
@@ -191,13 +197,15 @@ def all_song():
         if x:
             posts = []
             for i in x:
-                posts.append({'song_id': i[0],
-                              'name_en': i[1],
-                              'rating_pst': defnum(i[2]),
-                              'rating_prs': defnum(i[3]),
-                              'rating_ftr': defnum(i[4]),
-                              'rating_byn': defnum(i[5])
-                              })
+                posts.append({
+                    'song_id': i[0],
+                    'name_en': i[1],
+                    'rating_pst': defnum(i[2]),
+                    'rating_prs': defnum(i[3]),
+                    'rating_ftr': defnum(i[4]),
+                    'rating_byn': defnum(i[5]),
+                    'rating_etr': defnum(i[6])
+                })
         else:
             error = '没有谱面数据 No song data.'
 
@@ -297,6 +305,18 @@ def update_song_hash():
     return render_template('web/updatedatabase.html')
 
 
+@bp.route('/updatedatabase/refreshsbundle', methods=['POST'])
+@login_required
+def update_content_bundle():
+    # 更新 bundle
+    try:
+        RefreshBundleCache().run()
+        flash('数据刷新成功 Success refresh data.')
+    except:
+        flash('Something error!')
+    return render_template('web/updatedatabase.html')
+
+
 @bp.route('/updatedatabase/refreshsongrating', methods=['POST'])
 @login_required
 def update_song_rating():
@@ -335,6 +355,7 @@ def add_song():
     rating_prs = get_rating(request.form['rating_prs'])
     rating_ftr = get_rating(request.form['rating_ftr'])
     rating_byd = get_rating(request.form['rating_byd'])
+    rating_etr = get_rating(request.form['rating_etr'])
     if len(song_id) >= 256:
         song_id = song_id[:200]
     if len(name_en) >= 256:
@@ -344,8 +365,8 @@ def add_song():
         c.execute(
             '''select exists(select * from chart where song_id=:a)''', {'a': song_id})
         if c.fetchone() == (0,):
-            c.execute('''insert into chart values(:a,:b,:c,:d,:e,:f)''', {
-                'a': song_id, 'b': name_en, 'c': rating_pst, 'd': rating_prs, 'e': rating_ftr, 'f': rating_byd})
+            c.execute('''insert into chart values(:a,:b,:c,:d,:e,:f,:g)''', {
+                'a': song_id, 'b': name_en, 'c': rating_pst, 'd': rating_prs, 'e': rating_ftr, 'f': rating_byd, 'g': rating_etr})
             flash('歌曲添加成功 Successfully add the song.')
         else:
             error = '歌曲已存在 The song exists.'
@@ -422,7 +443,7 @@ def all_character():
 def change_character():
     # 修改角色数据
     skill_ids = ['No_skill', 'gauge_easy', 'note_mirror', 'gauge_hard', 'frag_plus_10_pack_stellights', 'gauge_easy|frag_plus_15_pst&prs', 'gauge_hard|fail_frag_minus_100', 'frag_plus_5_side_light', 'visual_hide_hp', 'frag_plus_5_side_conflict', 'challenge_fullcombo_0gauge', 'gauge_overflow', 'gauge_easy|note_mirror', 'note_mirror', 'visual_tomato_pack_tonesphere',
-                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami', 'skill_elizabeth', 'skill_lily', 'skill_kanae_midsummer', 'eto_uncap', 'luna_uncap', 'frags_preferred_song', 'visual_ghost_skynotes', 'ayu_uncap', 'skill_vita', 'skill_fatalis', 'skill_reunion', 'frags_ongeki_slash', 'frags_ongeki_hard', 'skill_amane', 'skill_kou_winter', 'gauge_hard|note_mirror', 'skill_shama', 'skill_milk', 'skill_shikoku', 'skill_mika', 'ilith_awakened_skill', 'skill_mithra', 'skill_toa', 'skill_nami_twilight', 'skill_ilith_ivy', 'skill_hikari_vanessa', 'skill_maya', 'skill_luin', 'skill_luin_uncap']
+                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami', 'skill_elizabeth', 'skill_lily', 'skill_kanae_midsummer', 'eto_uncap', 'luna_uncap', 'frags_preferred_song', 'visual_ghost_skynotes', 'ayu_uncap', 'skill_vita', 'skill_fatalis', 'skill_reunion', 'frags_ongeki_slash', 'frags_ongeki_hard', 'skill_amane', 'skill_kou_winter', 'gauge_hard|note_mirror', 'skill_shama', 'skill_milk', 'skill_shikoku', 'skill_mika', 'ilith_awakened_skill', 'skill_mithra', 'skill_toa', 'skill_nami_twilight', 'skill_ilith_ivy', 'skill_hikari_vanessa', 'skill_maya', 'skill_luin', 'skill_luin_uncap', 'skill_kanae_uncap', 'skill_doroc_uncap', 'skill_saya_uncap', 'skill_luna_ilot', 'skill_eto_hoppe', 'skill_aichan']
     return render_template('web/changechar.html', skill_ids=skill_ids)
 
 
@@ -1366,7 +1387,10 @@ def delete_user_score():
             user_id = c.fetchone()
             if user_id:
                 user_id = user_id[0]
-                web.system.clear_user_score(c, user_id)
+                c.execute('''update user set rating_ptt=0, song_id='', difficulty=0, score=0, shiny_perfect_count=0, perfect_count=0, near_count=0, miss_count=0, health=0, time_played=0, rating=0, world_rank_score=0 where user_id=:a''', {
+                          'a': user_id})
+                c.connection.commit()
+                DeleteUserScore().set_params(user_id=user_id).run()
                 flash("用户成绩删除成功 Successfully delete the user's scores.")
 
             else:

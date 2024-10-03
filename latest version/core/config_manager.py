@@ -12,9 +12,12 @@ class Config:
 
     SONG_FILE_HASH_PRE_CALCULATE = True
 
-    GAME_API_PREFIX = '/evolution/23'
+    GAME_API_PREFIX = '/autumnequinox/33'  # str | list[str]
+    OLD_GAME_API_PREFIX = []  # str | list[str]
 
     ALLOW_APPVERSION = []  # list[str]
+
+    BUNDLE_STRICT_MODE = True
 
     SET_LINKPLAY_SERVER_AS_SUB_PROCESS = True
 
@@ -41,15 +44,20 @@ class Config:
 
     API_TOKEN = ''
 
-    DOWNLOAD_LINK_PREFIX = ''
+    DOWNLOAD_LINK_PREFIX = ''  # http(s)://host(:port)/download/
+    BUNDLE_DOWNLOAD_LINK_PREFIX = ''  # http(s)://host(:port)/bundle_download/
 
     DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT = False
     NGINX_X_ACCEL_REDIRECT_PREFIX = '/nginx_download/'
+    BUNDLE_NGINX_X_ACCEL_REDIRECT_PREFIX = '/nginx_bundle_download/'
 
     DOWNLOAD_TIMES_LIMIT = 3000
     DOWNLOAD_TIME_GAP_LIMIT = 1000
 
     DOWNLOAD_FORBID_WHEN_NO_ITEM = False
+
+    BUNDLE_DOWNLOAD_TIMES_LIMIT = '100/60 minutes'
+    BUNDLE_DOWNLOAD_TIME_GAP_LIMIT = 3000
 
     LOGIN_DEVICE_NUMBER_LIMIT = 1
     ALLOW_LOGIN_SAME_DEVICE = False
@@ -70,6 +78,8 @@ class Config:
 
     SAVE_FULL_UNLOCK = False
 
+    ALLOW_SELF_ACCOUNT_DELETE = False
+
     # ------------------------------------------
 
     # You can change this to make another PTT mechanism.
@@ -81,13 +91,21 @@ class Config:
     WORLD_MAP_FOLDER_PATH = './database/map/'
     SONG_FILE_FOLDER_PATH = './database/songs/'
     SONGLIST_FILE_PATH = './database/songs/songlist'
+    CONTENT_BUNDLE_FOLDER_PATH = './database/bundle/'
     SQLITE_DATABASE_PATH = './database/arcaea_database.db'
     SQLITE_DATABASE_BACKUP_FOLDER_PATH = './database/backup/'
     DATABASE_INIT_PATH = './database/init/'
     SQLITE_LOG_DATABASE_PATH = './database/arcaea_log.db'
+    SQLITE_DATABASE_DELETED_PATH = './database/arcaea_database_deleted.db'
 
     GAME_LOGIN_RATE_LIMIT = '30/5 minutes'
     API_LOGIN_RATE_LIMIT = '10/5 minutes'
+    GAME_REGISTER_IP_RATE_LIMIT = '10/1 day'
+    GAME_REGISTER_DEVICE_RATE_LIMIT = '3/1 day'
+
+
+    NOTIFICATION_EXPIRE_TIME = 3 * 60 * 1000
+    
 
 
 class ConfigManager:

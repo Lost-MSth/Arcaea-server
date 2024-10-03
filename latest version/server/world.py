@@ -2,7 +2,7 @@ from flask import Blueprint, request
 
 from core.sql import Connect
 from core.user import UserOnline
-from core.world import UserMap, get_world_all
+from core.world import MapParser, UserMap
 
 from .auth import auth_required
 from .func import arc_try, success_return
@@ -20,7 +20,7 @@ def world_all(user_id):
         return success_return({
             "current_map": user.current_map.map_id,
             "user_id": user_id,
-            "maps": [x.to_dict(has_map_info=True, has_rewards=True) for x in get_world_all(c, user)]
+            "maps": [x.to_dict(has_map_info=True, has_rewards=True) for x in MapParser.get_world_all(c, user)]
         })
 
 

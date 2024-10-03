@@ -121,6 +121,18 @@ class Character(CollectionItemMixin):
         self.voice: list = None
 
     @property
+    def frag_value(self) -> float:
+        return self.frag.get_value(self.level)
+
+    @property
+    def prog_value(self) -> float:
+        return self.prog.get_value(self.level)
+
+    @property
+    def overdrive_value(self) -> float:
+        return self.overdrive.get_value(self.level)
+
+    @property
     def skill_id_displayed(self) -> str:
         return None
 

@@ -6,6 +6,7 @@ from atexit import register
 from .config_manager import Config
 from .constant import ARCAEA_LOG_DATBASE_VERSION, Constant
 from .error import ArcError, InputError
+from .util import parse_version
 
 
 class Connect:
@@ -349,9 +350,19 @@ class Sql:
 
 class DatabaseMigrator:
 
+    SPECIAL_UPDATE_VERSION = {
+        '2.11.3.11': '_version_2_11_3_11',
+        '2.11.3.13': '_version_2_11_3_13'
+    }
+
     def __init__(self, c1_path: str, c2_path: str) -> None:
         self.c1_path = c1_path
         self.c2_path = c2_path
+
+        self.c1 = None
+        self.c2 = None
+
+        self.tables = Constant.DATABASE_MIGRATE_TABLES
 
     @staticmethod
     def update_one_table(c1, c2, table_name: str) -> bool:
@@ -397,13 +408,68 @@ class DatabaseMigrator:
         '''
         with Connect(self.c2_path) as c2:
             with Connect(self.c1_path) as c1:
-                for i in Constant.DATABASE_MIGRATE_TABLES:
+                self.c1 = c1
+                self.c2 = c2
+                self.special_update()
+
+                for i in self.tables:
                     self.update_one_table(c1, c2, i)
 
                 if not Constant.UPDATE_WITH_NEW_CHARACTER_DATA:
                     self.update_one_table(c1, c2, 'character')
 
             self.update_user_char_full(c2)  # 更新user_char_full
+
+    def special_update(self):
+        old_version = self.c1.execute(
+            '''select value from config where id = "version"''').fetchone()
+        new_version = self.c2.execute(
+            '''select value from config where id = "version"''').fetchone()
+        old_version = old_version[0] if old_version else '0.0.0'
+        new_version = new_version[0] if new_version else '0.0.0'
+        old_version = parse_version(old_version)
+        new_version = parse_version(new_version)
+
+        for k, v in self.SPECIAL_UPDATE_VERSION.items():
+            if old_version < parse_version(k) <= new_version:
+                getattr(self, v)()
+
+    def _version_2_11_3_11(self):
+        '''
+        2.11.3.11 版本特殊更新，调整 recent30 表结构
+        recent30 表从 (user_id: int PK, rating<index>: real, song_id<index>: text, ...) \
+        更改为 (user_id: int PK, r_index: int PK, time_played: int, song_id: text, difficulty: int, score: int, sp, p, n, m, hp, mod, clear_type, rating: real)
+        '''
+
+        self.tables = [x for x in self.tables if x != 'recent30']
+
+        x = self.c1.execute('''select * from recent30''')
+        sql_list = []
+        for i in x:
+            user_id = int(i[0])
+            for j in range(30):
+                rating = i[1 + j * 2]
+                rating = float(rating) if rating else 0
+                song_id_difficulty: str = i[2 + j * 2]
+                if song_id_difficulty:
+                    song_id = song_id_difficulty[:-1]
+                    difficulty = song_id_difficulty[-1]
+                    difficulty = int(difficulty) if difficulty.isdigit() else 0
+                else:
+                    song_id = ''
+                    difficulty = 0
+
+                sql_list.append(
+                    (user_id, j, 100-j, song_id, difficulty, rating))
+
+        self.c2.executemany(
+            '''insert into recent30(user_id, r_index, time_played, song_id, difficulty, rating) values(?,?,?,?,?,?)''', sql_list)
+
+    def _version_2_11_3_13(self):
+        '''
+        2.11.3.13 版本特殊更新，world_rank_score 机制调整，需清空用户分数
+        '''
+        self.c1.execute('''update user set world_rank_score = 0''')
 
 
 class LogDatabaseMigrator:
@@ -440,8 +506,19 @@ class MemoryDatabase:
         self.c.execute('''PRAGMA synchronous = 0''')
         self.c.execute('''create table if not exists download_token(user_id int,
         song_id text,file_name text,token text,time int,primary key(user_id, song_id, file_name));''')
+        self.c.execute('''create table if not exists bundle_download_token(token text primary key,
+                       file_path text, time int, device_id text);''')
         self.c.execute(
             '''create index if not exists download_token_1 on download_token (song_id, file_name);''')
+        self.c.execute('''
+            create table if not exists notification(
+                user_id int, id int,
+                type text, content text,
+                sender_user_id int, sender_name text,
+                timestamp int,
+                primary key(user_id, id)
+            )
+        ''')
         self.conn.commit()
 
 

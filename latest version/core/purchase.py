@@ -29,7 +29,7 @@ class Purchase(CollectionItemMixin):
 
         self.items: list = []
 
-        # TODO: "discount_reason": "extend"
+        # TODO: "discount_reason": extend, sale
 
     @property
     def price_displayed(self) -> int:
@@ -41,6 +41,12 @@ class Purchase(CollectionItemMixin):
                 if self.discount_reason == 'anni5tix':
                     x = ItemFactory(self.c).get_item('anni5tix')
                     x.item_id = 'anni5tix'
+                    x.select_user_item(self.user)
+                    if x.amount >= 1:
+                        return 0
+                elif self.discount_reason == 'pick_ticket':
+                    x = ItemFactory(self.c).get_item('pick_ticket')
+                    x.item_id = 'pick_ticket'
                     x.select_user_item(self.user)
                     if x.amount >= 1:
                         return 0
@@ -60,7 +66,7 @@ class Purchase(CollectionItemMixin):
         if self.discount_from > 0 and self.discount_to > 0:
             r['discount_from'] = self.discount_from
             r['discount_to'] = self.discount_to
-            if not show_real_price or (self.discount_reason == 'anni5tix' and price == 0):
+            if not show_real_price or (self.discount_reason in ('anni5tix', 'pick_ticket') and price == 0):
                 r['discount_reason'] = self.discount_reason
         return r
 
@@ -186,10 +192,10 @@ class Purchase(CollectionItemMixin):
             raise TicketNotEnough(
                 'The user does not have enough memories.', -6)
 
-        if not(self.orig_price == 0 or self.price == 0 and self.discount_from <= int(time() * 1000) <= self.discount_to):
+        if not (self.orig_price == 0 or self.price == 0 and self.discount_from <= int(time() * 1000) <= self.discount_to):
             if price_used == 0:
-                x = ItemFactory(self.c).get_item('anni5tix')
-                x.item_id = 'anni5tix'
+                x = ItemFactory(self.c).get_item(self.discount_reason)
+                x.item_id = self.discount_reason
                 x.amount = -1
                 x.user_claim_item(self.user)
             else:

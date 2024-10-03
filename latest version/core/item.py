@@ -1,5 +1,6 @@
 from .config_manager import Config
-from .error import DataExist, InputError, ItemNotEnough, ItemUnavailable, NoData
+from .error import (DataExist, InputError, ItemNotEnough, ItemUnavailable,
+                    NoData)
 
 
 class Item:
@@ -89,7 +90,7 @@ class UserItem(Item):
 
 
 class NormalItem(UserItem):
-    def __init__(self, c) -> None:
+    def __init__(self, c=None) -> None:
         super().__init__()
         self.c = c
 
@@ -115,7 +116,7 @@ class NormalItem(UserItem):
 
 
 class PositiveItem(UserItem):
-    def __init__(self, c) -> None:
+    def __init__(self, c=None) -> None:
         super().__init__()
         self.c = c
 
@@ -142,7 +143,7 @@ class PositiveItem(UserItem):
 class ItemCore(PositiveItem):
     item_type = 'core'
 
-    def __init__(self, c, core_type: str = '', amount: int = 0) -> None:
+    def __init__(self, c=None, core_type: str = '', amount: int = 0) -> None:
         super().__init__(c)
         self.is_available = True
         self.item_id = core_type
@@ -220,10 +221,12 @@ class Memory(UserItem):
 class Fragment(UserItem):
     item_type = 'fragment'
 
-    def __init__(self, c) -> None:
+    def __init__(self, c=None, amount=0) -> None:
         super().__init__()
         self.c = c
         self.is_available = True
+        self.item_id = self.item_type
+        self.amount = amount
 
     def user_claim_item(self, user):
         pass
@@ -238,12 +241,24 @@ class Anni5tix(PositiveItem):
     def __init__(self, c) -> None:
         super().__init__(c)
         self.is_available = True
+        self.item_id = self.item_type
+        self.amount = 1
+
+
+class PickTicket(PositiveItem):
+    item_type = 'pick_ticket'
+
+    def __init__(self, c=None) -> None:
+        super().__init__(c)
+        self.is_available = True
+        self.item_id = self.item_type
+        self.amount = 1
 
 
 class WorldSong(NormalItem):
     item_type = 'world_song'
 
-    def __init__(self, c) -> None:
+    def __init__(self, c=None) -> None:
         super().__init__(c)
         self.is_available = True
 
@@ -293,8 +308,10 @@ class ProgBoost(UserItem):
 class Stamina6(UserItem):
     item_type = 'stamina6'
 
-    def __init__(self, c) -> None:
+    def __init__(self, c=None) -> None:
         super().__init__(c)
+        self.item_id = 'stamina6'
+        self.amount = 1
 
     def user_claim_item(self, user):
         '''
@@ -305,6 +322,23 @@ class Stamina6(UserItem):
         user.stamina.stamina += 6
         user.stamina.update()
         user.update_user_one_column('world_mode_locked_end_ts', -1)
+
+
+class ItemStamina(UserItem):
+    item_type = 'stamina'
+
+    def __init__(self, c=None, amount=1) -> None:
+        super().__init__(c)
+        self.item_id = 'stamina'
+        self.amount = amount
+
+    def user_claim_item(self, user):
+        '''
+            新手任务奖励体力
+        '''
+        user.select_user_about_stamina()
+        user.stamina.stamina += self.amount
+        user.stamina.update()
 
 
 class ItemFactory:
@@ -324,6 +358,8 @@ class ItemFactory:
             return Memory(self.c)
         elif item_type == 'anni5tix':
             return Anni5tix(self.c)
+        elif item_type == 'pick_ticket':
+            return PickTicket(self.c)
         elif item_type == 'world_song':
             return WorldSong(self.c)
         elif item_type == 'world_unlock':

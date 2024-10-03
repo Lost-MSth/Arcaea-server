@@ -6,8 +6,9 @@ from shutil import copy, copy2
 from time import time
 from traceback import format_exc
 
+from core.bundle import BundleParser
 from core.config_manager import Config
-from core.constant import ARCAEA_LOG_DATBASE_VERSION, ARCAEA_SERVER_VERSION
+from core.constant import ARCAEA_DATABASE_VERSION, ARCAEA_LOG_DATBASE_VERSION
 from core.course import Course
 from core.download import DownloadList
 from core.purchase import Purchase
@@ -15,6 +16,7 @@ from core.sql import (Connect, DatabaseMigrator, LogDatabaseMigrator,
                       MemoryDatabase)
 from core.user import UserRegister
 from core.util import try_rename
+from core.world import MapParser
 
 
 class DatabaseInit:
@@ -45,7 +47,7 @@ class DatabaseInit:
         with open(self.sql_path, 'r', encoding='utf-8') as f:
             self.c.executescript(f.read())
         self.c.execute('''insert into config values("version", :a);''', {
-            'a': ARCAEA_SERVER_VERSION})
+            'a': ARCAEA_DATABASE_VERSION})
 
     def character_init(self) -> None:
         '''初始化搭档信息'''
@@ -92,12 +94,17 @@ class DatabaseInit:
                        ('memory', 'memory', 1))
         self.c.execute('''insert into item values(?,?,?)''',
                        ('anni5tix', 'anni5tix', 1))
+        self.c.execute('''insert into item values(?,?,?)''',
+                       ('pick_ticket', 'pick_ticket', 1))
 
         with open(self.pack_path, 'rb') as f:
             self.insert_purchase_item(load(f))
 
         with open(self.single_path, 'rb') as f:
             self.insert_purchase_item(load(f))
+
+        self.c.execute('''insert into item values(?,?,?)''',  # 新手任务奖励曲
+                       ('innocence', 'world_song', 1))
 
     def course_init(self) -> None:
         '''初始化课题信息'''
@@ -135,8 +142,7 @@ class DatabaseInit:
         character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, is_hide_rating, favorite_character, max_stamina_notification_enabled, current_map, ticket, prog_boost, email)
         values(:user_id, :name, :password, :join_date, :user_code, 0, 0, 0, 0, 0, 0, -1, 0, '', :memories, 0, :email)
         ''', {'user_code': x.user_code, 'user_id': x.user_id, 'join_date': now, 'name': x.name, 'password': '41e5653fc7aeb894026d6bb7b2db7f65902b454945fa8fd65a6327047b5277fb', 'memories': 114514, 'email': x.email})
-        self.c.execute('''insert into recent30(user_id) values(:user_id)''', {
-                       'user_id': x.user_id})
+
         self.c.execute(
             '''insert into user_role values(?, "admin")''', (x.user_id,))
 
@@ -169,7 +175,17 @@ class LogDatabaseInit:
         with open(self.sql_path, 'r') as f:
             self.c.executescript(f.read())
         self.c.execute(
-            '''insert into cache values("version", :a, -1);''', {'a': ARCAEA_SERVER_VERSION})
+            '''insert into cache values("version", :a, -1);''', {'a': ARCAEA_LOG_DATBASE_VERSION})
+
+    def init(self) -> None:
+        with Connect(self.db_path) as c:
+            self.c = c
+            self.table_init()
+
+
+class DeletedDatabaseInit(DatabaseInit):
+    def __init__(self, db_path: str = Config.SQLITE_DATABASE_DELETED_PATH) -> None:
+        super().__init__(db_path)
 
     def init(self) -> None:
         with Connect(self.db_path) as c:
@@ -195,7 +211,7 @@ class FileChecker:
             self.logger.warning('Folder `%s` is missing.' % folder_path)
         return f
 
-    def check_update_database(self) -> bool:
+    def _check_update_database_log(self) -> bool:
         if not self.check_file(Config.SQLITE_LOG_DATABASE_PATH):
             # 新建日志数据库
             try:
@@ -232,65 +248,68 @@ class FileChecker:
                         f'Failed to update the file `{Config.SQLITE_LOG_DATABASE_PATH}`')
                     return False
 
-        if not self.check_file(Config.SQLITE_DATABASE_PATH):
+        return True
+
+    def _check_update_database_main(self, db_path=Config.SQLITE_DATABASE_PATH, init_class=DatabaseInit) -> bool:
+        if not self.check_file(db_path):
             # 新建数据库
             try:
-                self.logger.info(
-                    'Try to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
-                DatabaseInit().init()
-                self.logger.info(
-                    'Success to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+                self.logger.info(f'Try to new the file `{db_path}`.')
+                init_class().init()
+                self.logger.info(f'Success to new the file `{db_path}`.')
             except Exception as e:
                 self.logger.error(format_exc())
-                self.logger.warning(
-                    'Failed to new the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+                self.logger.warning(f'Failed to new the file `{db_path}`.')
                 return False
         else:
             # 检查更新
-            with Connect() as c:
+            with Connect(db_path) as c:
                 try:
                     c.execute('''select value from config where id="version"''')
                     x = c.fetchone()
                 except:
                     x = None
             # 数据库自动更新，不强求
-            if not x or x[0] != ARCAEA_SERVER_VERSION:
+            if not x or x[0] != ARCAEA_DATABASE_VERSION:
                 self.logger.warning(
-                    'Maybe the file `%s` is an old version.' % Config.SQLITE_DATABASE_PATH)
+                    f'Maybe the file `{db_path}` is an old version. Version: {x[0] if x else "None"}')
                 try:
                     self.logger.info(
-                        'Try to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+                        f'Try to update the file `{db_path}` to version {ARCAEA_DATABASE_VERSION}.')
 
                     if not os.path.isdir(Config.SQLITE_DATABASE_BACKUP_FOLDER_PATH):
                         os.makedirs(Config.SQLITE_DATABASE_BACKUP_FOLDER_PATH)
 
-                    backup_path = try_rename(Config.SQLITE_DATABASE_PATH, os.path.join(
-                        Config.SQLITE_DATABASE_BACKUP_FOLDER_PATH, os.path.split(Config.SQLITE_DATABASE_PATH)[-1] + '.bak'))
+                    backup_path = try_rename(db_path, os.path.join(
+                        Config.SQLITE_DATABASE_BACKUP_FOLDER_PATH, os.path.split(db_path)[-1] + '.bak'))
 
                     try:
-                        copy2(backup_path, Config.SQLITE_DATABASE_PATH)
+                        copy2(backup_path, db_path)
                     except:
-                        copy(backup_path, Config.SQLITE_DATABASE_PATH)
+                        copy(backup_path, db_path)
 
                     temp_path = os.path.join(
-                        *os.path.split(Config.SQLITE_DATABASE_PATH)[:-1], 'old_arcaea_database.db')
+                        *os.path.split(db_path)[:-1], 'old_arcaea_database.db')
                     if os.path.isfile(temp_path):
                         os.remove(temp_path)
 
-                    try_rename(Config.SQLITE_DATABASE_PATH, temp_path)
+                    try_rename(db_path, temp_path)
 
-                    DatabaseInit().init()
-                    self.update_database(temp_path)
+                    init_class().init()
+                    self.update_database(temp_path, db_path)
 
                     self.logger.info(
-                        'Success to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+                        f'Success to update the file `{db_path}`.')
 
                 except Exception as e:
                     self.logger.error(format_exc())
                     self.logger.warning(
-                        'Fail to update the file `%s`.' % Config.SQLITE_DATABASE_PATH)
+                        f'Fail to update the file `{db_path}`.')
 
         return True
+
+    def check_update_database(self) -> bool:
+        return self._check_update_database_main() and self._check_update_database_log() and self._check_update_database_main(Config.SQLITE_DATABASE_DELETED_PATH, DeletedDatabaseInit)
 
     @staticmethod
     def update_database(old_path: str, new_path: str = Config.SQLITE_DATABASE_PATH) -> None:
@@ -308,19 +327,42 @@ class FileChecker:
     def check_song_file(self) -> bool:
         '''检查song有关文件并初始化缓存'''
         f = self.check_folder(Config.SONG_FILE_FOLDER_PATH)
-        self.logger.info("Start to initialize song data...")
+        self.logger.info("Initialize song data...")
         try:
             DownloadList.initialize_cache()
             if not Config.SONG_FILE_HASH_PRE_CALCULATE:
                 self.logger.info('Song file hash pre-calculate is disabled.')
-            self.logger.info('Complete!')
         except Exception as e:
             self.logger.error(format_exc())
-            self.logger.warning('Initialization error!')
+            self.logger.warning('Song data initialization error!')
+            f = False
+        return f
+
+    def check_content_bundle(self) -> bool:
+        '''检查 content bundle 有关文件并初始化缓存'''
+        f = self.check_folder(Config.CONTENT_BUNDLE_FOLDER_PATH)
+        self.logger.info("Initialize content bundle data...")
+        try:
+            BundleParser()
+        except Exception as e:
+            self.logger.error(format_exc())
+            self.logger.warning('Content bundle data initialization error!')
+            f = False
+        return f
+
+    def check_world_map(self) -> bool:
+        '''检查 world map 有关文件并初始化缓存'''
+        f = self.check_folder(Config.WORLD_MAP_FOLDER_PATH)
+        self.logger.info("Initialize world map data...")
+        try:
+            MapParser()
+        except Exception as e:
+            self.logger.error(format_exc())
+            self.logger.warning('World map data initialization error!')
             f = False
         return f
 
     def check_before_run(self) -> bool:
         '''运行前检查，返回布尔值'''
         MemoryDatabase()  # 初始化内存数据库
-        return self.check_song_file() & self.check_update_database()
+        return self.check_song_file() and self.check_content_bundle() and self.check_update_database() and self.check_world_map()

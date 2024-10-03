@@ -7,14 +7,17 @@ from time import time
 
 from .config import Config
 from .udp_class import Player, Room, bi
+from .udp_sender import CommandSender
 
 
 class Store:
     # token: {'key': key, 'room': Room, 'player_index': player_index, 'player_id': player_id}
     link_play_data = {}
-    room_id_dict = {}  # 'room_id': Room
+    room_id_dict: "dict[int, Room]" = {}  # 'room_id': Room
     room_code_dict = {}  # 'room_code': Room
     player_dict = {}  # 'player_id' : Player
+
+    share_token_dict = {}  # 'share_token': Room
 
     lock = RLock()
 
@@ -25,6 +28,14 @@ def random_room_code():
         re += chr(randint(65, 90))
     for _ in range(2):
         re += str(randint(0, 9))
+    return re
+
+
+def random_share_token():
+    CHARSET = 'abcdefghijklmnopqrstuvwxyz0123456789'
+    re = ''
+    for _ in range(10):
+        re += CHARSET[randint(0, 35)]
     return re
 
 
@@ -45,18 +56,27 @@ def clear_player(token):
     # 清除玩家信息和token
     player_id = Store.link_play_data[token]['player_id']
     logging.info(f'Clean player `{Store.player_dict[player_id].name}`')
-    del Store.player_dict[player_id]
-    del Store.link_play_data[token]
+    with Store.lock:
+        if player_id in Store.player_dict:
+            del Store.player_dict[player_id]
+        if token in Store.link_play_data:
+            del Store.link_play_data[token]
 
 
 def clear_room(room):
     # 清除房间信息
     room_id = room.room_id
     room_code = room.room_code
+    share_token = room.share_token
     logging.info(f'Clean room `{room_code}`')
-    del Store.room_id_dict[room_id]
-    del Store.room_code_dict[room_code]
-    del room
+    with Store.lock:
+        if room_id in Store.room_id_dict:
+            del Store.room_id_dict[room_id]
+        if room_code in Store.room_code_dict:
+            del Store.room_code_dict[room_code]
+        if share_token in Store.share_token_dict:
+            del Store.share_token_dict[share_token]
+        del room
 
 
 def memory_clean(now):
@@ -92,6 +112,8 @@ class TCPRouter:
         'join_room',
         'update_room',
         'get_rooms',
+        'select_room',
+        'get_match_rooms'
     }
 
     def __init__(self, raw_data: 'dict | list'):
@@ -115,12 +137,12 @@ class TCPRouter:
     def handle(self) -> dict:
         self.clean_check()
         if self.endpoint not in self.router:
-            return None
+            return {'code': 999}
         try:
             r = getattr(self, self.endpoint)()
         except Exception as e:
             logging.error(e)
-            return 999
+            return {'code': 999}
         if isinstance(r, int):
             return {'code': r}
         return {
@@ -144,13 +166,18 @@ class TCPRouter:
         room_id = unique_random(Store.room_id_dict)
         room = Room()
         room.room_id = room_id
-        room.timestamp = round(time() * 1000)
+        room.timestamp = round(time() * 1000000)
         Store.room_id_dict[room_id] = room
 
         room_code = unique_random(
             Store.room_code_dict, random_func=random_room_code)
         room.room_code = room_code
         Store.room_code_dict[room_code] = room
+
+        share_token = unique_random(
+            Store.share_token_dict, random_func=random_share_token)
+        room.share_token = share_token
+        Store.share_token_dict[share_token] = room
 
         return room
 
@@ -160,6 +187,9 @@ class TCPRouter:
         # song_unlock: base64 str
         name = self.data['name']
         song_unlock = b64decode(self.data['song_unlock'])
+        rating_ptt = self.data.get('rating_ptt', 0)
+        is_hide_rating = self.data.get('is_hide_rating', False)
+        match_times = self.data.get('match_times', None)
 
         key = urandom(16)
         with Store.lock:
@@ -167,12 +197,21 @@ class TCPRouter:
             player = self.generate_player(name)
 
             player.song_unlock = song_unlock
+            player.rating_ptt = rating_ptt
+            player.is_hide_rating = is_hide_rating
+            player.player_index = 0
             room.song_unlock = song_unlock
             room.host_id = player.player_id
             room.players[0] = player
 
             token = room.room_id
             player.token = token
+
+            # 匹配模式追加
+            if match_times is not None:
+                room.is_public = 1
+                room.round_mode = 3
+                room.timed_mode = 1
 
             Store.link_play_data[token] = {
                 'key': key,
@@ -198,6 +237,9 @@ class TCPRouter:
         key = urandom(16)
         name = self.data['name']
         song_unlock = b64decode(self.data['song_unlock'])
+        rating_ptt = self.data.get('rating_ptt', 0)
+        is_hide_rating = self.data.get('is_hide_rating', False)
+        match_times = self.data.get('match_times', None)
 
         with Store.lock:
             if room_code not in Store.room_code_dict:
@@ -212,7 +254,7 @@ class TCPRouter:
             if player_num == 0:
                 # 房间不存在
                 return 1202
-            if room.state != 2:
+            if room.state not in (0, 1, 2) or (room.is_public and match_times is None):
                 # 无法加入
                 return 1205
 
@@ -221,16 +263,18 @@ class TCPRouter:
             player = self.generate_player(name)
             player.token = token
             player.song_unlock = song_unlock
+            player.rating_ptt = rating_ptt
+            player.is_hide_rating = is_hide_rating
             room.update_song_unlock()
             for i in range(4):
                 if room.players[i].player_id == 0:
                     room.players[i] = player
-                    player_index = i
+                    player.player_index = i
                     break
             Store.link_play_data[token] = {
                 'key': key,
                 'room': room,
-                'player_index': player_index,
+                'player_index': player.player_index,
                 'player_id': player.player_id
             }
 
@@ -248,11 +292,23 @@ class TCPRouter:
         # 房间信息更新
         # data = ['3', token]
         token = int(self.data['token'])
+        rating_ptt = self.data.get('rating_ptt', 0)
+        is_hide_rating = self.data.get('is_hide_rating', False)
+
         with Store.lock:
             if token not in Store.link_play_data:
                 return 108
             r = Store.link_play_data[token]
             room = r['room']
+
+            # 更新玩家信息
+            player_index = r['player_index']
+            player = room.players[player_index]
+            player.rating_ptt = rating_ptt
+            player.is_hide_rating = is_hide_rating
+            cs = CommandSender(room)
+            room.command_queue.append(cs.command_12(player_index))
+
             logging.info(f'TCP-Room `{room.room_code}` info update')
             return {
                 'room_code': room.room_code,
@@ -298,5 +354,57 @@ class TCPRouter:
             'offset': offset,
             'limit': limit,
             'has_more': f2,
+            'rooms': rooms
+        }
+
+    def select_room(self) -> dict:
+        # 查询房间信息
+
+        room_code = self.data.get('room_code', None)
+        share_token = self.data.get('share_token', None)
+
+        if room_code is not None:
+            room = Store.room_code_dict.get(room_code, None)
+        elif share_token is not None:
+            room = Store.share_token_dict.get(share_token, None)
+        if room is None:
+            return 108
+
+        return {
+            'room_id': room.room_id,
+            'room_code': room.room_code,
+            'share_token': room.share_token,
+            'is_enterable': room.is_enterable,
+            'is_matchable': room.is_matchable,
+            'is_playing': room.is_playing,
+            'is_public': room.is_public == 1,
+            'timed_mode': room.timed_mode == 1,
+        }
+
+    def get_match_rooms(self):
+        n = 0
+        rooms = []
+
+        for room in Store.room_id_dict.values():
+            if not room.is_matchable:
+                continue
+
+            rooms.append({
+                'room_id': room.room_id,
+                'room_code': room.room_code,
+                'share_token': room.share_token,
+                'is_matchable': room.is_matchable,
+                'next_state_timestamp': room.next_state_timestamp,
+                'song_unlock': b64encode(room.song_unlock).decode('utf-8'),
+                'players': [{
+                    'player_id': i.player_id,
+                    'name': i.name,
+                    'rating_ptt': i.rating_ptt
+                } for i in room.players]
+            })
+            if n >= 100:
+                break
+        return {
+            'amount': n,
             'rooms': rooms
         }

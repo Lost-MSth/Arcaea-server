@@ -27,6 +27,7 @@ import server
 import web.index
 import web.login
 # import webapi
+from core.bundle import BundleDownload
 from core.constant import Constant
 from core.download import UserDownload
 from core.error import ArcError, NoAccess, RateLimit
@@ -54,7 +55,7 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.register_blueprint(web.login.bp)
 app.register_blueprint(web.index.bp)
 app.register_blueprint(api.bp)
-app.register_blueprint(server.bp)
+list(map(app.register_blueprint, server.get_bps()))
 # app.register_blueprint(webapi.bp)
 
 
@@ -81,7 +82,8 @@ def download(file_path):
             x.song_id, x.file_name = file_path.split('/', 1)
             x.select_for_check()
             if x.is_limited:
-                raise RateLimit('You have reached the download limit.', 903)
+                raise RateLimit(
+                    f'User `{x.user.user_id}` has reached the download limit.', 903)
             if not x.is_valid:
                 raise NoAccess('Expired token.')
             x.download_hit()
@@ -92,6 +94,26 @@ def download(file_path):
                 response.headers['X-Accel-Redirect'] = Config.NGINX_X_ACCEL_REDIRECT_PREFIX + file_path
                 return response
             return send_from_directory(Constant.SONG_FILE_FOLDER_PATH, file_path, as_attachment=True, conditional=True)
+        except ArcError as e:
+            if Config.ALLOW_WARNING_LOG:
+                app.logger.warning(format_exc())
+            return error_return(e)
+    return error_return()
+
+
+@app.route('/bundle_download/<string:token>', methods=['GET'])  # 热更新下载
+def bundle_download(token: str):
+    with Connect(in_memory=True) as c_m:
+        try:
+            file_path = BundleDownload(c_m).get_path_by_token(
+                token, request.remote_addr)
+            if Config.DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT:
+                # nginx X-Accel-Redirect
+                response = make_response()
+                response.headers['Content-Type'] = 'application/octet-stream'
+                response.headers['X-Accel-Redirect'] = Config.BUNDLE_NGINX_X_ACCEL_REDIRECT_PREFIX + file_path
+                return response
+            return send_from_directory(Constant.CONTENT_BUNDLE_FOLDER_PATH, file_path, as_attachment=True, conditional=True)
         except ArcError as e:
             if Config.ALLOW_WARNING_LOG:
                 app.logger.warning(format_exc())
@@ -124,7 +146,7 @@ def tcp_server_run():
     elif Config.DEPLOY_MODE == 'waitress':
         # waitress WSGI server
         import logging
-        from waitress import serve
+        from waitress import serve  # type: ignore
         logger = logging.getLogger('waitress')
         logger.setLevel(logging.INFO)
         serve(app, host=Config.HOST, port=Config.PORT)

@@ -1,15 +1,16 @@
 import hashlib
 import os
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from datetime import date
 from time import mktime
+
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 
 def aes_gcm_128_encrypt(key, plaintext, associated_data):
     iv = os.urandom(12)
     encryptor = Cipher(
         algorithms.AES(key),
-        modes.GCM(iv, min_tag_length=12),
+        modes.GCM(iv, min_tag_length=16),
     ).encryptor()
     encryptor.authenticate_additional_data(associated_data)
     ciphertext = encryptor.update(plaintext) + encryptor.finalize()
@@ -19,7 +20,7 @@ def aes_gcm_128_encrypt(key, plaintext, associated_data):
 def aes_gcm_128_decrypt(key, associated_data, iv, ciphertext, tag):
     decryptor = Cipher(
         algorithms.AES(key),
-        modes.GCM(iv, tag, min_tag_length=12),
+        modes.GCM(iv, tag, min_tag_length=16),
     ).decryptor()
     decryptor.authenticate_additional_data(associated_data)
     return decryptor.update(ciphertext) + decryptor.finalize()
@@ -65,3 +66,9 @@ def try_rename(path: str, new_path: str) -> str:
 def get_today_timestamp():
     '''相对于本机本地时间的今天0点的时间戳'''
     return int(mktime(date.today().timetuple()))
+
+
+def parse_version(s: str) -> 'list[int]':
+    '''解析版本号'''
+    s_number = "".join(x for x in s if x.isdigit() or x == '.')
+    return list(map(int, [x for x in s_number.split('.') if x != '']))

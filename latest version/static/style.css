@@ -173,6 +173,12 @@ input[type=submit] {
     color: white;
 }
 
+.difficulty_etr {
+    font-size: 0.9em;
+    background-color: rgb(161, 132, 181);
+    color: white;
+}
+
 .rank {
     font-size: 0.8em;
     margin-left: 4px;

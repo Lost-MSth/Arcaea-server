@@ -11,6 +11,7 @@ from .error import (ArcError, DataExist, FriendError, InputError, NoAccess,
                     NoData, RateLimit, UserBan)
 from .item import UserItemList
 from .limiter import ArcLimiter
+from .mission import UserMissionList
 from .score import Score
 from .sql import Query, Sql
 from .world import Map, UserMap, UserStamina
@@ -53,6 +54,12 @@ class User:
 
 
 class UserRegister(User):
+
+    limiter_ip = ArcLimiter(
+        Config.GAME_REGISTER_IP_RATE_LIMIT, 'game_register_ip')
+    limiter_device = ArcLimiter(
+        Config.GAME_REGISTER_DEVICE_RATE_LIMIT, 'game_register_device')
+
     def __init__(self, c) -> None:
         super().__init__()
         self.c = c
@@ -137,10 +144,16 @@ class UserRegister(User):
         if x:
             for i in x:
                 exp = 25000 if i[1] == 30 else 10000
-                self.c.execute('''insert into user_char_full values(?,?,?,?,?,?,0)''',
+                self.c.execute('''insert or replace into user_char_full values(?,?,?,?,?,?,0)''',
                                (self.user_id, i[0], i[1], exp, i[2], 0))
 
-    def register(self):
+    def register(self, device_id: str = None, ip: str = None):
+        if device_id is not None and not self.limiter_device.hit(device_id):
+            raise RateLimit(f'''Too many register attempts of device `{
+                            device_id}`''', 124, -213)
+        if ip is not None and ip != '127.0.0.1' and not self.limiter_ip.hit(ip):
+            raise RateLimit(f'''Too many register attempts of ip `{
+                            ip}`''', 124, -213)
         now = int(time.time() * 1000)
         if self.user_code is None:
             self._build_user_code()
@@ -152,8 +165,6 @@ class UserRegister(User):
         character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, is_hide_rating, favorite_character, max_stamina_notification_enabled, current_map, ticket, prog_boost, email)
         values(:user_id, :name, :password, :join_date, :user_code, 0, 0, 0, 0, 0, 0, -1, 0, '', :memories, 0, :email)
         ''', {'user_code': self.user_code, 'user_id': self.user_id, 'join_date': now, 'name': self.name, 'password': self.hash_pwd, 'memories': Config.DEFAULT_MEMORIES, 'email': self.email})
-        self.c.execute('''insert into recent30(user_id) values(:user_id)''', {
-                       'user_id': self.user_id})
 
 
 class UserLogin(User):
@@ -306,8 +317,10 @@ class UserInfo(User):
         self.recent_score = Score()
         self.favorite_character = None
         self.max_stamina_notification_enabled = False
+        self.mp_notification_enabled = True
         self.prog_boost: int = 0
         self.beyond_boost_gauge: float = 0
+        self.kanae_stored_prog: float = 0
         self.next_fragstam_ts: int = None
         self.world_mode_locked_end_ts: int = None
         self.current_map: 'Map' = None
@@ -347,6 +360,13 @@ class UserInfo(User):
             self.__packs = [i.item_id for i in x.items]
 
         return self.__packs
+
+    @property
+    def pick_ticket(self) -> int:
+        x = UserItemList(self.c, self).select_from_type('pick_ticket')
+        if not x.items:
+            return 0
+        return x.items[0].amount
 
     @property
     def world_unlocks(self) -> list:
@@ -488,7 +508,8 @@ class UserInfo(User):
             "settings": {
                 "favorite_character": favorite_character_id,
                 "is_hide_rating": self.is_hide_rating,
-                "max_stamina_notification_enabled": self.max_stamina_notification_enabled
+                "max_stamina_notification_enabled": self.max_stamina_notification_enabled,
+                "mp_notification_enabled": self.mp_notification_enabled,
             },
             "user_id": self.user_id,
             "name": self.name,
@@ -501,6 +522,7 @@ class UserInfo(User):
             "current_map": self.current_map.map_id,
             "prog_boost": self.prog_boost,
             "beyond_boost_gauge": self.beyond_boost_gauge,
+            "kanae_stored_prog": self.kanae_stored_prog,
             "next_fragstam_ts": self.next_fragstam_ts,
             "max_stamina_ts": self.stamina.max_stamina_ts,
             "stamina": self.stamina.stamina,
@@ -518,7 +540,13 @@ class UserInfo(User):
             'country': '',
             'course_banners': self.course_banners,
             'world_mode_locked_end_ts': self.world_mode_locked_end_ts,
-            'locked_char_ids': []  # [1]
+            'locked_char_ids': [],  # [1]
+            'user_missions': UserMissionList(self.c, self).select_all().to_dict_list(),
+            'pick_ticket': self.pick_ticket,
+
+            # 'custom_banner': 'online_banner_2024_06',
+            # 'subscription_multiplier': 114,
+            # 'memory_boost_ticket': 5,
         }
 
     def from_list(self, x: list) -> 'UserInfo':
@@ -559,6 +587,9 @@ class UserInfo(User):
         self.stamina.set_value(x[32], x[33])
         self.world_mode_locked_end_ts = x[34] if x[34] else -1
         self.beyond_boost_gauge = x[35] if x[35] else 0
+        self.kanae_stored_prog = x[36] if x[36] else 0
+
+        self.mp_notification_enabled = x[37] == 1
 
         return self
 
@@ -616,7 +647,7 @@ class UserInfo(User):
             查询user表有关世界模式打歌的信息
         '''
         self.c.execute(
-            '''select character_id, max_stamina_ts, stamina, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, current_map, world_mode_locked_end_ts, beyond_boost_gauge from user where user_id=?''', (self.user_id,))
+            '''select character_id, max_stamina_ts, stamina, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, current_map, world_mode_locked_end_ts, beyond_boost_gauge, kanae_stored_prog from user where user_id=?''', (self.user_id,))
         x = self.c.fetchone()
         if not x:
             raise NoData('No user.', 108, -3)
@@ -630,14 +661,29 @@ class UserInfo(User):
         self.current_map = UserMap(self.c, x[6], self)
         self.world_mode_locked_end_ts = x[7] if x[7] else -1
         self.beyond_boost_gauge = x[8] if x[8] else 0
+        self.kanae_stored_prog = x[9] if x[9] else 0
+
+    def select_user_about_link_play(self) -> None:
+        '''
+            查询 user 表有关 link play 的信息
+        '''
+        self.c.execute(
+            '''select name, rating_ptt, is_hide_rating from user where user_id=?''', (self.user_id,))
+        x = self.c.fetchone()
+        if not x:
+            raise NoData('No user.', 108, -3)
+
+        self.name = x[0]
+        self.rating_ptt = x[1]
+        self.is_hide_rating = x[2] == 1
 
     @property
     def global_rank(self) -> int:
         '''用户世界排名，如果超过设定最大值，返回0'''
         if self.world_rank_score is None:
             self.select_user_one_column('world_rank_score', 0)
-            if self.world_rank_score is None:
-                return 0
+        if not self.world_rank_score:
+            return 0
 
         self.c.execute(
             '''select count(*) from user where world_rank_score > ?''', (self.world_rank_score,))
@@ -650,40 +696,30 @@ class UserInfo(User):
     def update_global_rank(self) -> None:
         '''用户世界排名计算，有新增成绩则要更新'''
 
-        self.c.execute('''select song_id, rating_ftr, rating_byn from chart''')
-        x = self.c.fetchall()
+        self.c.execute(
+            '''
+            with user_scores as (
+            select song_id, difficulty, score_v2 from best_score where user_id = ? and difficulty in (2, 3, 4)
+            )
+            select sum(a) from(
+            select sum(score_v2) as a from user_scores where difficulty = 2 and song_id in (select song_id from chart where rating_ftr > 0)
+            union
+            select sum(score_v2) as a from user_scores where difficulty = 3 and song_id in (select song_id from chart where rating_byn > 0)
+            union
+            select sum(score_v2) as a from user_scores where difficulty = 4 and song_id in (select song_id from chart where rating_etr > 0)
+            )
+            ''',
+            (self.user_id,)
+        )
+        x = self.c.fetchone()
+        if x[0] is None:
+            return
 
-        song_list_ftr = [self.user_id]
-        song_list_byn = [self.user_id]
-        for i in x:
-            if i[1] > 0:
-                song_list_ftr.append(i[0])
-            if i[2] > 0:
-                song_list_byn.append(i[0])
+        self.c.execute(
+            '''update user set world_rank_score = ? where user_id = ?''', (x[0], self.user_id))
+        self.world_rank_score = x[0]
 
-        score_sum = 0
-        if len(song_list_ftr) >= 2:
-            self.c.execute(
-                f'''select sum(score) from best_score where user_id=? and difficulty=2 and song_id in ({','.join(['?']*(len(song_list_ftr)-1))})''', tuple(song_list_ftr))
-
-            x = self.c.fetchone()
-            if x[0] is not None:
-                score_sum += x[0]
-
-        if len(song_list_byn) >= 2:
-            self.c.execute(
-                f'''select sum(score) from best_score where user_id=? and difficulty=3 and song_id in ({','.join(['?']*(len(song_list_byn)-1))})''', tuple(song_list_byn))
-
-            x = self.c.fetchone()
-            if x[0] is not None:
-                score_sum += x[0]
-
-        self.c.execute('''update user set world_rank_score = :b where user_id = :a''', {
-            'a': self.user_id, 'b': score_sum})
-
-        self.world_rank_score = score_sum
-
-    def select_user_one_column(self, column_name: str, default_value=None) -> None:
+    def select_user_one_column(self, column_name: str, default_value=None, data_type=None) -> None:
         '''
             查询user表的某个属性
             请注意必须是一个普通属性，不能是一个类的实例
@@ -696,7 +732,12 @@ class UserInfo(User):
         if not x:
             raise NoData('No user.', 108, -3)
 
-        self.__dict__[column_name] = x[0] if x[0] else default_value
+        data = x[0] if x[0] is not None else default_value
+
+        if data_type is not None:
+            data = data_type(data)
+
+        self.__dict__[column_name] = data
 
     def update_user_one_column(self, column_name: str, value=None) -> None:
         '''

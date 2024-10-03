@@ -3,8 +3,9 @@ from traceback import format_exc
 
 from flask import current_app, g, jsonify
 
+from core.bundle import BundleParser
 from core.config_manager import Config
-from core.error import ArcError, NoAccess
+from core.error import ArcError, LowVersion, NoAccess
 
 has_arc_hash = False
 try:
@@ -22,7 +23,9 @@ def error_return(e: ArcError = default_error):  # 错误返回
     # -4 您的账号已在别处登录
     # -3 无法连接至服务器
     # 2 Arcaea服务器正在维护
+    # 5 请更新 Arcaea 到最新版本
     # 9 新版本请等待几分钟
+    # 11 有游戏内容需要更新，即将返回主界面
     # 100 无法在此ip地址下登录游戏
     # 101 用户名占用
     # 102 电子邮箱已注册
@@ -41,7 +44,7 @@ def error_return(e: ArcError = default_error):  # 错误返回
     # 150 非常抱歉您已被限制使用此功能
     # 151 目前无法使用此功能
     # 160 账户未邮箱认证，请检查邮箱
-    # 161  账户认证过期，请重新注册
+    # 161 账户认证过期，请重新注册
     # 401 用户不存在
     # 403 无法连接至服务器
     # 501 502 -6 此物品目前无法获取
@@ -65,7 +68,7 @@ def error_return(e: ArcError = default_error):  # 错误返回
     # 9803 下载已取消
     # 9905 没有在云端发现任何数据
     # 9907 更新数据时发生了问题
-    # 9908 服务器只支持最新的版本，请更新Arcaea
+    # 9908 服务器只支持最新的版本，请更新 Arcaea
     # 其它 发生未知错误
     r = {"success": False, "error_code": e.error_code}
     if e.extra_data:
@@ -106,7 +109,9 @@ def header_check(request) -> ArcError:
     headers = request.headers
     if Config.ALLOW_APPVERSION:  # 版本检查
         if 'AppVersion' not in headers or headers['AppVersion'] not in Config.ALLOW_APPVERSION:
-            return NoAccess('Invalid app version', 1203)
+            return LowVersion('Invalid app version', 5)
+    if request.method == 'GET' and 'ContentBundle' in headers and headers['ContentBundle'] != BundleParser.max_bundle_version.get(headers.get('AppVersion', ''), '0.0.0'):
+        return LowVersion('Invalid content bundle version', 11)
 
     if has_arc_hash and not ArcHashChecker(request).check():
         return NoAccess('Invalid request')

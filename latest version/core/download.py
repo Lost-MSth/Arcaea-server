@@ -24,20 +24,12 @@ def get_song_file_md5(song_id: str, file_name: str) -> str:
 class SonglistParser:
     '''songlist文件解析器'''
 
-    FILE_NAMES = ['0.aff', '1.aff', '2.aff', '3.aff',
+    FILE_NAMES = ['0.aff', '1.aff', '2.aff', '3.aff', '4.aff',
                   'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg', 'video_720.mp4', 'video_1080.mp4']
 
     has_songlist = False
     songs: dict = {}  # {song_id: value, ...}
-    # value: bit 76543210
-    # 7: video_audio.ogg
-    # 6: video.mp4
-    # 5: 3.ogg
-    # 4: base.ogg
-    # 3: 3.aff
-    # 2: 2.aff
-    # 1: 1.aff
-    # 0: 0.aff
+    # value: bitmap
 
     pack_info: 'dict[str, set]' = {}  # {pack_id: {song_id, ...}, ...}
     free_songs: set = set()  # {song_id, ...}
@@ -55,8 +47,8 @@ class SonglistParser:
             # songlist没有，则只限制文件名
             return file_name in SonglistParser.FILE_NAMES
         rule = SonglistParser.songs[song_id]
-        for i in range(10):
-            if file_name == SonglistParser.FILE_NAMES[i] and rule & (1 << i) != 0:
+        for i, v in enumerate(SonglistParser.FILE_NAMES):
+            if file_name == v and rule & (1 << i) != 0:
                 return True
         return False
 
@@ -88,10 +80,10 @@ class SonglistParser:
             return {}
         r = 0
         if 'remote_dl' in song and song['remote_dl']:
-            r |= 16
+            r |= 32
             for i in song.get('difficulties', []):
                 if i['ratingClass'] == 3 and i.get('audioOverride', False):
-                    r |= 32
+                    r |= 64
                 r |= 1 << i['ratingClass']
         else:
             if any(i['ratingClass'] == 3 for i in song.get('difficulties', [])):
@@ -99,14 +91,14 @@ class SonglistParser:
 
         for extra_file in song.get('additional_files', []):
             x = extra_file['file_name']
-            if x == SonglistParser.FILE_NAMES[6]:
-                r |= 64
-            elif x == SonglistParser.FILE_NAMES[7]:
+            if x == SonglistParser.FILE_NAMES[7]:
                 r |= 128
             elif x == SonglistParser.FILE_NAMES[8]:
                 r |= 256
             elif x == SonglistParser.FILE_NAMES[9]:
                 r |= 512
+            elif x == SonglistParser.FILE_NAMES[10]:
+                r |= 1024
 
         return {song['id']: r}
 

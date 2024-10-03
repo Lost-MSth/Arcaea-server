@@ -1,9 +1,12 @@
+from .bundle import BundleParser
+from .constant import Constant
 from .download import DownloadList
 from .error import NoData
 from .save import SaveData
 from .score import Score
 from .sql import Connect, Sql
 from .user import User
+from .world import MapParser
 
 
 class BaseOperation:
@@ -25,6 +28,7 @@ class BaseOperation:
 class RefreshAllScoreRating(BaseOperation):
     '''
         刷新所有成绩的评分
+        包括 score_v2
     '''
     _name = 'refresh_all_score_rating'
 
@@ -33,7 +37,7 @@ class RefreshAllScoreRating(BaseOperation):
         # 但其实还是很慢
         with Connect() as c:
             c.execute(
-                '''select song_id, rating_pst, rating_prs, rating_ftr, rating_byn from chart''')
+                '''select song_id, rating_pst, rating_prs, rating_ftr, rating_byn, rating_etr from chart''')
             x = c.fetchall()
 
             songs = [i[0] for i in x]
@@ -41,12 +45,12 @@ class RefreshAllScoreRating(BaseOperation):
                 f'''update best_score set rating=0 where song_id not in ({','.join(['?']*len(songs))})''', songs)
 
             for i in x:
-                for j in range(0, 4):
-                    defnum = -10  # 没在库里的全部当做定数-10
+                for j in range(0, 5):
+                    defnum = -10  # 没在库里的全部当做定数 -10
                     if i[j+1] is not None and i[j+1] > 0:
                         defnum = float(i[j+1]) / 10
 
-                    c.execute('''select user_id, score from best_score where song_id=:a and difficulty=:b''', {
+                    c.execute('''select user_id, score, shiny_perfect_count, perfect_count, near_count, miss_count from best_score where song_id=:a and difficulty=:b''', {
                               'a': i[0], 'b': j})
                     y = c.fetchall()
                     values = []
@@ -54,11 +58,45 @@ class RefreshAllScoreRating(BaseOperation):
                     for k in y:
                         ptt = Score.calculate_rating(defnum, k[1])
                         ptt = max(ptt, 0)
-                        values.append((ptt,))
+                        score_v2 = Score.calculate_score_v2(
+                            defnum, k[2], k[3], k[4], k[5])
+                        values.append((ptt, score_v2,))
                         where_values.append((k[0], i[0], j))
                     if values:
-                        Sql(c).update_many('best_score', ['rating'], values, [
+                        Sql(c).update_many('best_score', ['rating', 'score_v2'], values, [
                             'user_id', 'song_id', 'difficulty'], where_values)
+
+            # 更新 recent30
+            song_defum: 'dict[str, list[int]]' = {}
+            for i in x:
+                song_defum[i[0]] = []
+                for j in range(0, 5):
+                    defnum = -10
+                    if i[j+1] is not None and i[j+1] > 0:
+                        defnum = float(i[j+1]) / 10
+                    song_defum[i[0]].append(defnum)
+
+            users = c.execute('''select user_id from user''').fetchall()
+            for i in users:
+                values = []
+                where_values = []
+                user_id = i[0]
+                c.execute(
+                    '''select r_index, song_id, difficulty, score from recent30 where user_id = ?''', (user_id,))
+                for j in c.fetchall():
+                    if j[1] in song_defum:
+                        defnum = song_defum[j[1]][j[2]]
+                    else:
+                        defnum = -10
+                    ptt = Score.calculate_rating(defnum, j[3])
+                    ptt = max(ptt, 0)
+
+                    values.append((ptt,))
+                    where_values.append((user_id, j[0]))
+
+                if values:
+                    Sql(c).update_many('recent30', ['rating'], values, [
+                        'user_id', 'r_index'], where_values)
 
 
 class RefreshSongFileCache(BaseOperation):
@@ -71,6 +109,26 @@ class RefreshSongFileCache(BaseOperation):
     def run(self):
         DownloadList.clear_all_cache()
         DownloadList.initialize_cache()
+
+
+class RefreshBundleCache(BaseOperation):
+    '''
+        刷新 bundle 缓存
+    '''
+    _name = 'refresh_content_bundle_cache'
+
+    def run(self):
+        BundleParser().re_init()
+
+
+class RefreshWorldMapCache(BaseOperation):
+    '''
+        刷新 map 缓存
+    '''
+    _name = 'refresh_world_map_cache'
+
+    def run(self):
+        MapParser().re_init()
 
 
 class SaveUpdateScore(BaseOperation):
@@ -121,10 +179,15 @@ class SaveUpdateScore(BaseOperation):
             new_scores = []
             for i in save.scores_data:
                 rating = 0
+                score_v2 = 0
                 if i['song_id'] in song_chart_const:
-                    rating = Score.calculate_rating(
-                        song_chart_const[i['song_id']][i['difficulty']] / 10, i['score'])
+                    defnum = song_chart_const[i['song_id']
+                                              ][i['difficulty']] / 10
+                    rating = Score.calculate_rating(defnum, i['score'])
                     rating = max(rating, 0)
+
+                    score_v2 = Score.calculate_score_v2(
+                        defnum, i['shiny_perfect_count'], i['perfect_count'], i['near_count'], i['miss_count'])
 
                 y = f'{i["song_id"]}{i["difficulty"]}'
                 if y in clear_state:
@@ -133,10 +196,10 @@ class SaveUpdateScore(BaseOperation):
                     clear_type = 0
 
                 new_scores.append((self.user.user_id, i['song_id'], i['difficulty'], i['score'], i['shiny_perfect_count'], i['perfect_count'],
-                                   i['near_count'], i['miss_count'], i['health'], i['modifier'], i['time_played'], clear_type, clear_type, rating))
+                                   i['near_count'], i['miss_count'], i['health'], i['modifier'], i['time_played'], clear_type, clear_type, rating, score_v2))
 
             c.executemany(
-                '''insert or replace into best_score values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', new_scores)
+                '''insert or replace into best_score values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', new_scores)
 
     def _all_update(self):
         with Connect() as c:
@@ -157,10 +220,15 @@ class SaveUpdateScore(BaseOperation):
                 new_scores = []
                 for i in save.scores_data:
                     rating = 0
+                    score_v2 = 0
                     if i['song_id'] in song_chart_const:
-                        rating = Score.calculate_rating(
-                            song_chart_const[i['song_id']][i['difficulty']] / 10, i['score'])
+                        defnum = song_chart_const[i['song_id']
+                                                  ][i['difficulty']] / 10
+                        rating = Score.calculate_rating(defnum, i['score'])
                         rating = max(rating, 0)
+
+                        score_v2 = Score.calculate_score_v2(
+                            defnum, i['shiny_perfect_count'], i['perfect_count'], i['near_count'], i['miss_count'])
 
                     y = f'{i["song_id"]}{i["difficulty"]}'
                     if y in clear_state:
@@ -169,10 +237,10 @@ class SaveUpdateScore(BaseOperation):
                         clear_type = 0
 
                     new_scores.append((user.user_id, i['song_id'], i['difficulty'], i['score'], i['shiny_perfect_count'], i['perfect_count'],
-                                       i['near_count'], i['miss_count'], i['health'], i['modifier'], i['time_played'], clear_type, clear_type, rating))
+                                       i['near_count'], i['miss_count'], i['health'], i['modifier'], i['time_played'], clear_type, clear_type, rating, score_v2))
 
                 c.executemany(
-                    '''insert or replace into best_score values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', new_scores)
+                    '''insert or replace into best_score values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', new_scores)
 
 
 class UnlockUserItem(BaseOperation):
@@ -245,3 +313,75 @@ class UnlockUserItem(BaseOperation):
         with Connect() as c:
             c.execute(
                 f'''delete from user_item where type in ({','.join(['?'] * len(self.item_types))})''', self.item_types)
+
+
+def _delete_one_table(c, table_name, user_id):
+    c.execute(
+        f'''insert into db_deleted.{table_name} select * from {table_name} where user_id = ?''', (user_id,))
+    c.execute(f'''delete from {table_name} where user_id = ?''', (user_id,))
+
+
+class DeleteUserScore(BaseOperation):
+    '''
+        删除单用户成绩，不包含 recent 数据
+    '''
+    _name = 'delete_user_score'
+
+    def __init__(self, user=None):
+        self.user = user
+
+    def set_params(self, user_id: int = None, *args, **kwargs):
+        if user_id is not None:
+            self.user = User()
+            self.user.user_id = int(user_id)
+        return self
+
+    def run(self):
+        assert self.user is not None
+        with Connect() as c:
+            c.execute('''attach database ? as db_deleted''',
+                      (Constant.SQLITE_DATABASE_DELETED_PATH,))
+            _delete_one_table(c, 'best_score', self.user.user_id)
+            _delete_one_table(c, 'recent30', self.user.user_id)
+
+
+class DeleteOneUser(BaseOperation):
+    '''
+        删除单用户
+    '''
+    _name = 'delete_one_user'
+
+    TABLES = ['best_score', 'recent30', 'user_char', 'user_course', 'user_item',
+              'user_present', 'user_redeem', 'user_role', 'user_save', 'user_world', 'user']
+
+    def __init__(self, user=None):
+        self.user = user
+
+    def set_params(self, user_id: int = None, *args, **kwargs):
+        if user_id is not None:
+            self.user = User()
+            self.user.user_id = int(user_id)
+        return self
+
+    def run(self):
+        assert self.user is not None
+        with Connect() as c:
+            c.execute('''attach database ? as db_deleted''',
+                      (Constant.SQLITE_DATABASE_DELETED_PATH,))
+
+            self._clear_login(c)
+            self._data_save(c)
+
+    def _data_save(self, c):
+        c.execute(
+            f'''insert into db_deleted.friend select * from friend where user_id_me = ? or user_id_other = ?''', (self.user.user_id, self.user.user_id))
+        c.execute(f'''delete from friend where user_id_me = ? or user_id_other = ?''',
+                  (self.user.user_id, self.user.user_id))
+
+        [_delete_one_table(c, x, self.user.user_id) for x in self.TABLES]
+
+    def _clear_login(self, c):
+        c.execute('''delete from login where user_id = ?''',
+                  (self.user.user_id,))
+        c.execute('''delete from api_login where user_id = ?''',
+                  (self.user.user_id,))

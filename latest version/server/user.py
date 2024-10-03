@@ -1,8 +1,10 @@
 from flask import Blueprint, current_app, request
 
 from core.character import UserCharacter
+from core.config_manager import Config
 from core.error import ArcError
 from core.item import ItemCore
+from core.operation import DeleteOneUser
 from core.save import SaveData
 from core.sql import Connect
 from core.user import User, UserLogin, UserOnline, UserRegister
@@ -30,12 +32,12 @@ def register():
         else:
             device_id = 'low_version'
 
-        new_user.register()
+        ip = request.remote_addr
+        new_user.register(device_id, ip)
 
         # 注册后自动登录
         user = UserLogin(c)
-        user.login(new_user.name, new_user.password,
-                   device_id, request.remote_addr)
+        user.login(new_user.name, new_user.password, device_id, ip)
         current_app.logger.info(f'New user `{user.user_id}` registered')
         return success_return({'user_id': user.user_id, 'access_token': user.token})
 
@@ -155,7 +157,7 @@ def sys_set(user_id, set_arg):
             user.change_favorite_character(int(value))
         else:
             value = 'true' == value
-            if set_arg in ('is_hide_rating', 'max_stamina_notification_enabled'):
+            if set_arg in ('is_hide_rating', 'max_stamina_notification_enabled', 'mp_notification_enabled'):
                 user.update_user_one_column(set_arg, value)
         return success_return(user.to_dict())
 
@@ -164,7 +166,10 @@ def sys_set(user_id, set_arg):
 @auth_required(request)
 @arc_try
 def user_delete(user_id):
-    raise ArcError('Cannot delete the account.', 151, status=404)
+    if not Config.ALLOW_SELF_ACCOUNT_DELETE:
+        raise ArcError('Cannot delete the account.', 151, status=404)
+    DeleteOneUser().set_params(user_id).run()
+    return success_return({'user_id': user_id})
 
 
 @bp.route('/email/resend_verify', methods=['POST'])  # 邮箱验证重发
