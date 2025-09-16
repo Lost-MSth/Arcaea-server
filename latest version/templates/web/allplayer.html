@@ -14,10 +14,16 @@
         {% if user['ban_flag'] %}
         <span class="rank">Banned</span>
         {% endif %}
+        {% if user['is_staff'] %}
+        <span class="rank">Staff</span>
+        {% endif %}
     </div>
     <div class="join-date">注册于 Registered in: {{user['join_date']}}</div>
     <div class="ptt">PTT: {{'%0.2f'|format(user['rating_ptt']/100|float)}}</div>
     <div class="ptt">Memories: {{user['ticket']}}</div>
+    {% if user['custom_banner'] %}
+    <div class="ptt">Custom Banner: {{user['custom_banner']}}</div>
+    {% endif %}
     <div>
         <div>Recent plays: </div>
         <div>

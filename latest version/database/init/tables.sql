@@ -37,8 +37,9 @@ world_mode_locked_end_ts int,
 beyond_boost_gauge real default 0,
 kanae_stored_prog real default 0,
 mp_notification_enabled int default 1,
-insight_state default 4,  -- 这里写 4 是为了避免不能切换状态和无故被侵入
-custom_banner text
+insight_state default 4,
+custom_banner text,
+is_staff int default 0
 );
 create table if not exists login(access_token text,
 user_id int,

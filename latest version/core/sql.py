@@ -352,7 +352,8 @@ class DatabaseMigrator:
 
     SPECIAL_UPDATE_VERSION = {
         '2.11.3.11': '_version_2_11_3_11',
-        '2.11.3.13': '_version_2_11_3_13'
+        '2.11.3.13': '_version_2_11_3_13',
+        '2.12.2': '_version_2_12_2'
     }
 
     def __init__(self, c1_path: str, c2_path: str) -> None:
@@ -470,6 +471,18 @@ class DatabaseMigrator:
         2.11.3.13 版本特殊更新，world_rank_score 机制调整，需清空用户分数
         '''
         self.c1.execute('''update user set world_rank_score = 0''')
+
+    def _version_2_12_2(self):
+        '''
+        2.12.2 版本特殊更新，添加 is_staff 字段
+        '''
+        self.c1.execute('''PRAGMA table_info(user)''')
+        columns = [column[1] for column in self.c1.fetchall()]
+        
+        if 'is_staff' not in columns:
+            self.c1.execute('''ALTER TABLE user ADD COLUMN is_staff int default 0''')
+            
+        self.c1.execute('''UPDATE user SET is_staff = 1 WHERE user_id IN (SELECT user_id FROM user_role WHERE role_id = 'admin')''')
 
 
 class LogDatabaseMigrator:

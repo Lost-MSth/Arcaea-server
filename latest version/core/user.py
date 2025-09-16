@@ -162,8 +162,8 @@ class UserRegister(User):
         self._insert_user_char()
 
         self.c.execute('''insert into user(user_id, name, password, join_date, user_code, rating_ptt,
-        character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, is_hide_rating, favorite_character, max_stamina_notification_enabled, current_map, ticket, prog_boost, email)
-        values(:user_id, :name, :password, :join_date, :user_code, 0, 0, 0, 0, 0, 0, -1, 0, '', :memories, 0, :email)
+        character_id, is_skill_sealed, is_char_uncapped, is_char_uncapped_override, is_hide_rating, favorite_character, max_stamina_notification_enabled, current_map, ticket, prog_boost, email, is_staff)
+        values(:user_id, :name, :password, :join_date, :user_code, 0, 0, 0, 0, 0, 0, -1, 0, '', :memories, 0, :email, 0)
         ''', {'user_code': self.user_code, 'user_id': self.user_id, 'join_date': now, 'name': self.name, 'password': self.hash_pwd, 'memories': Config.DEFAULT_MEMORIES, 'email': self.email})
 
 
@@ -329,6 +329,7 @@ class UserInfo(User):
         self.insight_state: int = None
 
         self.custom_banner = None
+        self.is_staff = False
 
         self.__cores: list = None
         self.__packs: list = None
@@ -566,6 +567,7 @@ class UserInfo(User):
             #         "feature": "paymentlink"
             #     }
             # ],
+            'is_staff': self.is_staff
         }
 
     def from_list(self, x: list) -> 'UserInfo':
@@ -613,6 +615,7 @@ class UserInfo(User):
         self.insight_state = x[38]
 
         self.custom_banner = x[39] if x[39] is not None else ''
+        self.is_staff = x[40] == 1 if len(x) > 40 else False
 
         return self
 

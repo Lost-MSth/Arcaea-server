@@ -16,13 +16,26 @@
 
     <label for="ticket">Memories</label>
     <input name="ticket" id="ticket">
+    <br />
+    <br />
 
+    <label for="custom_banner">Custom Banner</label>
+    <input name="custom_banner" id="custom_banner">
+    <br />
+    <br />
+
+    <label for="is_staff">Is Staff</label>
+    <select name="is_staff" id="is_staff">
+        <option value="">Not changed</option>
+        <option value="0">No</option>
+        <option value="1">Yes</option>
+    </select>
+    <br />
+    <br />
 
     <br />
     <div class="content">如果某些不需要修改，留空即可</div>
     <div class="content">If some things do not need to be modified, leave it blank.</div>
-    <div class="content">目前只支持修改记忆源点</div>
-    <div class="content">At present, only memories can be modified.</div>
     <input type="submit" value="Edit">
 </form>
 <br />
@@ -31,6 +44,22 @@
     <div class="title">Edit all the users</div>
     <label for="ticket">Memories</label>
     <input name="ticket" id="ticket">
+    <br />
+    <br />
+
+    <label for="custom_banner_all">Custom Banner (for all users)</label>
+    <input name="custom_banner_all" id="custom_banner_all">
+    <br />
+    <br />
+
+    <label for="is_staff_all">Is Staff (for all users)</label>
+    <select name="is_staff_all" id="is_staff_all">
+        <option value="">Not changed</option>
+        <option value="0">No</option>
+        <option value="1">Yes</option>
+    </select>
+    <br />
+    <br />
 
     <input type="submit" value="Edit all">
 </form>

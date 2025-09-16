@@ -151,6 +151,10 @@ def all_player():
                 else:
                     ban_flag = False
 
+                # 获取custom_banner和is_staff信息 (字段索引可能需要调整)
+                custom_banner = i[39] if len(i) > 39 and i[39] is not None else ''
+                is_staff = i[40] == 1 if len(i) > 40 else False
+
                 posts.append({'name': i[1],
                               'user_id': i[0],
                               'join_date': join_date,
@@ -167,7 +171,9 @@ def all_player():
                               'clear_type': i[21],
                               'rating': i[22],
                               'ticket': i[26],
-                              'ban_flag': ban_flag
+                              'ban_flag': ban_flag,
+                              'custom_banner': custom_banner,
+                              'is_staff': is_staff
                               })
         else:
             error = '没有玩家数据 No player data.'
@@ -534,27 +540,50 @@ def edit_user():
     flag = True
     name = None
     user_code = None
+    
+    # 获取表单数据
     try:
-        ticket = request.form['ticket']
-        if ticket:
-            ticket = int(ticket)
-        else:
-            ticket = None
+        ticket = request.form.get('ticket', '')
+        ticket = int(ticket) if ticket else None
     except:
-        error = '数据错误 Wrong data.'
-        flash(error)
-        return redirect(url_for('index.change_user'))
+        ticket = None
+        
+    custom_banner = request.form.get('custom_banner', '')
+    is_staff = request.form.get('is_staff', '')
+    is_staff = int(is_staff) if is_staff in ['0', '1'] else None
+    
+    # 全修改
+    try:
+        custom_banner_all = request.form.get('custom_banner_all', '')
+        is_staff_all = request.form.get('is_staff_all', '')
+        is_staff_all = int(is_staff_all) if is_staff_all in ['0', '1'] else None
+    except:
+        custom_banner_all = ''
+        is_staff_all = None
 
     with Connect() as c:
-
-       # 全修改
+        # 全修改
         if 'name' not in request.form and 'user_code' not in request.form:
             flag = False
-            if not ticket:
+            sql_parts = []
+            sql_dict = {}
+            
+            if ticket is not None:
+                sql_parts.append('ticket = :ticket')
+                sql_dict['ticket'] = ticket
+                
+            if custom_banner_all:
+                sql_parts.append('custom_banner = :custom_banner')
+                sql_dict['custom_banner'] = custom_banner_all
+                
+            if is_staff_all is not None:
+                sql_parts.append('is_staff = :is_staff')
+                sql_dict['is_staff'] = is_staff_all
+
+            if not sql_parts:
                 error = '无修改 No change.'
             else:
-                sql = '''update user set ticket = :ticket'''
-                sql_dict = {'ticket': ticket}
+                sql = 'update user set ' + ', '.join(sql_parts)
                 c.execute(sql, sql_dict)
                 flash("全部用户信息修改成功 Successfully edit all the users' information.")
 
@@ -562,35 +591,44 @@ def edit_user():
             name = request.form['name']
             user_code = request.form['user_code']
 
-        # 指定修改
-
-        if name or user_code:
-
-            if user_code:
-                c.execute('''select user_id from user where user_code=:a''', {
-                    'a': user_code})
-            else:
-                c.execute(
-                    '''select user_id from user where name=:a''', {'a': name})
-
-            user_id = c.fetchone()
-            if user_id:
-                user_id = user_id[0]
-
-                if not ticket:
-                    error = '无修改 No change.'
+            # 指定修改
+            if name or user_code:
+                if user_code:
+                    c.execute('''select user_id from user where user_code=:a''', {
+                        'a': user_code})
                 else:
-                    sql = '''update user set ticket = :ticket where user_id = :user_id'''
-                    sql_dict = {'ticket': ticket, 'user_id': user_id}
-                    c.execute(sql, sql_dict)
-                    flash('用户信息修改成功 Successfully edit the user information.')
+                    c.execute(
+                        '''select user_id from user where name=:a''', {'a': name})
 
+                user_id = c.fetchone()
+                if user_id:
+                    user_id = user_id[0]
+                    sql_parts = []
+                    sql_dict = {'user_id': user_id}
+                    
+                    if ticket is not None:
+                        sql_parts.append('ticket = :ticket')
+                        sql_dict['ticket'] = ticket
+                        
+                    if custom_banner:
+                        sql_parts.append('custom_banner = :custom_banner')
+                        sql_dict['custom_banner'] = custom_banner
+                        
+                    if is_staff is not None:
+                        sql_parts.append('is_staff = :is_staff')
+                        sql_dict['is_staff'] = is_staff
+
+                    if not sql_parts:
+                        error = '无修改 No change.'
+                    else:
+                        sql = 'update user set ' + ', '.join(sql_parts) + ' where user_id = :user_id'
+                        c.execute(sql, sql_dict)
+                        flash('用户信息修改成功 Successfully edit the user information.')
+                else:
+                    error = '玩家不存在 The player does not exist.'
             else:
-                error = '玩家不存在 The player does not exist.'
-
-        else:
-            if flag:
-                error = '输入为空 Null Input.'
+                if flag:
+                    error = '输入为空 Null Input.'
 
     if error:
         flash(error)
