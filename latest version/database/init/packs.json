@@ -1096,5 +1096,23 @@
 		],
 		"orig_price": 500,
 		"price": 500
+	},
+	{
+		"name": "undertale_append_1",
+		"items": [
+			{
+				"id": "undertale_append_1",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 3,
+				"is_available": true
+			}
+		],
+		"orig_price": 300,
+		"price": 300
 	}
 ]
