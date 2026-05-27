@@ -13,7 +13,7 @@ from .limiter import ArcLimiter
 
 class BundlePart:
     def __init__(self) -> None:
-        self.path: str = None
+        self.path: str = None  # relative path
         self.size: int = 0
         self.url: str = None
 
@@ -25,9 +25,11 @@ class ContentBundle:
         self.prev_version: str = None
         self.app_version: str = None
         self.uuid: str = None
+        self.part_num: int = None
 
-        self.json_size: int = 0
-        self.json_path: str = None
+        self.json_size: int = None
+        self.bundle_size: int = None
+        self.json_path: str = None  # relative path
         self.bundle_parts: 'list[BundlePart]' = []
 
         self.json_url: str = None
@@ -48,9 +50,10 @@ class ContentBundle:
     def from_json(cls, json_data: dict) -> 'ContentBundle':
         x = cls()
         x.version = json_data['versionNumber']
-        x.prev_version = json_data.get('previousVersionNumber')
+        x.prev_version = json_data['previousVersionNumber']
         x.app_version = json_data['applicationVersionNumber']
         x.uuid = json_data['uuid']
+        x.part_num = json_data.get('totalPartitions', 1)
         if x.prev_version is None:
             x.prev_version = '0.0.0'
         return x
@@ -63,14 +66,14 @@ class ContentBundle:
         }
         if self.json_url:
             r['jsonUrl'] = self.json_url
-        parts = []
-        for p in self.bundle_parts:
-            part = {'bundleSize': p.size}
-            if p.url:
-                part['bundleUrl'] = p.url
-            parts.append(part)
-        if parts:
-            r['bundleParts'] = parts
+            parts = []
+            for p in self.bundle_parts:
+                part = {'bundleSize': p.size}
+                if p.url:
+                    part['bundleUrl'] = p.url
+                parts.append(part)
+            if parts:
+                r['bundleParts'] = parts
         return r
 
     def calculate_size(self) -> None:
@@ -121,7 +124,11 @@ class BundleParser:
 
                 x.json_path = os.path.relpath(
                     json_path, Constant.CONTENT_BUNDLE_FOLDER_PATH)
+                # x.bundle_path = os.path.relpath(
+                #     bundle_path, Constant.CONTENT_BUNDLE_FOLDER_PATH)
+
                 x.json_path = x.json_path.replace('\\', '/')
+                # x.bundle_path = x.bundle_path.replace('\\', '/')
 
                 # Single-file bundle (backward compat)
                 single = os.path.join(root, f'{stem}.cb')
@@ -132,7 +139,7 @@ class BundleParser:
                     x.bundle_parts.append(part)
                 else:
                     # Multi-part bundles: stem_0.cb, stem_1.cb, ...
-                    for part_idx in range(1000):
+                    for part_idx in range(x.part_num):
                         part_path = os.path.join(root, f'{stem}_{part_idx}.cb')
                         if not os.path.isfile(part_path):
                             break
@@ -158,7 +165,7 @@ class BundleParser:
             self.max_bundle_version[k] = v[-1].version
 
     @staticmethod
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=Constant.LRU_CACHE_MAX_SIZE['get_bundles'])
     def get_bundles(app_ver: str, b_ver: str) -> 'list[ContentBundle]':
         if Config.BUNDLE_STRICT_MODE:
             return BundleParser.bundles.get(app_ver, [])
@@ -240,9 +247,10 @@ class BundleDownload:
             if x.version_tuple <= ContentBundle.parse_version(self.client_bundle_version):
                 continue
             t1 = os.urandom(64).hex()
-            x.json_url = url_func(t1)
-            sql_list.append((t1, x.json_path, now, self.device_id))
 
+            x.json_url = url_func(t1)
+
+            sql_list.append((t1, x.json_path, now, self.device_id))
             for part in x.bundle_parts:
                 t = os.urandom(64).hex()
                 part.url = url_func(t)
