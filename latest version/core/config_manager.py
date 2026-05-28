@@ -51,13 +51,24 @@ class Config:
     DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT = False
     NGINX_X_ACCEL_REDIRECT_PREFIX = '/nginx_download/'
     BUNDLE_NGINX_X_ACCEL_REDIRECT_PREFIX = '/nginx_bundle_download/'
+    REMOTE_DOWNLOAD_MODE = 'localhost'
+    REMOTE_DOWNLOAD_OPTIONS = {
+        'nginx': {
+            # nginx secure_link
+            'download_link_host': 'http://please.change.this.to.your.domain:port',
+            'download_link_prefix': '/arcaea_server_download',
+            'bundle_download_link_host': 'http://please.change.this.to.your.domain:port',
+            'bundle_download_link_prefix': '/arcaea_server_bundle_download',
+            'secret_key': 'nginx_secure_link_md5_secret_key',
+        }
+    }
 
     DOWNLOAD_TIMES_LIMIT = 3000
     DOWNLOAD_TIME_GAP_LIMIT = 1000
 
     DOWNLOAD_FORBID_WHEN_NO_ITEM = False
 
-    BUNDLE_DOWNLOAD_TIMES_LIMIT = '100/60 minutes'
+    BUNDLE_DOWNLOAD_TIMES_LIMIT = '1000/60 minutes'
     BUNDLE_DOWNLOAD_TIME_GAP_LIMIT = 3000
 
     LOGIN_DEVICE_NUMBER_LIMIT = 1
@@ -82,6 +93,18 @@ class Config:
     SAVE_FULL_UNLOCK = False
 
     ALLOW_SELF_ACCOUNT_DELETE = False
+
+    DEPLOY_OPTIONS = {
+        'gunicorn': {
+            'bind': f'{HOST}:{PORT}',
+            'worker_class': 'sync',
+            'workers': 1,
+            'threads': 4,
+            'timeout': 30,
+            'certfile': SSL_CERT or None,
+            'keyfile': SSL_KEY or None,
+        },
+    }
 
     # ------------------------------------------
 

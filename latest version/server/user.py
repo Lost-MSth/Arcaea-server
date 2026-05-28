@@ -168,15 +168,19 @@ def profile_post(user_id):
     with Connect() as c:
         user = UserOnline(c, user_id)
         is_profile_public = request.form.get('is_profile_public')
+        sc_char_1 = request.form.get('sc_char_1', -1, type=int)
+        sc_char_2 = request.form.get('sc_char_2', -1, type=int)
+        sc_char_3 = request.form.get('sc_char_3', -1, type=int)
         # world_unlock = request.form.get('world_unlock')
         banner = request.form.get('banner')
         # print(is_profile_public, world_unlock, banner)
         user.select_user_about_profile()
-        user.change_profile(is_profile_public == 'true', banner)
+        user.change_profile(is_profile_public == 'true', banner, [
+                            sc_char_1, sc_char_2, sc_char_3])
 
         return success_return({
             "is_profile_public": user.is_profile_public,
-            "showcase_characters": [-1, -1, -1],
+            "showcase_characters": user.showcase_characters,
             "world_unlock": "",
             "custom_banner": user.custom_banner
         })

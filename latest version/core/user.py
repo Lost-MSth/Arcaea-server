@@ -3,6 +3,7 @@ import hashlib
 import time
 from os import urandom
 from random import randint
+from json import loads
 
 from .character import UserCharacter, UserCharacterList
 from .config_manager import Config
@@ -333,6 +334,7 @@ class UserInfo(User):
         self.custom_banner: str = None
 
         self.is_profile_public: bool = None
+        self.showcase_characters: list = None
 
         self.__cores: list = None
         self.__packs: list = None
@@ -606,7 +608,7 @@ class UserInfo(User):
             'has_email': self.email != '',
 
             'is_profile_public': self.is_profile_public,
-            # "showcase_characters": [-1, -1, -1],
+            "showcase_characters": self.showcase_characters,
         }
 
     def from_list(self, x: list) -> 'UserInfo':
@@ -657,6 +659,11 @@ class UserInfo(User):
         self.is_allow_marketing_email = x[40] == 1
 
         self.is_profile_public = x[41] == 1
+        self.showcase_characters = loads(
+            x[42]) if x[42] is not None else None
+        if not self.showcase_characters or len(self.showcase_characters) != 3 or not all(isinstance(i, int) for i in self.showcase_characters):
+            # 检查只有 3 个角色，并且都是 int
+            self.showcase_characters = [-1, -1, -1]
 
         return self
 
@@ -760,6 +767,8 @@ class UserInfo(User):
     @property
     def global_rank(self) -> int:
         '''用户世界排名，如果超过设定最大值，返回0'''
+        if not Constant.ENABLE_WORLD_RANK:
+            return -1
         if self.world_rank_score is None:
             self.select_user_one_column('world_rank_score', 0)
         if not self.world_rank_score:
@@ -917,7 +926,7 @@ class UserOnline(UserInfo):
         self.c.execute(
             '''update user set insight_state = ? where user_id = ?''', (self.insight_state, self.user_id))
 
-    def change_profile(self, is_public: bool = None, custom_banner: str = None) -> None:
+    def change_profile(self, is_public: bool = None, custom_banner: str = None, showcase_characters: list = None) -> None:
         # 用户资料卡设置
         if is_public is not None:
             self.is_profile_public = is_public
@@ -927,6 +936,11 @@ class UserOnline(UserInfo):
                 raise InputError('Invalid banner.')
             self.custom_banner = custom_banner
             self.update_user_one_column('custom_banner')
+        if showcase_characters is not None:
+            self.update_user_one_column('showcase_characters', str(
+                showcase_characters).replace(' ', ''))
+            # 必须是这个顺序，不然会返回字符串的
+            self.showcase_characters = showcase_characters
 
 
 class UserChanger(UserInfo, UserRegister):

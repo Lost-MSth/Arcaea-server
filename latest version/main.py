@@ -1,40 +1,90 @@
 # encoding: utf-8
 
 import os
+import sys
 from importlib import import_module
+from importlib import util as importlib_util
+from logging.config import dictConfig
+from multiprocessing import Process, active_children, current_process, set_start_method
+from traceback import format_exc
 
 from core.config_manager import Config, ConfigManager
 
-if os.path.exists('config.py') or os.path.exists('config'):
+
+def _is_path(value: str) -> bool:
+    if value.endswith('.py'):
+        return True
+    if os.path.isabs(value):
+        return True
+    if os.path.sep in value:
+        return True
+    if os.path.altsep and os.path.altsep in value:
+        return True
+    return False
+
+
+def _load_config_from_path(config_path: str):
+    config_path = os.path.abspath(config_path)
+    if not os.path.exists(config_path):
+        raise FileNotFoundError(f'Config path not found: {config_path}')
+    spec = importlib_util.spec_from_file_location('user_config', config_path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f'Cannot import config from path: {config_path}')
+    module = importlib_util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if not hasattr(module, 'Config'):
+        raise AttributeError(f'Config class not found in: {config_path}')
+    return module.Config
+
+
+def _load_user_config():
+    config_target = os.getenv('ARCAEA_SERVER_CONFIG')
+    if config_target:
+        if _is_path(config_target):
+            return _load_config_from_path(config_target)
+        return import_module(config_target).Config
+    if os.path.exists('config.py') or os.path.exists('config'):
+        return import_module('config').Config
+    return None
+
+
+config_class = _load_user_config()
+if config_class:
     # 导入用户自定义配置
-    ConfigManager.load(import_module("config").Config)
+    ConfigManager.load(config_class)
     # TODO: More config file formats
 
 if Config.DEPLOY_MODE == 'gevent':
     # 异步
-    from gevent import monkey
+    from gevent import monkey  # type: ignore
     monkey.patch_all()
 
 
-import sys
-from logging.config import dictConfig
-from multiprocessing import Process, current_process, set_start_method
-from traceback import format_exc
+def _import_after_config():
+    global Flask, request
+    global api, server, web
+    global BundleDownload, UserDownload, ArcError, NoAccess, RateLimit
+    global FileChecker, Connect, error_return, DownloadManager
 
-from flask import Flask, make_response, request, send_from_directory
+    from flask import Flask, request
 
-import api
-import server
-import web.index
-import web.login
-# import webapi
-from core.bundle import BundleDownload
-from core.constant import Constant
-from core.download import UserDownload
-from core.error import ArcError, NoAccess, RateLimit
-from core.init import FileChecker
-from core.sql import Connect
-from server.func import error_return
+    import api
+    import server
+    import web
+    import web.index
+    import web.login
+    from core.bundle import BundleDownload
+    from core.download import DownloadManager, UserDownload
+    from core.error import ArcError, NoAccess, RateLimit
+    from core.init import FileChecker
+    from core.sql import Connect
+    from server.func import error_return
+
+    # import webapi
+
+
+_import_after_config()
+
 
 app = Flask(__name__)
 
@@ -44,7 +94,7 @@ if Config.USE_PROXY_FIX:
     app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 if Config.USE_CORS:
     # 服务端跨域
-    from flask_cors import CORS
+    from flask_cors import CORS  # type: ignore
     CORS(app, supports_credentials=True)
 
 
@@ -58,6 +108,25 @@ app.register_blueprint(web.index.bp)
 app.register_blueprint(api.bp)
 list(map(app.register_blueprint, server.get_bps()))
 # app.register_blueprint(webapi.bp)
+
+
+def print_message_and_exit(message: str = ''):
+    if message:
+        print(message)
+    children = active_children()
+    if children:
+        for child in children:
+            try:
+                child.terminate()
+            except Exception:
+                pass
+        for child in children:
+            try:
+                child.join(timeout=2)
+            except Exception:
+                pass
+    input('Press ENTER key to exit.')
+    sys.exit(1)
 
 
 @app.route('/')
@@ -88,13 +157,7 @@ def download(file_path):
             if not x.is_valid:
                 raise NoAccess('Expired token.')
             x.download_hit()
-            if Config.DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT:
-                # nginx X-Accel-Redirect
-                response = make_response()
-                response.headers['Content-Type'] = 'application/octet-stream'
-                response.headers['X-Accel-Redirect'] = Config.NGINX_X_ACCEL_REDIRECT_PREFIX + file_path
-                return response
-            return send_from_directory(Constant.SONG_FILE_FOLDER_PATH, file_path, as_attachment=True, conditional=True)
+            return DownloadManager(file_path).get_response()
         except ArcError as e:
             if Config.ALLOW_WARNING_LOG:
                 app.logger.warning(format_exc())
@@ -108,13 +171,7 @@ def bundle_download(token: str):
         try:
             file_path = BundleDownload(c_m).get_path_by_token(
                 token, request.remote_addr)
-            if Config.DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT:
-                # nginx X-Accel-Redirect
-                response = make_response()
-                response.headers['Content-Type'] = 'application/octet-stream'
-                response.headers['X-Accel-Redirect'] = Config.BUNDLE_NGINX_X_ACCEL_REDIRECT_PREFIX + file_path
-                return response
-            return send_from_directory(Constant.CONTENT_BUNDLE_FOLDER_PATH, file_path, as_attachment=True, conditional=True)
+            return DownloadManager(file_path, is_bundle=True).get_response()
         except ArcError as e:
             if Config.ALLOW_WARNING_LOG:
                 app.logger.warning(format_exc())
@@ -142,15 +199,46 @@ def tcp_server_run():
         # 异步 gevent WSGI server
         host_port = (Config.HOST, Config.PORT)
         app.logger.info('Running gevent WSGI server... (%s:%s)' % host_port)
-        from gevent.pywsgi import WSGIServer
+        from gevent.pywsgi import WSGIServer  # type: ignore
         WSGIServer(host_port, app, log=app.logger).serve_forever()
     elif Config.DEPLOY_MODE == 'waitress':
         # waitress WSGI server
         import logging
+
         from waitress import serve  # type: ignore
         logger = logging.getLogger('waitress')
         logger.setLevel(logging.INFO)
-        serve(app, host=Config.HOST, port=Config.PORT)
+        serve(app, host=Config.HOST, port=Config.PORT,
+              clear_untrusted_proxy_headers=not Config.USE_PROXY_FIX)
+    elif Config.DEPLOY_MODE == 'gunicorn':
+        # Gunicorn 只能在类 Unix 系统上使用
+        if os.name == 'nt':
+            app.logger.error(
+                'Gunicorn is not supported on Windows. Use waitress instead.')
+            print_message_and_exit()
+        try:
+            from gunicorn.app.base import BaseApplication  # type: ignore
+        except Exception:
+            app.logger.error(
+                'Gunicorn is not installed. Install it with `pip install gunicorn`.')
+            print_message_and_exit()
+
+        class GunicornApplication(BaseApplication):
+            def __init__(self, application, options=None):
+                self.options = options or {}
+                self.application = application
+                super().__init__()
+
+            def load_config(self):
+                for key, value in self.options.items():
+                    if value is None:
+                        continue
+                    self.cfg.set(key, value)
+
+            def load(self):
+                return self.application
+
+        GunicornApplication(app, Config.DEPLOY_OPTIONS['gunicorn']).run()
     else:
         if Config.SSL_CERT and Config.SSL_KEY:
             app.run(Config.HOST, Config.PORT, ssl_context=(
@@ -206,8 +294,7 @@ def pre_main():
     Connect.logger = app.logger
     if not FileChecker(app.logger).check_before_run():
         app.logger.error('Some errors occurred. The server will not run.')
-        input('Press ENTER key to exit.')
-        sys.exit()
+        print_message_and_exit()
 
 
 def main():

@@ -118,3 +118,10 @@ class RateLimit(ArcError):
 
     def __init__(self, message=None, error_code=108, api_error_code=-999, extra_data=None, status=429) -> None:
         super().__init__(message, error_code, api_error_code, extra_data, status)
+
+
+class ConfigError(ArcError):
+    '''配置错误'''
+
+    def __init__(self, message=None, error_code=108, api_error_code=-999, extra_data=None, status=500) -> None:
+        super().__init__(message, error_code, api_error_code, extra_data, status)

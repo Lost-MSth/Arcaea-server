@@ -2314,5 +2314,41 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "altersist",
+		"items": [
+			{
+				"id": "altersist",
+				"type": "single",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 1,
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "csqn",
+		"items": [
+			{
+				"id": "csqn",
+				"type": "single",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 1,
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

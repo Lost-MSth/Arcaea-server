@@ -28,7 +28,7 @@ class ContentBundle:
         self.part_num: int = None
 
         self.json_size: int = None
-        self.bundle_size: int = None
+        # self.bundle_size: int = None
         self.json_path: str = None  # relative path
         self.bundle_parts: 'list[BundlePart]' = []
 

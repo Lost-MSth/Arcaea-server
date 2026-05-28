@@ -40,9 +40,9 @@ mp_notification_enabled int default 1,
 insight_state default 4,  -- 这里写 4 是为了避免不能切换状态和无故被侵入
 custom_banner text,
 is_allow_marketing_email int default 0,
-is_profile_public int default 0
--- showcase_characters text default '[]',
--- world_unlock text default '',
+is_profile_public int default 0,
+showcase_characters text
+-- world_unlock text,
 );
 create table if not exists login(access_token text,
 user_id int,

@@ -12,8 +12,7 @@ from core.constant import ARCAEA_DATABASE_VERSION, ARCAEA_LOG_DATBASE_VERSION
 from core.course import Course
 from core.download import DownloadList
 from core.purchase import Purchase
-from core.sql import (Connect, DatabaseMigrator, LogDatabaseMigrator,
-                      MemoryDatabase)
+from core.sql import Connect, DatabaseMigrator, LogDatabaseMigrator, MemoryDatabase
 from core.user import UserRegister
 from core.util import try_rename
 from core.world import MapParser
@@ -53,6 +52,8 @@ class DatabaseInit:
         '''初始化搭档信息'''
         uncapped_characters = self.init_data.char_core.keys()
         for i in range(0, len(self.init_data.char)):
+            if self.init_data.char[i] == '':
+                continue
             skill_requires_uncap = 1 if i == 2 else 0
             if i in uncapped_characters:
                 max_level = 30
@@ -63,9 +64,6 @@ class DatabaseInit:
             sql = '''insert into character values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'''
             self.c.execute(sql, (i, self.init_data.char[i], max_level, self.init_data.frag1[i], self.init_data.prog1[i], self.init_data.overdrive1[i], self.init_data.frag20[i], self.init_data.prog20[i], self.init_data.overdrive20[i],
                                  self.init_data.frag30[i], self.init_data.prog30[i], self.init_data.overdrive30[i], self.init_data.skill_id[i], self.init_data.skill_unlock_level[i], skill_requires_uncap, self.init_data.skill_id_uncap[i], self.init_data.char_type[i], uncapable))
-
-        self.c.execute('''insert into character values(?,?,20,?,?,?,?,?,?,?,?,?,?,?,?,?,?,0)''', (
-            99, 'shirahime', 38, 33, 28, 66, 58, 50, 66, 58, 50, 'frags_preferred_song', 0, 0, '', 0))
 
         for i in self.init_data.char_core:
             self.c.executemany('''insert into char_item values(?,?,'core',?)''', [

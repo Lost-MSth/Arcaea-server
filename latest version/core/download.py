@@ -3,14 +3,14 @@ from functools import lru_cache
 from json import loads
 from time import time
 
-from flask import url_for
+from flask import make_response, redirect, send_from_directory, url_for
 
 from .config_manager import Config
 from .constant import Constant
-from .error import NoAccess
+from .error import ConfigError, NoAccess
 from .limiter import ArcLimiter
 from .user import User
-from .util import get_file_md5, md5
+from .util import get_file_md5, join_path, md5, secure_link_md5
 
 
 @lru_cache(maxsize=Constant.LRU_CACHE_MAX_SIZE['get_song_file_md5'])
@@ -76,7 +76,7 @@ class SonglistParser:
     def parse_one(self, song: dict) -> dict:
         '''解析单个歌曲'''
         # TODO: byd_local_unlock ???
-        if not 'id' in song:
+        if 'id' not in song:
             return {}
         r = 0
         if 'remote_dl' in song and song['remote_dl']:
@@ -107,7 +107,7 @@ class SonglistParser:
 
     def parse_one_unlock(self, song: dict) -> None:
         '''解析单个歌曲解锁方式'''
-        if not 'id' in song or not 'set' in song or not 'purchase' in song:
+        if 'id' not in song or 'set' not in song or 'purchase' not in song:
             return {}
         x = SonglistParser
         if Constant.FREE_PACK_NAME == song['set']:
@@ -352,3 +352,52 @@ class DownloadList(UserDownload):
         if self.url_flag:
             self.clear_download_token()
             self.insert_download_tokens()
+
+
+class DownloadManager:
+
+    def __init__(self, file_path: str, is_bundle: bool = False) -> None:
+        self.file_path = file_path
+        self.is_bundle = is_bundle
+
+    def get_response(self):
+        if Config.REMOTE_DOWNLOAD_MODE == 'nginx':
+            return self._nginx_secure_link()
+        elif Config.DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT:
+            return self._nginx_x_accel_redirect()
+        else:
+            return self._default_localhost_download()
+
+    def _default_localhost_download(self):
+        folder = Constant.CONTENT_BUNDLE_FOLDER_PATH if self.is_bundle else Constant.SONG_FILE_FOLDER_PATH
+        return send_from_directory(folder, self.file_path, as_attachment=True, conditional=True)
+
+    def _nginx_x_accel_redirect(self):
+        prefix = Config.BUNDLE_NGINX_X_ACCEL_REDIRECT_PREFIX if self.is_bundle else Config.NGINX_X_ACCEL_REDIRECT_PREFIX
+        response = make_response()
+        response.headers['Content-Type'] = 'application/octet-stream'
+        response.headers['X-Accel-Redirect'] = join_path(
+            prefix, self.file_path, start_sep=True, end_sep=False)
+        return response
+
+    def _nginx_secure_link(self):
+        options = Config.REMOTE_DOWNLOAD_OPTIONS.get('nginx', {})
+        if not options:
+            raise ConfigError('Nginx secure link is not configured.')
+        prefix = options.get('bundle_download_link_prefix') if self.is_bundle else options.get(
+            'download_link_prefix')
+        host = options.get('bundle_download_link_host') if self.is_bundle else options.get(
+            'download_link_host')
+        secret_key = options.get('secret_key')
+        if not prefix or not host or not secret_key:
+            raise ConfigError('Nginx secure link is not properly configured.')
+
+        expire = Constant.BUNDLE_DOWNLOAD_TIME_GAP_LIMIT if self.is_bundle else Constant.DOWNLOAD_TIME_GAP_LIMIT
+        expires = int(time()) + expire
+
+        path = join_path(prefix, self.file_path, start_sep=True, end_sep=False)
+        raw = f'{expires}|{path} {secret_key}'
+
+        url = join_path(host, path, start_sep=False, end_sep=False) + \
+            f'?md5={secure_link_md5(raw)}&expires={expires}'
+        return redirect(url)
