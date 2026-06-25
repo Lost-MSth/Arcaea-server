@@ -359,12 +359,22 @@ class DownloadManager:
     def __init__(self, file_path: str, is_bundle: bool = False) -> None:
         self.file_path = file_path
         self.is_bundle = is_bundle
+        self._s3 = None
+
+        if Config.REMOTE_DOWNLOAD_MODE == 's3':
+            self._set_s3_client()
+
+    @property
+    def expire_time(self) -> int:
+        return Constant.BUNDLE_DOWNLOAD_TIME_GAP_LIMIT if self.is_bundle else Constant.DOWNLOAD_TIME_GAP_LIMIT
 
     def get_response(self):
         if Config.REMOTE_DOWNLOAD_MODE == 'nginx':
             return self._nginx_secure_link()
         elif Config.DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT:
             return self._nginx_x_accel_redirect()
+        elif Config.REMOTE_DOWNLOAD_MODE == 's3':
+            return self._s3_generate_presigned_url()
         else:
             return self._default_localhost_download()
 
@@ -392,7 +402,7 @@ class DownloadManager:
         if not prefix or not host or not secret_key:
             raise ConfigError('Nginx secure link is not properly configured.')
 
-        expire = Constant.BUNDLE_DOWNLOAD_TIME_GAP_LIMIT if self.is_bundle else Constant.DOWNLOAD_TIME_GAP_LIMIT
+        expire = self.expire_time
         expires = int(time()) + expire
 
         path = join_path(prefix, self.file_path, start_sep=True, end_sep=False)
@@ -400,4 +410,45 @@ class DownloadManager:
 
         url = join_path(host, path, start_sep=False, end_sep=False) + \
             f'?md5={secure_link_md5(raw)}&expires={expires}'
+        return redirect(url)
+
+    def _set_s3_client(self):
+        import boto3
+        from botocore.config import Config as BotoConfig
+        options = Config.REMOTE_DOWNLOAD_OPTIONS.get('s3', {})
+        if not options:
+            raise ConfigError('S3 remote download is not configured.')
+        args = {
+            'endpoint_url': options.get('endpoint_url'),
+            'aws_access_key_id': options.get('aws_access_key_id'),
+            'aws_secret_access_key': options.get('aws_secret_access_key'),
+            'region_name': options.get('region_name'),
+            'config': BotoConfig(**options.get('config', {})),
+            'api_version': options.get('api_version'),
+            'use_ssl': options.get('use_ssl', True),
+            'verify': options.get('verify'),
+            'aws_session_token': options.get('aws_session_token'),
+            'aws_account_id': options.get('aws_account_id'),
+        }
+        self._s3 = boto3.client(
+            's3',
+            **args
+        )
+
+    def _s3_generate_presigned_url(self):
+        options = Config.REMOTE_DOWNLOAD_OPTIONS.get('s3', {})
+        bucket_name = options.get(
+            'song_bucket_name') if not self.is_bundle else options.get('bundle_bucket_name')
+        key_prefix = options.get('song_file_key_prefix') if not self.is_bundle else options.get(
+            'bundle_file_key_prefix')
+        if not bucket_name or not key_prefix:
+            raise ConfigError('S3 remote download is not properly configured.')
+
+        key = join_path(key_prefix, self.file_path,
+                        start_sep=False, end_sep=False)
+        url = self._s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket_name, 'Key': key},
+            ExpiresIn=self.expire_time
+        )
         return redirect(url)

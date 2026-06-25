@@ -60,6 +60,22 @@ class Config:
             'bundle_download_link_host': 'http://please.change.this.to.your.domain:port',
             'bundle_download_link_prefix': '/arcaea_server_bundle_download',
             'secret_key': 'nginx_secure_link_md5_secret_key',
+        },
+        's3': {
+            'endpoint_url': 'https://s3.your-cloud.com',
+            'aws_access_key_id': 'your_aws_access_key_id',
+            'aws_secret_access_key': 'your_aws_secret_access_key',
+            'config': {
+                'signature_version': 's3v4',
+                's3': {
+                    'addressing_style': 'path'
+                }
+            },
+            'region_name': 'us-east-1',
+            'song_bucket_name': 'your_bucket_name',
+            'bundle_bucket_name': 'your_bundle_bucket_name_which_can_be_same_as_bucket_name',
+            'song_file_key_prefix': 'songs/',
+            'bundle_file_key_prefix': 'bundles/',
         }
     }
 

@@ -2350,5 +2350,23 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "sucromania",
+		"items": [
+			{
+				"id": "sucromania",
+				"type": "single",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 1,
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]
