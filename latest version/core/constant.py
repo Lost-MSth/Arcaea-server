@@ -1,7 +1,7 @@
 from .config_manager import Config
 
-ARCAEA_SERVER_VERSION = 'v2.12.1.13'
-ARCAEA_DATABASE_VERSION = 'v2.12.1.13'
+ARCAEA_SERVER_VERSION = 'v2.12.1.14'
+ARCAEA_DATABASE_VERSION = 'v2.12.1.14'
 ARCAEA_LOG_DATBASE_VERSION = 'v1.1'
 
 
@@ -133,6 +133,9 @@ class Constant:
         (0X5D6FC5, 0xab97ef), (0X237206D, 0xdfef2), (0XA3DEE,
                                                      0x6CB300), (0XA35687B, 0xE456CDEA)
     ]
+
+    STICKER_UNLOCK_KEY = {
+        f'stickerUnlockKey{i}_challenge' for i in range(12, 24)}
 
     DATABASE_MIGRATE_TABLES = ['user', 'friend', 'best_score', 'recent30', 'user_world', 'item', 'user_item', 'purchase', 'purchase_item', 'user_save', 'user_mission',
                                'login', 'present', 'user_present', 'present_item', 'redeem', 'user_redeem', 'redeem_item', 'api_login', 'chart', 'user_course', 'user_char', 'user_role', 'user_kvdata']

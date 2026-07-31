@@ -112,6 +112,14 @@ class SaveData:
                 else:
                     i['complete'] = 1
 
+            # link play sticker
+            for k in Constant.STICKER_UNLOCK_KEY:
+                if k not in self.unlocklist_data:
+                    self.unlocklist_data.append({
+                        'unlock_key': k,
+                        'complete': 1
+                    })
+
             self.finalestate_data = '|'.join(
                 ['0', '100'] + [str(x[0]) if i in [64, 65, 66, 71] else str(x[1]) for i, x in enumerate(Constant.FINALE_SWITCH)] + ['1337'])
 

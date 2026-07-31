@@ -2368,5 +2368,59 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "acidgod",
+		"items": [
+			{
+				"id": "acidgod",
+				"type": "single",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 1,
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "synthesis",
+		"items": [
+			{
+				"id": "synthesis",
+				"type": "single",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 1,
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "chronologia",
+		"items": [
+			{
+				"id": "chronologia",
+				"type": "single",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 1,
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

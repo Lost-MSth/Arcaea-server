@@ -371,10 +371,10 @@ class DownloadManager:
     def get_response(self):
         if Config.REMOTE_DOWNLOAD_MODE == 'nginx':
             return self._nginx_secure_link()
-        elif Config.DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT:
-            return self._nginx_x_accel_redirect()
         elif Config.REMOTE_DOWNLOAD_MODE == 's3':
             return self._s3_generate_presigned_url()
+        elif Config.DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT:
+            return self._nginx_x_accel_redirect()
         else:
             return self._default_localhost_download()
 
