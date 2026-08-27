@@ -13,7 +13,13 @@ class Connect:
     # 数据库连接类，上下文管理
     logger = None
 
-    def __init__(self, file_path: str = Constant.SQLITE_DATABASE_PATH, in_memory: bool = False, logger=None) -> None:
+    def __init__(
+        self,
+        file_path: str = Constant.SQLITE_DATABASE_PATH,
+        in_memory: bool = False,
+        logger=None,
+        begin_mode=None
+    ) -> None:
         """
             数据库连接，默认连接arcaea_database.db
             接受：文件路径
@@ -21,6 +27,7 @@ class Connect:
         """
         self.file_path = file_path
         self.in_memory: bool = in_memory
+        self.begin_mode = begin_mode
         if logger is not None:
             self.logger = logger
 
@@ -34,6 +41,8 @@ class Connect:
         else:
             self.conn = sqlite3.connect(self.file_path, timeout=10)
         self.c = self.conn.cursor()
+        if self.begin_mode is not None:
+            self.c.execute(f'begin {self.begin_mode}')
         return self.c
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
@@ -229,7 +238,8 @@ class Sql:
         if not d:
             return None
         sql_list = []
-        sql = f"update {table_name} set {','.join([f'{k}=?' for k in d.keys()])}"
+        sql = f"update {table_name} set {','.join([f'{k}=?' for k in d.keys(
+        )])}"
         sql_list.extend(d.values())
 
         if query is None:
@@ -352,7 +362,8 @@ class DatabaseMigrator:
 
     SPECIAL_UPDATE_VERSION = {
         '2.11.3.11': '_version_2_11_3_11',
-        '2.11.3.13': '_version_2_11_3_13'
+        '2.11.3.13': '_version_2_11_3_13',
+        '2.12.1.15': '_version_2_12_1_15'
     }
 
     def __init__(self, c1_path: str, c2_path: str) -> None:
@@ -470,6 +481,12 @@ class DatabaseMigrator:
         2.11.3.13 版本特殊更新，world_rank_score 机制调整，需清空用户分数
         '''
         self.c1.execute('''update user set world_rank_score = 0''')
+
+    def _version_2_12_1_15(self):
+        '''
+        2.12.1.15 版本特殊更新，PTT 机制调整，需要重算，这里只是清空
+        '''
+        self.c1.execute('''update user set rating_ptt = 0''')
 
 
 class LogDatabaseMigrator:

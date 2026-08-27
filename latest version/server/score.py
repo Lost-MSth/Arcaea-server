@@ -29,13 +29,15 @@ def score_token_world(user_id):
 
     d = request.args.get
 
-    stamina_multiply = d('stamina_multiply', 1, type=int)
-    fragment_multiply = d('fragment_multiply', 100, type=int)
-    prog_boost_multiply = d('prog_boost_multiply', 0, type=int)
-    beyond_boost_gauge_use = d('beyond_boost_gauge_use', 0, type=int)
+    stamina_multiply = max(1, d('stamina_multiply', 1, type=int))
+    fragment_multiply = max(100, d('fragment_multiply', 100, type=int))
+    prog_boost_multiply = max(0, d('prog_boost_multiply', 0, type=int))
+    beyond_boost_gauge_use = max(0, d('beyond_boost_gauge_use', 0, type=int))
     skill_cytusii_flag = None
     skill_chinatsu_flag = None
     skill_id = d('skill_id')
+
+    # check value
 
     if (skill_id == 'skill_ilith_ivy' or skill_id == 'skill_hikari_vanessa') and d('is_skill_sealed') == 'false':
         # 处理 ivy 技能或者 vanessa 技能
@@ -115,6 +117,8 @@ def score_token_course(user_id):
 @auth_required(request)
 @arc_try
 def song_score_post(user_id):
+    # nell_toggle ?
+    # gauge_level ? find with char 97
     with Connect() as c:
         x = UserPlay(c, UserOnline(c, user_id))
         f = request.form

@@ -143,6 +143,17 @@ def awaken_maya(user_id):
         })
 
 
+@bp.route('/unlock/me/konzetsu_saya', methods=['POST'])
+@auth_required(request)
+@arc_try
+def konzetsu_saya(user_id):
+    with Connect() as c:
+        item = ItemCharacter(c)
+        item.set_id('97')  # Saya (Absolution)
+        item.user_claim_item(UserOnline(c, user_id))
+        return success_return({})
+
+
 @bp.route('/applog/me/log', methods=['POST'])
 def applog_me():
     # 异常日志，不处理

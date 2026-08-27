@@ -402,6 +402,7 @@ class TCPRouter:
                     'rating_ptt': i.rating_ptt
                 } for i in room.players]
             })
+            n += 1
             if n >= 100:
                 break
         return {

@@ -21,7 +21,7 @@ bp = Blueprint('users', __name__, url_prefix='/users')
 @api_try
 def users_post(data, user):
     '''注册一个用户'''
-    with Connect() as c:
+    with Connect(begin_mode='IMMEDIATE') as c:
         new_user = UserRegister(c)
         new_user.set_name(data['name'])
         new_user.set_password(data['password'])

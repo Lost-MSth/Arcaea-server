@@ -25,7 +25,7 @@ def register():
     if error is not None:
         raise error
 
-    with Connect() as c:
+    with Connect(begin_mode='IMMEDIATE') as c:
         new_user = UserRegister(c)
         new_user.set_name(request.form['name'])
         new_user.set_password(request.form['password'])

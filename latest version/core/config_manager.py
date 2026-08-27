@@ -12,7 +12,7 @@ class Config:
 
     SONG_FILE_HASH_PRE_CALCULATE = True
 
-    GAME_API_PREFIX = ['/steeptennis/40', '/']  # str | list[str]
+    GAME_API_PREFIX = ['/brieflywingtip/41', '/']  # str | list[str]
     OLD_GAME_API_PREFIX = []  # str | list[str]
 
     ALLOW_APPVERSION = []  # list[str]
@@ -125,8 +125,16 @@ class Config:
     # ------------------------------------------
 
     # You can change this to make another PTT mechanism.
-    BEST30_WEIGHT = 1 / 40
-    RECENT10_WEIGHT = 1 / 40
+    # BEST30_WEIGHT = 1 / 40
+    # RECENT10_WEIGHT = 1 / 40
+    # BEST10_WEIGHT = 0
+    # BEST50_WEIGHT = 0
+    # CLEAR_BONUS = 0.0
+    BEST30_WEIGHT = 0
+    RECENT10_WEIGHT = 0
+    BEST10_WEIGHT = 1 / 60
+    BEST50_WEIGHT = 1 / 60
+    CLEAR_BONUS = 0.2
 
     INVASION_START_WEIGHT = 0.1
     INVASION_HARD_WEIGHT = 0.1

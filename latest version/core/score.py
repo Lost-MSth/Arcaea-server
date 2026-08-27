@@ -95,6 +95,8 @@ class Score:
         '''分数有效性检查'''
         if self.shiny_perfect_count < 0 or self.perfect_count < 0 or self.near_count < 0 or self.miss_count < 0 or self.score < 0 or self.time_played <= 0:
             return False
+        if self.shiny_perfect_count > self.perfect_count:
+            return False
         if self.song.difficulty not in (0, 1, 2, 3, 4):
             return False
 
@@ -104,13 +106,11 @@ class Score:
 
         calc_score = 10000000 / all_note * \
             (self.perfect_count + self.near_count/2) + self.shiny_perfect_count
-        if abs(calc_score - self.score) >= 5:
-            return False
 
-        return True
+        return abs(calc_score - self.score) < 5
 
     @staticmethod
-    def calculate_rating(defnum: float, score: int) -> float:
+    def calculate_rating(defnum: float, score: int, clear_type: int) -> float:
         '''计算rating，谱面定数小于等于0视为Unrank，返回值会为-1，这里的defnum = Chart const'''
         if not defnum or defnum <= 0:
             # 谱面没定数或者定数小于等于0被视作Unrank
@@ -123,6 +123,9 @@ class Score:
             ptt = max(ptt, 0)
         else:
             ptt = defnum + 1 + (score-9800000) / 200000
+
+        if Constant.CLEAR_BONUS > 0 and clear_type != 0:
+            ptt += Constant.CLEAR_BONUS
 
         return ptt
 
@@ -148,7 +151,8 @@ class Score:
         if not self.song.defnum:
             self.song.c = self.c
             self.song.select()
-        self.rating = self.calculate_rating(self.song.chart_const, self.score)
+        self.rating = self.calculate_rating(
+            self.song.chart_const, self.score, self.clear_type)
         self.score_v2 = self.calculate_score_v2(
             self.song.chart_const, self.shiny_perfect_count, self.perfect_count, self.near_count, self.miss_count)
         return self.rating
@@ -315,10 +319,7 @@ class UserPlay(UserScore):
         y = f'{self.user.user_id}{self.song_hash}'
         checksum = md5(x+md5(y))
 
-        if checksum != self.submission_hash:
-            return False
-
-        return True
+        return checksum == self.submission_hash
 
     def get_play_state(self) -> None:
         '''检查token，当然这里不管有没有，是用来判断世界模式和课题模式的'''
@@ -326,7 +327,7 @@ class UserPlay(UserScore):
             # 硬编码检查，绕过数据库
             self.is_world_mode = False
             self.course_play_state = -1
-            return None
+            return
 
         self.c.execute(
             '''select * from songplay_token where token=:a ''', {'a': self.song_token})
@@ -334,7 +335,7 @@ class UserPlay(UserScore):
         if not x:
             self.is_world_mode = False
             self.course_play_state = -1
-            return None
+            return
             # raise NoData('No token data.')
         # self.song.set_chart(x[2], x[3])
         if x[4]:
@@ -513,10 +514,10 @@ class UserPlay(UserScore):
 
         # 总PTT更新
         user_rating_ptt = self.ptt.value
-        self.user.rating_ptt = int(user_rating_ptt * 100)
+        self.user._rating_ptt = user_rating_ptt
         BGTask(self.record_rating_ptt, user_rating_ptt)  # 记录总PTT变换
         self.c.execute('''update user set rating_ptt = :a where user_id = :b''', {
-            'a': self.user.rating_ptt, 'b': self.user.user_id})
+            'a': self.user.rating_ptt_real, 'b': self.user.user_id})
 
         # 世界模式判断
         if self.is_world_mode:
@@ -549,19 +550,39 @@ class Potential:
         self.r30_tuples: 'list[tuple[int, str, int, float]]' = None
         self.r30: 'list[Score]' = None
 
-        self.b30: list = None
+        # self.b30: list = None
 
     @property
     def value(self) -> float:
         '''计算用户潜力值'''
-        return self.best_30 * Constant.BEST30_WEIGHT + self.recent_10 * Constant.RECENT10_WEIGHT
+        return (
+            Constant.BEST30_WEIGHT * self.best_30 +
+            Constant.RECENT10_WEIGHT * self.recent_10 +
+            Constant.BEST10_WEIGHT * self.best_10 +
+            Constant.BEST50_WEIGHT * self.best_50
+        )
+
+    def get_best_n(self, n: int) -> float:
+        '''获取用户 best_n 的总潜力值'''
+        assert n > 0, 'n must be greater than 0'
+        self.c.execute('''select sum(rating) from (
+            select rating from best_score where user_id = :a order by rating DESC limit :b
+        )''', {
+            'a': self.user.user_id, 'b': n})
+        x = self.c.fetchone()
+        return x[0] if x and x[0] is not None else 0
 
     @property
     def best_30(self) -> float:
-        '''获取用户best30的总潜力值'''
-        self.c.execute('''select rating from best_score where user_id = :a order by rating DESC limit 30''', {
-            'a': self.user.user_id})
-        return sum(x[0] for x in self.c.fetchall())
+        return self.get_best_n(30)
+
+    @property
+    def best_10(self) -> float:
+        return self.get_best_n(10)
+
+    @property
+    def best_50(self) -> float:
+        return self.get_best_n(50)
 
     def select_recent_30_tuple(self) -> None:
         '''获取用户recent30数据'''

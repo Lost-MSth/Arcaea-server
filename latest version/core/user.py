@@ -42,7 +42,8 @@ class User:
         self.user_code: str = None
 
         self.join_date = None
-        self.rating_ptt: int = None  # 100 times
+        # self.rating_ptt: int = None  # 100 times
+        self._rating_ptt: float = None  # real value
 
         self.ticket: int = None
         self.world_rank_score: int = None
@@ -54,6 +55,15 @@ class User:
     def hash_pwd(self) -> str:
         '''`password`的SHA-256值'''
         return hashlib.sha256(self.password.encode("utf8")).hexdigest()
+
+    @property
+    def rating_ptt(self) -> int:
+        # 1000 times since v7.0.0
+        return round(self._rating_ptt * 1000) if self._rating_ptt is not None else 0
+
+    @property
+    def rating_ptt_real(self) -> float:
+        return self._rating_ptt if self._rating_ptt is not None else 0.0
 
 
 class UserRegister(User):
@@ -620,7 +630,7 @@ class UserInfo(User):
         self.name = x[1]
         self.join_date = int(x[3])
         self.user_code = x[4]
-        self.rating_ptt = x[5]
+        self._rating_ptt = x[5]
         self.character = UserCharacter(self.c, x[6])
         self.is_skill_sealed = x[7] == 1
         self.character.is_uncapped = x[8] == 1
@@ -748,7 +758,7 @@ class UserInfo(User):
             raise NoData('No user.', 108, -3)
 
         self.name = x[0]
-        self.rating_ptt = x[1]
+        self._rating_ptt = x[1]
         self.is_hide_rating = x[2] == 1
 
     def select_user_about_profile(self) -> None:

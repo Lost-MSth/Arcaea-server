@@ -605,7 +605,7 @@ class WorldSkillMixin:
         '''luna觉醒技能，限制格开始时世界模式进度加 7，偷懒重爬（因为 map 信息还未获取）'''
         x: 'Step' = self.user.current_map.steps_for_climbing[0]
         if x.restrict_id and x.restrict_type:
-            self.self.character_bonus_progress_normalized = Constant.LUNA_UNCAP_BONUS_PROGRESS
+            self.character_bonus_progress_normalized = Constant.LUNA_UNCAP_BONUS_PROGRESS
             self.user.current_map.reclimb(self.final_progress)
 
     def _ayu_uncap(self) -> None:

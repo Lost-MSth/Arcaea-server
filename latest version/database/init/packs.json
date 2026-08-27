@@ -1132,5 +1132,23 @@
 		],
 		"orig_price": 500,
 		"price": 500
+	},
+	{
+		"name": "konzetsu",
+		"items": [
+			{
+				"id": "konzetsu",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 5,
+				"is_available": true
+			}
+		],
+		"orig_price": 500,
+		"price": 500
 	}
 ]
