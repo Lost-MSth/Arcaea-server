@@ -42,7 +42,7 @@ class User:
         self.user_code: str = None
 
         self.join_date = None
-        # self.rating_ptt: int = None  # 100 times
+        # self.rating_ptt: int = None  # 1000 times
         self._rating_ptt: float = None  # real value
 
         self.ticket: int = None
