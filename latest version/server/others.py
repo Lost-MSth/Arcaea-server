@@ -151,7 +151,13 @@ def konzetsu_saya(user_id):
         item = ItemCharacter(c)
         item.set_id('97')  # Saya (Absolution)
         item.user_claim_item(UserOnline(c, user_id))
-        return success_return({})
+        user = UserOnline(c, user_id)
+        user.select_user()
+        user.select_characters()
+        user.characters.select_characters_info()
+        return success_return({
+            'characters': [i.to_dict() for i in user.characters.characters]
+        })
 
 
 @bp.route('/applog/me/log', methods=['POST'])
