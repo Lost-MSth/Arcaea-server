@@ -26,6 +26,8 @@ def characters_get(data, user):
          'prog20', 'overdrive20', 'frag30', 'prog30', 'overdrive30']
     with Connect() as c:
         query = Query(A, B, C).from_dict(data)
+        if data.get('count_only', False):
+            return success_return({'count': Sql(c).select_count('character', query)})
         x = Sql(c).select('character', query=query)
         r = [Character().from_list(i) for i in x]
 

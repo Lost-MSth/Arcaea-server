@@ -3,9 +3,9 @@ from .constant import Constant
 from .download import DownloadList
 from .error import NoData
 from .save import SaveData
-from .score import Score
+from .score import Potential, Score
 from .sql import Connect, Sql
-from .user import User
+from .user import User, UserInfo
 from .world import MapParser
 
 
@@ -97,6 +97,27 @@ class RefreshAllScoreRating(BaseOperation):
                 if values:
                     Sql(c).update_many('recent30', ['rating'], values, [
                         'user_id', 'r_index'], where_values)
+
+
+class RefreshUsersScoreRating(BaseOperation):
+    '''
+        刷新所有用户的 PTT
+        包括 world_rank_score
+    '''
+    _name = 'refresh_users_score_rating'
+
+    def run(self):
+        with Connect() as c:
+            x = c.execute('''select user_id from user''').fetchall()
+            user_ids = [i[0] for i in x]
+            values = []
+            for user_id in user_ids:
+                user = UserInfo(c, user_id)
+                p = Potential(c, user)
+                values.append((p.value, user._get_world_rank_score()))
+
+            Sql(c).update_many('user', ['rating_ptt', 'world_rank_score'], values, [
+                'user_id'], [(i,) for i in user_ids])
 
 
 class RefreshSongFileCache(BaseOperation):

@@ -9,7 +9,6 @@ from .api_auth import api_try, request_json_handle, role_required
 from .api_code import success_return
 from .constant import Constant
 
-
 bp = Blueprint('presents', __name__, url_prefix='/presents')
 
 
@@ -22,6 +21,8 @@ def presents_get(data, user):
     with Connect() as c:
         query = Query(['present_id'], ['present_id', 'description'], [
                       'present_id', 'expire_ts']).from_dict(data)
+        if data.get('count_only', False):
+            return success_return({'count': Sql(c).select_count('present', query)})
         x = Sql(c).select('present', query=query)
         r = [Present().from_list(i) for i in x]
 
@@ -32,7 +33,7 @@ def presents_get(data, user):
 
 
 @bp.route('', methods=['POST'])
-@role_required(request, ['insert'])
+@role_required(request, ['change'])
 @request_json_handle(request, required_keys=['present_id', 'description', 'expire_ts'], optional_keys=['items'])
 @api_try
 def presents_post(data, user):
@@ -58,7 +59,7 @@ def presents_present_get(user, present_id: str):
 
 
 @bp.route('/<string:present_id>', methods=['DELETE'])
-@role_required(request, ['delete'])
+@role_required(request, ['change'])
 @api_try
 def presents_present_delete(user, present_id: str):
     '''删除present，会连带删除present_item'''

@@ -9,7 +9,6 @@ from .api_auth import api_try, request_json_handle, role_required
 from .api_code import success_return
 from .constant import Constant
 
-
 bp = Blueprint('redeems', __name__, url_prefix='/redeems')
 
 
@@ -21,6 +20,8 @@ def redeems_get(data, user):
     '''查询全redeem信息'''
     with Connect() as c:
         query = Query(['code', 'type'], ['code'], ['code']).from_dict(data)
+        if data.get('count_only', False):
+            return success_return({'count': Sql(c).select_count('redeem', query)})
         x = Sql(c).select('redeem', query=query)
         r = [Redeem().from_list(i) for i in x]
 
@@ -31,7 +32,7 @@ def redeems_get(data, user):
 
 
 @bp.route('', methods=['POST'])
-@role_required(request, ['insert'])
+@role_required(request, ['change'])
 @request_json_handle(request, required_keys=['code', 'type'], optional_keys=['items'])
 @api_try
 def redeems_post(data, user):
@@ -57,7 +58,7 @@ def redeems_redeem_get(user, code: str):
 
 
 @bp.route('/<string:code>', methods=['DELETE'])
-@role_required(request, ['delete'])
+@role_required(request, ['change'])
 @api_try
 def redeems_redeem_delete(user, code: str):
     '''删除redeem，会连带删除redeem_item'''

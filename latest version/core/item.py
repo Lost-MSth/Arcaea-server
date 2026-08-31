@@ -382,6 +382,8 @@ class ItemFactory:
             return ProgBoost(self.c)
         elif item_type == 'stamina6':
             return Stamina6(self.c)
+        elif item_type == 'stamina':
+            return ItemStamina(self.c)
         elif item_type == 'course_banner':
             return CourseBanner(self.c)
         elif item_type == 'online_banner':

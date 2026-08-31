@@ -1,15 +1,23 @@
 import base64
 import hashlib
 import time
+from json import loads
 from os import urandom
 from random import randint
-from json import loads
 
 from .character import UserCharacter, UserCharacterList
 from .config_manager import Config
 from .constant import Constant
-from .error import (ArcError, DataExist, FriendError, InputError, NoAccess,
-                    NoData, RateLimit, UserBan)
+from .error import (
+    ArcError,
+    DataExist,
+    FriendError,
+    InputError,
+    NoAccess,
+    NoData,
+    RateLimit,
+    UserBan,
+)
 from .item import UserItemList
 from .limiter import ArcLimiter
 from .mission import UserMissionList
@@ -46,8 +54,9 @@ class User:
         self._rating_ptt: float = None  # real value
 
         self.ticket: int = None
-        self.world_rank_score: int = None
+        self.world_rank_score: float = None
         self.ban_flag = None
+        self.is_banned: bool = None
 
         self.is_allow_marketing_email = False
 
@@ -628,6 +637,7 @@ class UserInfo(User):
         if self.user_id is None:
             self.user_id = x[0]
         self.name = x[1]
+        self.is_banned = x[2] == ''
         self.join_date = int(x[3])
         self.user_code = x[4]
         self._rating_ptt = x[5]
@@ -792,8 +802,7 @@ class UserInfo(User):
 
         return 0
 
-    def update_global_rank(self) -> None:
-        '''用户世界排名计算，有新增成绩则要更新'''
+    def _get_world_rank_score(self) -> float:
 
         self.c.execute(
             '''
@@ -812,11 +821,15 @@ class UserInfo(User):
         )
         x = self.c.fetchone()
         if x[0] is None:
-            return
+            return 0.0
+        return x[0]
 
-        self.c.execute(
-            '''update user set world_rank_score = ? where user_id = ?''', (x[0], self.user_id))
-        self.world_rank_score = x[0]
+    def update_global_rank(self) -> None:
+        '''用户世界排名计算，有新增成绩则要更新'''
+
+        self.world_rank_score = self._get_world_rank_score()
+        self.c.execute('''update user set world_rank_score = ? where user_id = ?''',
+                       (self.world_rank_score, self.user_id))
 
     def update_user_world_complete_info(self) -> None:
         '''

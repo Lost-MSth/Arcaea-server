@@ -299,6 +299,28 @@ class Sql:
 
         return sql, sql_list
 
+    @staticmethod
+    def get_count_sql(table_name: str, query: 'Query' = None):
+        '''拼接单表内行 count 单句 sql 语句，返回语句和参数列表， query 中只有 query 和 fuzzy_query 会被处理'''
+        sql_list = []
+        sql = f'select count(*) from {table_name}'
+        if query is None:
+            return sql, sql_list
+        where_key = []
+        for k, v in query.query.items():
+            if isinstance(v, list):
+                where_key.append(f"{k} in ({','.join(['?'] * len(v))})")
+                sql_list.extend(v)
+            else:
+                where_key.append(f'{k}=?')
+                sql_list.append(v)
+        for k, v in query.fuzzy_query.items():
+            where_key.append(f'{k} like ?')
+            sql_list.append(f'%{v}%')
+        if where_key:
+            sql += ' where ' + ' and '.join(where_key)
+        return sql, sql_list
+
     def select(self, table_name: str, target_column: list = None, query: 'Query' = None) -> list:
         '''单表内行select单句sql语句，返回fetchall数据'''
         sql, sql_list = self.get_select_sql(table_name, target_column, query)
@@ -310,6 +332,12 @@ class Sql:
         sql, sql_list = self.get_select_sql(table_name, target_column, query)
         self.c.execute('select exists(' + sql + ')', sql_list)
         return self.c.fetchone() == (1,)
+
+    def select_count(self, table_name: str, query: 'Query' = None) -> int:
+        '''单表内行select count单句sql语句，返回数量'''
+        sql, sql_list = self.get_count_sql(table_name, query)
+        self.c.execute(sql, sql_list)
+        return self.c.fetchone()[0]
 
     def insert(self, table_name: str, key: list, value: tuple, insert_type: str = None) -> None:
         '''单行插入或覆盖插入，key传[]则为全部列，insert_type为replace或ignore'''
