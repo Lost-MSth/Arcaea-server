@@ -61,7 +61,7 @@ def score_token_world(user_id):
             "token": x.song_token,
             'play_parameters': {},
         }
-        if skill_flag and skill_id:
+        if skill_flag and skill_id and x.invasion_flag != 1:
             r['play_parameters'] = {
                 skill_id: list(
                     map(lambda x: Constant.WORLD_VALUE_NAME_ENUM[int(x)], skill_flag)),

@@ -520,6 +520,10 @@ class UserPlay(UserScore):
         self.c.execute('''update user set rating_ptt = :a where user_id = :b''', {
             'a': self.user.rating_ptt_real, 'b': self.user.user_id})
 
+        # 更新用户分数统计信息
+        # 必须在世界模式之前，这样才能确保分数统计信息是最新的
+        self.user.update_user_score_statistics()
+
         # 世界模式判断
         if self.is_world_mode:
             self.user.select_user_about_world_play()

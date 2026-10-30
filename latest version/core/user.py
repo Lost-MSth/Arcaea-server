@@ -860,18 +860,31 @@ class UserInfo(User):
         if x is not None:
             kvd['total_step_count'] = x[0] or 0
 
+    def update_user_score_statistics(self) -> None:
+        '''
+            更新用户的分数统计信息
+
+            洞烛（Nullified）技能需要：查询用户上传过分数的 beyond 难度谱面成绩的数量
+        '''
+        kvd = UserKVTable(self.c, self.user_id, 'score')
+        self.c.execute(
+            '''select count(*) from best_score where user_id = ? and difficulty = 3''', (self.user_id,)
+        )
+        x = self.c.fetchone()
+        if x is not None:
+            kvd['best_score_count_byd'] = x[0] or 0
+
     def select_user_beyond_score_count(self) -> int:
         '''
             查询用户上传过分数的 beyond 难度谱面成绩的数量
             洞烛（Nullified）技能需要
         '''
-        self.c.execute(
-            '''select count(*) from best_score where user_id = ? and difficulty = 3''', (self.user_id,)
-        )
-        x = self.c.fetchone()
+        kvd = UserKVTable(self.c, self.user_id, 'score')
+        x = kvd['best_score_count_byd']
         if x is None:
-            return 0
-        return x[0]
+            self.update_user_score_statistics()
+            x = kvd['best_score_count_byd']
+        return x
 
     def select_user_one_column(self, column_name: str, default_value=None, data_type=None) -> None:
         '''

@@ -538,6 +538,7 @@ class WorldSkillMixin:
             'skill_vita_arc': self._skill_vita_arc,
             'skill_maya_uncap': self._skill_maya_uncap,
             'skill_hikari_tairitsu_debut': self._skill_hikari_tairitsu_debut,
+            'skill_stream_palette': self._skill_stream_palette,
         }
         if self.user_play.beyond_gauge == 0 and self.character_used.character_id == 35 and self.character_used.skill_id_displayed:
             self._special_tempest()
@@ -880,7 +881,7 @@ class BaseWorldPlay(WorldSkillMixin):
 
         }
 
-        if self.character_used.skill_id_displayed == 'skill_maya':
+        if self.character_used.skill_id_displayed in ('skill_maya', 'skill_insight_konzetsu'):
             r['char_stats']['skill_state'] = self.character_used.skill_state
 
         if self.user_play.stamina_multiply != 1:
@@ -1092,6 +1093,8 @@ class WorldPlay(BaseWorldPlay):
             prog += self.prog_tempest
         if self.prog_skill_increase:
             prog += self.prog_skill_increase
+        if self.character_used.skill_id_displayed == 'skill_insight_konzetsu':
+            prog += self.character_used.skill_state_insight_konzetsu
         return prog
 
     @property
@@ -1157,6 +1160,8 @@ class BeyondWorldPlay(BaseWorldPlay):
         overdrive = self.character_used.overdrive_value
         if self.over_skill_increase:
             overdrive += self.over_skill_increase
+        if self.character_used.skill_id_displayed == 'skill_insight_konzetsu':
+            overdrive += self.character_used.skill_state_insight_konzetsu
         return overdrive / 50
 
     def to_dict(self) -> dict:

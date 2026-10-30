@@ -1,7 +1,7 @@
 from .config_manager import Config
 
-ARCAEA_SERVER_VERSION = 'v2.12.1.17'
-ARCAEA_DATABASE_VERSION = 'v2.12.1.17'
+ARCAEA_SERVER_VERSION = 'v2.13.0.0'
+ARCAEA_DATABASE_VERSION = 'v2.13.0.0'
 ARCAEA_LOG_DATBASE_VERSION = 'v1.1'
 
 
@@ -37,6 +37,7 @@ class Constant:
     SKILL_MIKA_SONGS = ['aprilshowers', 'seventhsense', 'oshamascramble', 'breakbreak', 'straightintolights', 'virtus', 'yomibitoshirazu',
                         'amazingmightyyyy', 'cycles', 'maxrage', 'infinity', 'temptation']
     FATALIS_MAX_VALUE = 100
+    INSIGHT_KONZETSU_MAX_VALUE = 50
 
     MAX_FRIEND_COUNT = Config.MAX_FRIEND_COUNT
 

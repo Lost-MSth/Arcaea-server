@@ -89,26 +89,80 @@ It is just so interesting. What it can do is under exploration.
 > 其它小改动请参考各个 commit 信息。  
 > Please refer to the commit messages for other minor changes.
 
-### Version 2.12.1
+### Version 2.13.0
 
-> v2.12.0.1 ~ v2.12.0.10 for Arcaea 5.10.6 ~ 6.7.1
+> v2.12.1.1 ~ v2.13.0.0 for Arcaea 6.8.0 ~ 7.1.0
 >
 > Here are not all bug fixes and features.
 
-- 适用于 Arcaea 6.7.1 版本
-  For Arcaea 6.7.1
-- 添加一些新搭档和搭档的觉醒形态，并支持他们的技能
-  Add some new partners, uncap some others, and add support for their skills.
-- 支持“光 (Fatalis)”的由世界模式总台阶数决定的动态搭档数值
-  Add support for dynamic values of "Hikari (Fatalis)", which is depended by world mode total steps.
-- 支持新版本客户端的账户注册和登录接口
-  Adapt to new account registration and login endpoints of the new version client.
-- 修复 Link Play 房间中玩家历史分数异常的问题
-  Fix a bug that if players do not start the first play in one room, their scores will be wrong.
-- 修复因为歌曲 idx 数值过大导致服务端错误，致使 Link Play 模块无法工作的问题
-  Fix a bug that if song's idx is too big, the server will catch the error, which makes Link Play cannot work.
-- 修复谱面难度 ETR 相关问题
-  Fix some bugs about the ETR difficulty.
+- 适用于 Arcaea 7.1.0 版本  
+  For Arcaea 7.1.0
+- 添加一些新搭档和搭档的觉醒形态，补充技能支持  
+  Add new partners and awakening forms, extend skill support.
+- 支持 “Insight (Nullified)” 的技能状态和动态能力加成，以及 “NENE & silky6” 的获胜加成  
+  Add support for the skill state and dynamic stat bonuses of “Insight (Nullified)”, and the win bonus of “NENE & silky6”.
+- 添加 Maya 觉醒、Saya (Absolution) 和 Insight (Nullified) 的解锁接口，并修复部分解锁响应错误  
+  Add endpoints for Maya’s awakening and for unlocking Saya (Absolution) and Insight (Nullified), and fix some unlock response errors.
+- 支持新版潜力值机制，增加 Best 10、Best 50 权重和通关加成，并保留自定义权重配置  
+  Add support for the new Potential system with Best 10 and Best 50 weights and a clear bonus, while keeping the weights configurable.
+- 部分支持 World Parallel 模式及同步率加成  
+  Add partial support for World Parallel mode and its synchronization bonus.
+- 更新 Link Play 协议  
+  Update the Link Play protocol.
+- 支持玩家资料卡的公开状态和名片背景设置  
+  Add support for profile visibility and custom banner settings.
+- 支持玩家设置展示搭档  
+  Add support for showcase partner settings.
+- 支持分片式内容捆绑包热更新  
+  Add support for multipart content bundles.
+- 支持通过 nginx 远程下载歌曲与内容捆绑包  
+  Add support for remote song and content bundle downloads through nginx.
+- 支持通过 S3 兼容存储远程下载歌曲与内容捆绑包  
+  Add support for remote song and content bundle downloads through S3-compatible storage.
+- 支持 Gunicorn 部署  
+  Add support for Gunicorn deployment.
+- 支持通过 `LOG_FOLDER_PATH` 设置日志目录  
+  Add support for configuring the log directory with `LOG_FOLDER_PATH`.
+- 为部分管理 API 添加数量查询功能  
+  Add count queries to some management API endpoints.
+- 添加获取用户简要信息的管理 API  
+  Add a management API endpoint for retrieving brief user information.
+- 添加获取服务端版本、技能列表和潜力值配置等常量的 API  
+  Add an API endpoint for retrieving server versions, skill IDs, Potential settings, and other constants.
+- 添加获取服务端时间的 API  
+  Add an API endpoint for retrieving the server time.
+- 添加刷新所有用户潜力值和世界排名分数的操作  
+  Add an operation to refresh all users’ Potential and world ranking scores.
+- 添加世界排名开关，并修复世界排名无法关闭的问题  
+  Add an option to disable world rankings and fix the option not taking effect.
+- 添加在线名片背景全解锁选项  
+  Add an option to unlock all online banners.
+- 添加全曲解锁时保留世界地图奖励曲锁定的选项  
+  Add an option to keep world map reward songs locked when full song unlocking is enabled.
+- 在云端存档全解锁功能中加入 Link Play 贴纸解锁支持  
+  Extend cloud save unlocking to include Link Play stickers.
+- 在网页管理后台添加世界地图数据刷新按钮  
+  Add a world map data refresh button to the web admin interface.
+- 修复以导入方式启动服务时缺少初始化操作的问题  
+  Fix missing initialization when the application is started by importing it.
+- 修复 Link Play 中部分歌曲解锁状态错误的问题  
+  Fix incorrect unlock states for some songs in Link Play.
+- 修复新手任务可重复完成或领取奖励的问题  
+  Fix repeated mission completion and reward claims.
+- 修复数据库升级时部分任务进度和用户扩展数据未迁移的问题  
+  Fix missing migration of some mission progress and user metadata during database upgrades.
+- 修复部分 Beyond 谱面的独立音频文件未下载的问题  
+  Fix missing audio override downloads for some Beyond charts.
+- 修复搭档技能无法通过管理 API 修改的问题  
+  Fix partner skill changes not taking effect through the management API.
+- 修复洞烛侵入触发时与部分搭档随机技能参数冲突的问题  
+  Fix conflicting play parameters when Insight’s invasion is triggered while using certain partners with random skill parameters.
+- 修复 Beyond 世界模式结算中搭档倍率显示为零的问题  
+  Fix the partner multiplier being displayed as zero in Beyond world mode results.
+- 优化歌曲文件缓存  
+  Optimize song file caching.
+- 优化成绩列表的歌曲名称查询  
+  Optimize song name queries for score lists.
 
 ## 运行环境与依赖 Running environment and requirements
 
