@@ -21,6 +21,8 @@ def purchases_get(data, user):
     with Connect() as c:
         query = Query(['purchase_name', 'discount_reason'], ['purchase_name'], [
                       'purchase_name', 'price', 'orig_price', 'discount_from', 'discount_to']).from_dict(data)
+        if data.get('count_only', False):
+            return success_return({'count': Sql(c).select_count('purchase', query)})
         x = Sql(c).select('purchase', query=query)
         r = [Purchase().from_list(i) for i in x]
 

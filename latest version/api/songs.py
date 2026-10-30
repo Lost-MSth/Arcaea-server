@@ -66,6 +66,8 @@ def songs_get(data, user):
          'rating_prs', 'rating_ftr', 'rating_byn', 'rating_etr']
     with Connect() as c:
         query = Query(A, A, B).from_dict(data)
+        if data.get('count_only', False):
+            return success_return({'count': Sql(c).select_count('chart', query)})
         x = Sql(c).select('chart', query=query)
         r = []
         for i in x:

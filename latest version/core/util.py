@@ -1,5 +1,6 @@
 import hashlib
 import os
+from base64 import urlsafe_b64encode
 from datetime import date
 from time import mktime
 
@@ -72,3 +73,20 @@ def parse_version(s: str) -> 'list[int]':
     '''解析版本号'''
     s_number = "".join(x for x in s if x.isdigit() or x == '.')
     return list(map(int, [x for x in s_number.split('.') if x != '']))
+
+
+def join_path(*parts: str, sep: str = '/', start_sep: bool = True, end_sep: bool = False) -> str:
+    '''连接路径，使用 sep 分隔，如果 start_sep 则在开头加 sep，如果 end_sep 则在结尾加 sep'''
+    path = sep.join(part.strip(sep) for part in parts)
+    if not path:
+        return sep if start_sep or end_sep else ''
+    if start_sep:
+        path = sep + path
+    if end_sep:
+        path = path + sep
+    return path
+
+
+def secure_link_md5(plaintext: str) -> str:
+    '''生成 Nginx secure link 的 MD5'''
+    return urlsafe_b64encode(hashlib.md5(plaintext.encode()).digest()).rstrip(b'=').decode()

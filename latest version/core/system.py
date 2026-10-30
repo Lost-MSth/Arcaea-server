@@ -14,6 +14,6 @@ class GameInfo:
             "core_exp": Constant.CORE_EXP,
             "curr_ts": int(time()*1000),
             "level_steps": [{'level': k, 'level_exp': v} for k, v in Constant.LEVEL_STEPS.items()],
-            "world_ranking_enabled": True,
+            "world_ranking_enabled": Constant.ENABLE_WORLD_RANK,
             "is_byd_chapter_unlocked": True
         }

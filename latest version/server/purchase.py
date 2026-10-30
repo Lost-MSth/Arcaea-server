@@ -130,7 +130,7 @@ def purchase_stamina(user_id, buy_stamina_type):
         user.select_user_one_column('next_fragstam_ts', -1)
         now = int(time()*1000)
         if user.next_fragstam_ts > now:
-            return ItemUnavailable('Buying stamina by fragment is not available yet.', 905)
+            raise ItemUnavailable('Buying stamina by fragment is not available yet.', 905)
 
         user.update_user_one_column(
             'next_fragstam_ts', now + Constant.FRAGSTAM_RECOVER_TICK)

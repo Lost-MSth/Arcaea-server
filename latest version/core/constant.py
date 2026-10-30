@@ -1,7 +1,7 @@
 from .config_manager import Config
 
-ARCAEA_SERVER_VERSION = 'v2.12.1'
-ARCAEA_DATABASE_VERSION = 'v2.12.1'
+ARCAEA_SERVER_VERSION = 'v2.13.0.0'
+ARCAEA_DATABASE_VERSION = 'v2.13.0.0'
 ARCAEA_LOG_DATBASE_VERSION = 'v1.1'
 
 
@@ -34,9 +34,10 @@ class Constant:
     LUNA_UNCAP_BONUS_PROGRESS = 7
     AYU_UNCAP_BONUS_PROGRESS = 5
     SKILL_FATALIS_WORLD_LOCKED_TIME = 3600000
-    SKILL_MIKA_SONGS = ['aprilshowers', 'seventhsense', 'oshamascramble',
+    SKILL_MIKA_SONGS = ['aprilshowers', 'seventhsense', 'oshamascramble', 'breakbreak', 'straightintolights', 'virtus', 'yomibitoshirazu',
                         'amazingmightyyyy', 'cycles', 'maxrage', 'infinity', 'temptation']
     FATALIS_MAX_VALUE = 100
+    INSIGHT_KONZETSU_MAX_VALUE = 50
 
     MAX_FRIEND_COUNT = Config.MAX_FRIEND_COUNT
 
@@ -45,8 +46,13 @@ class Constant:
 
     BEST30_WEIGHT = Config.BEST30_WEIGHT
     RECENT10_WEIGHT = Config.RECENT10_WEIGHT
+    BEST10_WEIGHT = Config.BEST10_WEIGHT
+    BEST50_WEIGHT = Config.BEST50_WEIGHT
+    CLEAR_BONUS = Config.CLEAR_BONUS
+
     INVASION_START_WEIGHT = Config.INVASION_START_WEIGHT
     INVASION_HARD_WEIGHT = Config.INVASION_HARD_WEIGHT
+    ENABLE_WORLD_RANK = Config.ENABLE_WORLD_RANK
 
     WORLD_MAP_FOLDER_PATH = Config.WORLD_MAP_FOLDER_PATH
     SONG_FILE_FOLDER_PATH = Config.SONG_FILE_FOLDER_PATH
@@ -63,7 +69,14 @@ class Constant:
     BUNDLE_DOWNLOAD_TIME_GAP_LIMIT = Config.BUNDLE_DOWNLOAD_TIME_GAP_LIMIT
     BUNDLE_DOWNLOAD_LINK_PREFIX = Config.BUNDLE_DOWNLOAD_LINK_PREFIX
 
-    LINKPLAY_UNLOCK_LENGTH = 512  # Units: bytes
+    LRU_CACHE_MAX_SIZE = {
+        'get_bundles': 256,
+        'get_song_file_md5': 16384,
+        'get_one_song_file_names': 4096,
+        'get_world_info': 1024,
+    }
+
+    LINKPLAY_UNLOCK_LENGTH = 1024  # Units: bytes
     LINKPLAY_TIMEOUT = 5  # Units: seconds
 
     LINKPLAY_HOST = '127.0.0.1' if Config.SET_LINKPLAY_SERVER_AS_SUB_PROCESS else Config.LINKPLAY_HOST
@@ -74,7 +87,7 @@ class Constant:
     LINKPLAY_TCP_MAX_LENGTH = 0x0FFFFFFF
 
     LINKPLAY_MATCH_GET_ROOMS_INTERVAL = 4  # Units: seconds
-    LINKPLAY_MATCH_PTT_ABS = [5, 20, 50, 100, 200, 500, 1000, 2000]
+    LINKPLAY_MATCH_PTT_ABS = [50, 200, 500, 1000, 2000, 5000, 10000, 20000]
     LINKPLAY_MATCH_UNLOCK_MIN = [1000, 800, 500, 300, 200, 100, 50, 1]
     LINKPLAY_MATCH_TIMEOUT = 15  # Units: seconds
     LINKPLAY_MATCH_MEMORY_CLEAN_INTERVAL = 60  # Units: seconds
@@ -126,8 +139,11 @@ class Constant:
                                                      0x6CB300), (0XA35687B, 0xE456CDEA)
     ]
 
-    DATABASE_MIGRATE_TABLES = ['user', 'friend', 'best_score', 'recent30', 'user_world', 'item', 'user_item', 'purchase', 'purchase_item', 'user_save',
-                               'login', 'present', 'user_present', 'present_item', 'redeem', 'user_redeem', 'redeem_item', 'api_login', 'chart', 'user_course', 'user_char', 'user_role']
+    STICKER_UNLOCK_KEY = {
+        f'stickerUnlockKey{i}_challenge' for i in range(12, 24)}
+
+    DATABASE_MIGRATE_TABLES = ['user', 'friend', 'best_score', 'recent30', 'user_world', 'item', 'user_item', 'purchase', 'purchase_item', 'user_save', 'user_mission',
+                               'login', 'present', 'user_present', 'present_item', 'redeem', 'user_redeem', 'redeem_item', 'api_login', 'chart', 'user_course', 'user_char', 'user_role', 'user_kvdata']
 
     LOG_DATABASE_MIGRATE_TABLES = ['cache', 'user_score', 'user_rating']
 

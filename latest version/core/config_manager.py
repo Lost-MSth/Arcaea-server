@@ -12,7 +12,7 @@ class Config:
 
     SONG_FILE_HASH_PRE_CALCULATE = True
 
-    GAME_API_PREFIX = ['/coldwind/35', '/']  # str | list[str]
+    GAME_API_PREFIX = ['/concentrateavailable/43', '/']  # str | list[str]
     OLD_GAME_API_PREFIX = []  # str | list[str]
 
     ALLOW_APPVERSION = []  # list[str]
@@ -33,6 +33,7 @@ class Config:
 
     IS_APRILFOOLS = True
 
+    ENABLE_WORLD_RANK = True
     WORLD_RANK_MAX = 200
 
     AVAILABLE_MAP = []  # list[str]
@@ -50,13 +51,40 @@ class Config:
     DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT = False
     NGINX_X_ACCEL_REDIRECT_PREFIX = '/nginx_download/'
     BUNDLE_NGINX_X_ACCEL_REDIRECT_PREFIX = '/nginx_bundle_download/'
+    REMOTE_DOWNLOAD_MODE = 'localhost'
+    REMOTE_DOWNLOAD_OPTIONS = {
+        'nginx': {
+            # nginx secure_link
+            'download_link_host': 'http://please.change.this.to.your.domain:port',
+            'download_link_prefix': '/arcaea_server_download',
+            'bundle_download_link_host': 'http://please.change.this.to.your.domain:port',
+            'bundle_download_link_prefix': '/arcaea_server_bundle_download',
+            'secret_key': 'nginx_secure_link_md5_secret_key',
+        },
+        's3': {
+            'endpoint_url': 'https://s3.your-cloud.com',
+            'aws_access_key_id': 'your_aws_access_key_id',
+            'aws_secret_access_key': 'your_aws_secret_access_key',
+            'config': {
+                'signature_version': 's3v4',
+                's3': {
+                    'addressing_style': 'path'
+                }
+            },
+            'region_name': 'us-east-1',
+            'song_bucket_name': 'your_bucket_name',
+            'bundle_bucket_name': 'your_bundle_bucket_name_which_can_be_same_as_bucket_name',
+            'song_file_key_prefix': 'songs/',
+            'bundle_file_key_prefix': 'bundles/',
+        }
+    }
 
     DOWNLOAD_TIMES_LIMIT = 3000
     DOWNLOAD_TIME_GAP_LIMIT = 1000
 
     DOWNLOAD_FORBID_WHEN_NO_ITEM = False
 
-    BUNDLE_DOWNLOAD_TIMES_LIMIT = '100/60 minutes'
+    BUNDLE_DOWNLOAD_TIMES_LIMIT = '1000/60 minutes'
     BUNDLE_DOWNLOAD_TIME_GAP_LIMIT = 3000
 
     LOGIN_DEVICE_NUMBER_LIMIT = 1
@@ -74,17 +102,39 @@ class Config:
 
     CHARACTER_FULL_UNLOCK = True
     WORLD_SONG_FULL_UNLOCK = True
+    WORLD_SONG_FULL_UNLOCK_WITHOUT_MAP = False
     WORLD_SCENERY_FULL_UNLOCK = True
+    ONLINE_BANNER_FULL_UNLOCK = True
 
     SAVE_FULL_UNLOCK = False
 
     ALLOW_SELF_ACCOUNT_DELETE = False
 
+    DEPLOY_OPTIONS = {
+        'gunicorn': {
+            'bind': f'{HOST}:{PORT}',
+            'worker_class': 'sync',
+            'workers': 1,
+            'threads': 4,
+            'timeout': 30,
+            'certfile': SSL_CERT or None,
+            'keyfile': SSL_KEY or None,
+        },
+    }
+
     # ------------------------------------------
 
     # You can change this to make another PTT mechanism.
-    BEST30_WEIGHT = 1 / 40
-    RECENT10_WEIGHT = 1 / 40
+    # BEST30_WEIGHT = 1 / 40
+    # RECENT10_WEIGHT = 1 / 40
+    # BEST10_WEIGHT = 0
+    # BEST50_WEIGHT = 0
+    # CLEAR_BONUS = 0.0
+    BEST30_WEIGHT = 0
+    RECENT10_WEIGHT = 0
+    BEST10_WEIGHT = 1 / 60
+    BEST50_WEIGHT = 1 / 60
+    CLEAR_BONUS = 0.2
 
     INVASION_START_WEIGHT = 0.1
     INVASION_HARD_WEIGHT = 0.1
@@ -100,6 +150,7 @@ class Config:
     DATABASE_INIT_PATH = './database/init/'
     SQLITE_LOG_DATABASE_PATH = './database/arcaea_log.db'
     SQLITE_DATABASE_DELETED_PATH = './database/arcaea_database_deleted.db'
+    LOG_FOLDER_PATH = './log/'
 
     GAME_LOGIN_RATE_LIMIT = '30/5 minutes'
     API_LOGIN_RATE_LIMIT = '10/5 minutes'

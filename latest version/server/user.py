@@ -25,7 +25,7 @@ def register():
     if error is not None:
         raise error
 
-    with Connect() as c:
+    with Connect(begin_mode='IMMEDIATE') as c:
         new_user = UserRegister(c)
         new_user.set_name(request.form['name'])
         new_user.set_password(request.form['password'])
@@ -34,6 +34,8 @@ def register():
             device_id = request.form['device_id']
         else:
             device_id = 'low_version'
+        if 'is_allow_marketing_email' in request.form:
+            new_user.is_allow_marketing_email = request.form['is_allow_marketing_email'] == 'true'
 
         ip = request.remote_addr
         new_user.register(device_id, ip)
@@ -159,6 +161,31 @@ def cloud_post(user_id):
         return success_return({'user_id': user.user_id})
 
 
+@bp.route('/me/profile', methods=['POST'])
+@auth_required(request)
+@arc_try
+def profile_post(user_id):
+    with Connect() as c:
+        user = UserOnline(c, user_id)
+        is_profile_public = request.form.get('is_profile_public')
+        sc_char_1 = request.form.get('sc_char_1', -1, type=int)
+        sc_char_2 = request.form.get('sc_char_2', -1, type=int)
+        sc_char_3 = request.form.get('sc_char_3', -1, type=int)
+        # world_unlock = request.form.get('world_unlock')
+        banner = request.form.get('banner')
+        # print(is_profile_public, world_unlock, banner)
+        user.select_user_about_profile()
+        user.change_profile(is_profile_public == 'true', banner, [
+                            sc_char_1, sc_char_2, sc_char_3])
+
+        return success_return({
+            "is_profile_public": user.is_profile_public,
+            "showcase_characters": user.showcase_characters,
+            "world_unlock": "",
+            "custom_banner": user.custom_banner
+        })
+
+
 @bp.route('/me/setting/<set_arg>', methods=['POST'])  # 三个设置
 @auth_required(request)
 @arc_try
@@ -170,7 +197,7 @@ def sys_set(user_id, set_arg):
             user.change_favorite_character(int(value))
         else:
             value = 'true' == value
-            if set_arg in ('is_hide_rating', 'max_stamina_notification_enabled', 'mp_notification_enabled'):
+            if set_arg in ('is_hide_rating', 'max_stamina_notification_enabled', 'mp_notification_enabled', 'is_allow_marketing_email'):
                 user.update_user_one_column(set_arg, value)
         return success_return(user.to_dict())
 

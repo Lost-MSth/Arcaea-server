@@ -26,6 +26,8 @@ def characters_get(data, user):
          'prog20', 'overdrive20', 'frag30', 'prog30', 'overdrive30']
     with Connect() as c:
         query = Query(A, B, C).from_dict(data)
+        if data.get('count_only', False):
+            return success_return({'count': Sql(c).select_count('character', query)})
         x = Sql(c).select('character', query=query)
         r = [Character().from_list(i) for i in x]
 
@@ -58,15 +60,15 @@ def characters_character_put(data, user, character_id: int):
         c = Character(c).select(character_id)
         try:
             if 'max_level' in data:
-                c.max_level = int(data['max_level'])
+                c.level.max_level = int(data['max_level'])
             if 'skill_id' in data:
-                c.skill_id = data['skill_id']
+                c.skill.skill_id = data['skill_id']
             if 'skill_id_uncap' in data:
-                c.skill_id_uncap = data['skill_id_uncap']
+                c.skill.skill_id_uncap = data['skill_id_uncap']
             if 'skill_unlock_level' in data:
-                c.skill_unlock_level = int(data['skill_unlock_level'])
+                c.skill.skill_unlock_level = int(data['skill_unlock_level'])
             if 'skill_requires_uncap' in data:
-                c.skill_requires_uncap = data['skill_requires_uncap'] == 1
+                c.skill.skill_requires_uncap = data['skill_requires_uncap'] == 1
             if 'char_type' in data:
                 c.char_type = int(data['char_type'])
             if 'is_uncapped' in data:

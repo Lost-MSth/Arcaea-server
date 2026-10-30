@@ -271,8 +271,8 @@ class WorldUnlock(NormalItem):
         self.is_available = True
 
 
-class CourseBanner(NormalItem):
-    item_type = 'course_banner'
+class Banner(NormalItem):
+    item_type = 'banner'
 
     def __init__(self, c) -> None:
         super().__init__(c)
@@ -280,6 +280,14 @@ class CourseBanner(NormalItem):
 
     def __str__(self) -> str:
         return str(self.item_id)
+
+
+class CourseBanner(Banner):
+    item_type = 'course_banner'
+
+
+class OnlineBanner(Banner):
+    item_type = 'online_banner'
 
 
 class Single(NormalItem):
@@ -374,8 +382,12 @@ class ItemFactory:
             return ProgBoost(self.c)
         elif item_type == 'stamina6':
             return Stamina6(self.c)
+        elif item_type == 'stamina':
+            return ItemStamina(self.c)
         elif item_type == 'course_banner':
             return CourseBanner(self.c)
+        elif item_type == 'online_banner':
+            return OnlineBanner(self.c)
         else:
             raise InputError(
                 f'The item type `{item_type}` is invalid.', api_error_code=-120)
@@ -417,6 +429,10 @@ class ItemFactory:
             item_type = 'course_banner'
             item_id = s
             amount = 1
+        elif s.startswith('online_banner'):
+            item_type = 'online_banner'
+            item_id = s
+            amount = 1
         else:
             raise InputError('The string of item is wrong.')
         i = cls().get_item(item_type)
@@ -445,7 +461,10 @@ class UserItemList:
         '''
             根据item_type搜索用户的item
         '''
-        if Config.WORLD_SONG_FULL_UNLOCK and item_type == 'world_song' or Config.WORLD_SCENERY_FULL_UNLOCK and item_type == 'world_unlock':
+        if Config.WORLD_SONG_FULL_UNLOCK and Config.WORLD_SONG_FULL_UNLOCK_WITHOUT_MAP and item_type == 'world_song':
+            return self._select_world_song_without_map()
+
+        if Config.WORLD_SONG_FULL_UNLOCK and item_type == 'world_song' or Config.WORLD_SCENERY_FULL_UNLOCK and item_type == 'world_unlock' or Config.ONLINE_BANNER_FULL_UNLOCK and item_type == 'online_banner':
             self.c.execute(
                 '''select item_id from item where type=?''', (item_type,))
         else:
@@ -463,6 +482,31 @@ class UserItemList:
                 amount = 1
             self.items.append(ItemFactory.from_dict(
                 {'item_id': i[0], 'amount': amount, 'item_type': item_type}, self.c))
+        return self
+
+    def _select_world_song_without_map(self):
+        '''
+            select_from_type 的特殊情况，查询世界模式未包含在地图中的歌曲
+        '''
+        assert Config.WORLD_SONG_FULL_UNLOCK_WITHOUT_MAP and Config.WORLD_SONG_FULL_UNLOCK
+        self.c.execute('''select item_id from item where type="world_song"''')
+        x = self.c.fetchall()
+        self.c.execute(
+            '''select item_id, amount from user_item where type = "world_song" and user_id = ?''', (self.user.user_id,))
+        y = self.c.fetchall()
+        if not x or not y:
+            return self
+
+        from .world import MapParser
+        user_world_songs = set(i[0] for i in y)
+        self.items: list = []
+        for i in x:
+            item_id = i[0]
+            if item_id in MapParser.world_song_rewards and item_id not in user_world_songs:
+                continue
+
+            self.items.append(ItemFactory.from_dict(
+                {'item_id': item_id, 'amount': 1, 'item_type': 'world_song'}, self.c))
         return self
 
 

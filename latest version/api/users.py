@@ -21,7 +21,7 @@ bp = Blueprint('users', __name__, url_prefix='/users')
 @api_try
 def users_post(data, user):
     '''注册一个用户'''
-    with Connect() as c:
+    with Connect(begin_mode='IMMEDIATE') as c:
         new_user = UserRegister(c)
         new_user.set_name(data['name'])
         new_user.set_password(data['password'])
@@ -41,8 +41,10 @@ def users_get(data, user):
          'rating_ptt', 'time_played', 'ticket', 'world_rank_score']
     with Connect() as c:
         query = Query(A, A, B).from_dict(data)
+        if data.get('count_only', False):
+            return success_return({'count': Sql(c).select_count('user', query)})
         x = Sql(c).select('user', query=query)
-        r = []
+        r: list[UserInfo] = []
         for i in x:
             r.append(UserInfo(c).from_list(i))
 
@@ -54,12 +56,19 @@ def users_get(data, user):
             'name': x.name,
             'join_date': x.join_date,
             'user_code': x.user_code,
-            'rating_ptt': x.rating_ptt,
+            'rating_ptt': x.rating_ptt_real,
             'character_id': x.character.character_id,
             'is_char_uncapped': x.character.is_uncapped,
             'is_char_uncapped_override': x.character.is_uncapped_override,
             'is_hide_rating': x.is_hide_rating,
-            'ticket': x.ticket
+            'ticket': x.ticket,
+
+            'email': x.email,
+            'custom_banner': x.custom_banner,
+            'world_rank_score': x.world_rank_score,
+            'is_profile_public': x.is_profile_public,
+            'showcase_characters': x.showcase_characters,
+            'is_banned': x.is_banned,
         } for x in r])
 
 
@@ -79,9 +88,45 @@ def users_user_get(user, user_id):
         return success_return(u.to_dict())
 
 
+@bp.route('/<int:user_id>/brief', methods=['GET'])
+@role_required(request, ['select', 'select_me'])
+@api_try
+def users_user_brief_get(user, user_id):
+    '''查询用户简要信息，与 users get 基本一致'''
+
+    if user_id <= 0:
+        return error_return(InputError(api_error_code=-110))
+    # 查别人需要select权限
+    if user_id != user.user_id and not user.role.has_power('select'):
+        return error_return(NoAccess('No permission', api_error_code=-1), 403)
+
+    with Connect() as c:
+        u = UserInfo(c, user_id)
+        u.select_user()
+        return success_return({
+            'user_id': u.user_id,
+            'name': u.name,
+            'join_date': u.join_date,
+            'user_code': u.user_code,
+            'rating_ptt': u.rating_ptt_real,
+            'character_id': u.character.character_id,
+            'is_char_uncapped': u.character.is_uncapped,
+            'is_char_uncapped_override': u.character.is_uncapped_override,
+            'is_hide_rating': u.is_hide_rating,
+            'ticket': u.ticket,
+
+            'email': u.email,
+            'custom_banner': u.custom_banner,
+            'world_rank_score': u.world_rank_score,
+            'is_profile_public': u.is_profile_public,
+            'showcase_characters': u.showcase_characters,
+            'is_banned': u.is_banned,
+        })
+
+
 @bp.route('/<int:user_id>', methods=['PUT'])
 @role_required(request, ['change'])
-@request_json_handle(request, optional_keys=['name', 'password', 'user_code', 'ticket', 'email'], must_change=True)
+@request_json_handle(request, optional_keys=['name', 'password', 'user_code', 'ticket', 'email', 'custom_banner'], must_change=True)
 @api_try
 def users_user_put(data, user, user_id):
     '''修改一个用户'''
@@ -110,6 +155,11 @@ def users_user_put(data, user, user_id):
                 raise InputError('Ticket must be int')
             u.ticket = data['ticket']
             r['ticket'] = u.ticket
+        if 'custom_banner' in data:
+            if not isinstance(data['custom_banner'], str):
+                raise InputError('Value `custom_banner` must be str')
+            u.custom_banner = data['custom_banner']
+            r['custom_banner'] = u.custom_banner
         u.update_columns(d=r)
         return success_return(r)
 
@@ -132,7 +182,6 @@ def users_user_b30_get(user, user_id):
         if not x.scores:
             raise NoData(
                 f'No best30 data of user `{user_id}`', api_error_code=-3)
-        x.select_song_name()
         r = x.to_dict_list()
         rating_sum = sum(i.rating for i in x.scores)
         return success_return({'user_id': user_id, 'b30_ptt': rating_sum / 30, 'data': r})
@@ -153,10 +202,14 @@ def users_user_best_get(data, user, user_id):
     with Connect() as c:
         x = UserScoreList(c, UserInfo(c, user_id))
         x.query.from_dict(data)
+        if data.get('count_only', False):
+            x.query.query_append({'user_id': user_id})
+            return success_return({'count': Sql(c).select_count('best_score', x.query)})
         x.select_from_user()
         if not x.scores:
             raise NoData(
                 f'No best score data of user `{user_id}`', api_error_code=-3)
+        
         r = x.to_dict_list()
         return success_return({'user_id': user_id, 'data': r})
 

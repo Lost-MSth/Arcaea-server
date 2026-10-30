@@ -5,7 +5,6 @@ from core.linkplay import RemoteMultiPlayer
 from .api_auth import api_try, request_json_handle, role_required
 from .api_code import success_return
 
-
 bp = Blueprint('multiplay', __name__, url_prefix='/multiplay')
 
 

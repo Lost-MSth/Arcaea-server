@@ -20,6 +20,8 @@ def items_get(data, user):
     with Connect() as c:
         query = Query(['item_id', 'type'], ['item_id'],
                       ['item_id']).from_dict(data)
+        if data.get('count_only', False):
+            return success_return({'count': Sql(c).select_count('item', query)})
         x = Sql(c).select('item', query=query)
         r: 'list[Item]' = []
         for i in x:

@@ -27,3 +27,7 @@ latest version/database/bundle/
 
 # backup
 latest version/database/backup/
+
+# temp
+tmp/
+tmp2/

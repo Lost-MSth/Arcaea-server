@@ -29,13 +29,15 @@ def score_token_world(user_id):
 
     d = request.args.get
 
-    stamina_multiply = d('stamina_multiply', 1, type=int)
-    fragment_multiply = d('fragment_multiply', 100, type=int)
-    prog_boost_multiply = d('prog_boost_multiply', 0, type=int)
-    beyond_boost_gauge_use = d('beyond_boost_gauge_use', 0, type=int)
+    stamina_multiply = max(1, d('stamina_multiply', 1, type=int))
+    fragment_multiply = max(100, d('fragment_multiply', 100, type=int))
+    prog_boost_multiply = max(0, d('prog_boost_multiply', 0, type=int))
+    beyond_boost_gauge_use = max(0, d('beyond_boost_gauge_use', 0, type=int))
     skill_cytusii_flag = None
     skill_chinatsu_flag = None
     skill_id = d('skill_id')
+
+    # check value
 
     if (skill_id == 'skill_ilith_ivy' or skill_id == 'skill_hikari_vanessa') and d('is_skill_sealed') == 'false':
         # 处理 ivy 技能或者 vanessa 技能
@@ -59,7 +61,7 @@ def score_token_world(user_id):
             "token": x.song_token,
             'play_parameters': {},
         }
-        if skill_flag and skill_id:
+        if skill_flag and skill_id and x.invasion_flag != 1:
             r['play_parameters'] = {
                 skill_id: list(
                     map(lambda x: Constant.WORLD_VALUE_NAME_ENUM[int(x)], skill_flag)),
@@ -115,29 +117,35 @@ def score_token_course(user_id):
 @auth_required(request)
 @arc_try
 def song_score_post(user_id):
+    # nell_toggle ?
+    # gauge_level ? find with char 97
     with Connect() as c:
         x = UserPlay(c, UserOnline(c, user_id))
-        x.song_token = request.form['song_token']
-        x.song_hash = request.form['song_hash']
-        x.song.set_chart(
-            request.form['song_id'], request.form['difficulty'])
-        x.set_score(request.form['score'], request.form['shiny_perfect_count'], request.form['perfect_count'], request.form['near_count'],
-                    request.form['miss_count'], request.form['health'], request.form['modifier'], int(time() * 1000), request.form['clear_type'])
-        x.beyond_gauge = int(request.form['beyond_gauge'])
-        x.submission_hash = request.form['submission_hash']
-        if 'combo_interval_bonus' in request.form:
-            x.combo_interval_bonus = int(request.form['combo_interval_bonus'])
-        if 'hp_interval_bonus' in request.form:
-            x.hp_interval_bonus = int(request.form['hp_interval_bonus'])
+        f = request.form
+        x.song_token = f['song_token']
+        x.song_hash = f['song_hash']
+        x.song.set_chart(f['song_id'], f['difficulty'])
+        x.set_score(f['score'], f['shiny_perfect_count'], f['perfect_count'], f['near_count'],
+                    f['miss_count'], f['health'], f['modifier'], int(time() * 1000), f['clear_type'])
+        x.beyond_gauge = int(f['beyond_gauge'])
+        x.submission_hash = f['submission_hash']
+        x.combo_interval_bonus = f.get('combo_interval_bonus', type=int)
+        x.hp_interval_bonus = f.get('hp_interval_bonus', type=int)
         # visible_map_count
-        if 'fever_bonus' in request.form:
-            x.fever_bonus = int(request.form['fever_bonus'])
-        x.highest_health = request.form.get("highest_health", type=int)
-        x.lowest_health = request.form.get("lowest_health", type=int)
+        x.fever_bonus = f.get('fever_bonus', type=int)
+        x.rank_bonus = f.get('rank_bonus', type=int)
+        x.maya_gauge = f.get('maya_gauge', type=int)
+        x.nextstage_bonus = f.get('nextstage_bonus', type=int)
+        x.sp_lp_win_bonus = f.get('sp_lp_win_bonus', type=int)
+        x.highest_health = f.get("highest_health", type=int)
+        x.lowest_health = f.get("lowest_health", type=int)
+        x.room_code = f.get('room_code')
+        x.room_total_score = f.get('room_total_score', type=int)
+        x.room_total_players = f.get('room_total_players', type=int)
+
         if not x.is_valid:
             raise InputError('Invalid score.', 107)
         x.upload_score()
-        # room_code???
         return success_return(x.to_dict())
 
 

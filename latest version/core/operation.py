@@ -3,9 +3,9 @@ from .constant import Constant
 from .download import DownloadList
 from .error import NoData
 from .save import SaveData
-from .score import Score
+from .score import Potential, Score
 from .sql import Connect, Sql
-from .user import User
+from .user import User, UserInfo
 from .world import MapParser
 
 
@@ -50,13 +50,13 @@ class RefreshAllScoreRating(BaseOperation):
                     if i[j+1] is not None and i[j+1] > 0:
                         defnum = float(i[j+1]) / 10
 
-                    c.execute('''select user_id, score, shiny_perfect_count, perfect_count, near_count, miss_count from best_score where song_id=:a and difficulty=:b''', {
+                    c.execute('''select user_id, score, shiny_perfect_count, perfect_count, near_count, miss_count, clear_type from best_score where song_id=:a and difficulty=:b''', {
                               'a': i[0], 'b': j})
                     y = c.fetchall()
                     values = []
                     where_values = []
                     for k in y:
-                        ptt = Score.calculate_rating(defnum, k[1])
+                        ptt = Score.calculate_rating(defnum, k[1], k[6])
                         ptt = max(ptt, 0)
                         score_v2 = Score.calculate_score_v2(
                             defnum, k[2], k[3], k[4], k[5])
@@ -82,13 +82,13 @@ class RefreshAllScoreRating(BaseOperation):
                 where_values = []
                 user_id = i[0]
                 c.execute(
-                    '''select r_index, song_id, difficulty, score from recent30 where user_id = ?''', (user_id,))
+                    '''select r_index, song_id, difficulty, score, clear_type from recent30 where user_id = ?''', (user_id,))
                 for j in c.fetchall():
                     if j[1] in song_defum:
                         defnum = song_defum[j[1]][j[2]]
                     else:
                         defnum = -10
-                    ptt = Score.calculate_rating(defnum, j[3])
+                    ptt = Score.calculate_rating(defnum, j[3], j[4])
                     ptt = max(ptt, 0)
 
                     values.append((ptt,))
@@ -97,6 +97,27 @@ class RefreshAllScoreRating(BaseOperation):
                 if values:
                     Sql(c).update_many('recent30', ['rating'], values, [
                         'user_id', 'r_index'], where_values)
+
+
+class RefreshUsersScoreRating(BaseOperation):
+    '''
+        刷新所有用户的 PTT
+        包括 world_rank_score
+    '''
+    _name = 'refresh_users_score_rating'
+
+    def run(self):
+        with Connect() as c:
+            x = c.execute('''select user_id from user''').fetchall()
+            user_ids = [i[0] for i in x]
+            values = []
+            for user_id in user_ids:
+                user = UserInfo(c, user_id)
+                p = Potential(c, user)
+                values.append((p.value, user._get_world_rank_score()))
+
+            Sql(c).update_many('user', ['rating_ptt', 'world_rank_score'], values, [
+                'user_id'], [(i,) for i in user_ids])
 
 
 class RefreshSongFileCache(BaseOperation):
@@ -180,20 +201,17 @@ class SaveUpdateScore(BaseOperation):
             for i in save.scores_data:
                 rating = 0
                 score_v2 = 0
+                clear_type = clear_state.get(
+                    f'{i["song_id"]}{i["difficulty"]}', 0)
                 if i['song_id'] in song_chart_const:
                     defnum = song_chart_const[i['song_id']
                                               ][i['difficulty']] / 10
-                    rating = Score.calculate_rating(defnum, i['score'])
+                    rating = Score.calculate_rating(
+                        defnum, i['score'], clear_type)
                     rating = max(rating, 0)
 
                     score_v2 = Score.calculate_score_v2(
                         defnum, i['shiny_perfect_count'], i['perfect_count'], i['near_count'], i['miss_count'])
-
-                y = f'{i["song_id"]}{i["difficulty"]}'
-                if y in clear_state:
-                    clear_type = clear_state[y]
-                else:
-                    clear_type = 0
 
                 new_scores.append((self.user.user_id, i['song_id'], i['difficulty'], i['score'], i['shiny_perfect_count'], i['perfect_count'],
                                    i['near_count'], i['miss_count'], i['health'], i['modifier'], i['time_played'], clear_type, clear_type, rating, score_v2))
@@ -221,20 +239,17 @@ class SaveUpdateScore(BaseOperation):
                 for i in save.scores_data:
                     rating = 0
                     score_v2 = 0
+                    clear_type = clear_state.get(
+                        f'{i["song_id"]}{i["difficulty"]}', 0)
                     if i['song_id'] in song_chart_const:
                         defnum = song_chart_const[i['song_id']
                                                   ][i['difficulty']] / 10
-                        rating = Score.calculate_rating(defnum, i['score'])
+                        rating = Score.calculate_rating(
+                            defnum, i['score'], clear_type)
                         rating = max(rating, 0)
 
                         score_v2 = Score.calculate_score_v2(
                             defnum, i['shiny_perfect_count'], i['perfect_count'], i['near_count'], i['miss_count'])
-
-                    y = f'{i["song_id"]}{i["difficulty"]}'
-                    if y in clear_state:
-                        clear_type = clear_state[y]
-                    else:
-                        clear_type = 0
 
                     new_scores.append((user.user_id, i['song_id'], i['difficulty'], i['score'], i['shiny_perfect_count'], i['perfect_count'],
                                        i['near_count'], i['miss_count'], i['health'], i['modifier'], i['time_played'], clear_type, clear_type, rating, score_v2))
@@ -251,7 +266,7 @@ class UnlockUserItem(BaseOperation):
     _name = 'unlock_user_item'
 
     ALLOW_TYPES = ['single', 'pack', 'world_song',
-                   'course_banner', 'world_unlock']
+                   'course_banner', 'world_unlock', 'online_banner']
 
     def __init__(self, user=None, method: str = 'unlock', item_types: list = ['single', 'pack']):
         self.user = user
@@ -351,8 +366,9 @@ class DeleteOneUser(BaseOperation):
     '''
     _name = 'delete_one_user'
 
-    TABLES = ['best_score', 'recent30', 'user_char', 'user_course', 'user_item',
-              'user_present', 'user_redeem', 'user_role', 'user_save', 'user_world', 'user']
+    TABLES = ['best_score', 'recent30', 'user_char', 'user_char_full', 'user_course', 'user_item',
+              'user_present', 'user_redeem', 'user_role', 'user_save', 'user_world', 'user',
+              'user_mission', 'user_kvdata']
 
     def __init__(self, user=None):
         self.user = user

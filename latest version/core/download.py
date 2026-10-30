@@ -3,17 +3,17 @@ from functools import lru_cache
 from json import loads
 from time import time
 
-from flask import url_for
+from flask import make_response, redirect, send_from_directory, url_for
 
 from .config_manager import Config
 from .constant import Constant
-from .error import NoAccess
+from .error import ConfigError, NoAccess
 from .limiter import ArcLimiter
 from .user import User
-from .util import get_file_md5, md5
+from .util import get_file_md5, join_path, md5, secure_link_md5
 
 
-@lru_cache(maxsize=8192)
+@lru_cache(maxsize=Constant.LRU_CACHE_MAX_SIZE['get_song_file_md5'])
 def get_song_file_md5(song_id: str, file_name: str) -> str:
     path = os.path.join(Constant.SONG_FILE_FOLDER_PATH, song_id, file_name)
     if not os.path.isfile(path):
@@ -22,7 +22,7 @@ def get_song_file_md5(song_id: str, file_name: str) -> str:
 
 
 class SonglistParser:
-    '''songlist文件解析器'''
+    '''songlist 文件解析器'''
 
     FILE_NAMES = ['0.aff', '1.aff', '2.aff', '3.aff', '4.aff',
                   'base.ogg', '3.ogg', 'video.mp4', 'video_audio.ogg', 'video_720.mp4', 'video_1080.mp4']
@@ -76,7 +76,7 @@ class SonglistParser:
     def parse_one(self, song: dict) -> dict:
         '''解析单个歌曲'''
         # TODO: byd_local_unlock ???
-        if not 'id' in song:
+        if 'id' not in song:
             return {}
         r = 0
         if 'remote_dl' in song and song['remote_dl']:
@@ -85,9 +85,12 @@ class SonglistParser:
                 if i['ratingClass'] == 3 and i.get('audioOverride', False):
                     r |= 64
                 r |= 1 << i['ratingClass']
-        else:
-            if any(i['ratingClass'] == 3 for i in song.get('difficulties', [])):
-                r |= 8
+        else:  # 針對remote_dl為False時BYD難度強制下載的處理
+            for i in song.get('difficulties', []):
+                if i['ratingClass'] == 3:
+                    r |= 8
+                    if i.get('audioOverride', False):
+                        r |= 64
 
         for extra_file in song.get('additional_files', []):
             x = extra_file['file_name']
@@ -104,7 +107,7 @@ class SonglistParser:
 
     def parse_one_unlock(self, song: dict) -> None:
         '''解析单个歌曲解锁方式'''
-        if not 'id' in song or not 'set' in song or not 'purchase' in song:
+        if 'id' not in song or 'set' not in song or 'purchase' not in song:
             return {}
         x = SonglistParser
         if Constant.FREE_PACK_NAME == song['set']:
@@ -261,7 +264,7 @@ class DownloadList(UserDownload):
             self.user.user_id, x.song_id, x.file_name, x.token, x.token_time) for x in self.downloads])
 
     @staticmethod
-    @lru_cache(maxsize=2048)
+    @lru_cache(maxsize=Constant.LRU_CACHE_MAX_SIZE['get_one_song_file_names'])
     def get_one_song_file_names(song_id: str) -> list:
         '''获取一个歌曲文件夹下的所有合法文件名，有lru缓存'''
         r = []
@@ -349,3 +352,103 @@ class DownloadList(UserDownload):
         if self.url_flag:
             self.clear_download_token()
             self.insert_download_tokens()
+
+
+class DownloadManager:
+
+    def __init__(self, file_path: str, is_bundle: bool = False) -> None:
+        self.file_path = file_path
+        self.is_bundle = is_bundle
+        self._s3 = None
+
+        if Config.REMOTE_DOWNLOAD_MODE == 's3':
+            self._set_s3_client()
+
+    @property
+    def expire_time(self) -> int:
+        return Constant.BUNDLE_DOWNLOAD_TIME_GAP_LIMIT if self.is_bundle else Constant.DOWNLOAD_TIME_GAP_LIMIT
+
+    def get_response(self):
+        if Config.REMOTE_DOWNLOAD_MODE == 'nginx':
+            return self._nginx_secure_link()
+        elif Config.REMOTE_DOWNLOAD_MODE == 's3':
+            return self._s3_generate_presigned_url()
+        elif Config.DOWNLOAD_USE_NGINX_X_ACCEL_REDIRECT:
+            return self._nginx_x_accel_redirect()
+        else:
+            return self._default_localhost_download()
+
+    def _default_localhost_download(self):
+        folder = Constant.CONTENT_BUNDLE_FOLDER_PATH if self.is_bundle else Constant.SONG_FILE_FOLDER_PATH
+        return send_from_directory(folder, self.file_path, as_attachment=True, conditional=True)
+
+    def _nginx_x_accel_redirect(self):
+        prefix = Config.BUNDLE_NGINX_X_ACCEL_REDIRECT_PREFIX if self.is_bundle else Config.NGINX_X_ACCEL_REDIRECT_PREFIX
+        response = make_response()
+        response.headers['Content-Type'] = 'application/octet-stream'
+        response.headers['X-Accel-Redirect'] = join_path(
+            prefix, self.file_path, start_sep=True, end_sep=False)
+        return response
+
+    def _nginx_secure_link(self):
+        options = Config.REMOTE_DOWNLOAD_OPTIONS.get('nginx', {})
+        if not options:
+            raise ConfigError('Nginx secure link is not configured.')
+        prefix = options.get('bundle_download_link_prefix') if self.is_bundle else options.get(
+            'download_link_prefix')
+        host = options.get('bundle_download_link_host') if self.is_bundle else options.get(
+            'download_link_host')
+        secret_key = options.get('secret_key')
+        if not prefix or not host or not secret_key:
+            raise ConfigError('Nginx secure link is not properly configured.')
+
+        expire = self.expire_time
+        expires = int(time()) + expire
+
+        path = join_path(prefix, self.file_path, start_sep=True, end_sep=False)
+        raw = f'{expires}|{path} {secret_key}'
+
+        url = join_path(host, path, start_sep=False, end_sep=False) + \
+            f'?md5={secure_link_md5(raw)}&expires={expires}'
+        return redirect(url)
+
+    def _set_s3_client(self):
+        import boto3
+        from botocore.config import Config as BotoConfig
+        options = Config.REMOTE_DOWNLOAD_OPTIONS.get('s3', {})
+        if not options:
+            raise ConfigError('S3 remote download is not configured.')
+        args = {
+            'endpoint_url': options.get('endpoint_url'),
+            'aws_access_key_id': options.get('aws_access_key_id'),
+            'aws_secret_access_key': options.get('aws_secret_access_key'),
+            'region_name': options.get('region_name'),
+            'config': BotoConfig(**options.get('config', {})),
+            'api_version': options.get('api_version'),
+            'use_ssl': options.get('use_ssl', True),
+            'verify': options.get('verify'),
+            'aws_session_token': options.get('aws_session_token'),
+            'aws_account_id': options.get('aws_account_id'),
+        }
+        self._s3 = boto3.client(
+            's3',
+            **args
+        )
+
+    def _s3_generate_presigned_url(self):
+        options = Config.REMOTE_DOWNLOAD_OPTIONS.get('s3', {})
+        bucket_name = options.get(
+            'song_bucket_name') if not self.is_bundle else options.get('bundle_bucket_name')
+        key_prefix = options.get('song_file_key_prefix') if not self.is_bundle else options.get(
+            'bundle_file_key_prefix')
+        if not bucket_name or not key_prefix:
+            raise ConfigError('S3 remote download is not properly configured.')
+
+        key = join_path(key_prefix, self.file_path,
+                        start_sep=False, end_sep=False)
+        url = self._s3.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket_name, 'Key': key},
+            ExpiresIn=self.expire_time
+        )
+        return redirect(url)

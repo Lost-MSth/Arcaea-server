@@ -5,8 +5,9 @@ from flask import Blueprint, jsonify, request
 from werkzeug.datastructures import ImmutableMultiDict
 
 from core.bundle import BundleDownload
+from core.character import UserCharacter
 from core.download import DownloadList
-from core.error import RateLimit, ArcError
+from core.error import ArcError, RateLimit
 from core.item import ItemCharacter
 from core.notification import NotificationFactory
 from core.sql import Connect
@@ -120,6 +121,59 @@ def insight_complete(user_id, pack_id):
 
         return success_return({
             'insight_state': u.insight_state
+        })
+
+
+@bp.route('/unlock/me/awaken_maya', methods=['POST'])
+@auth_required(request)
+@arc_try
+def awaken_maya(user_id):
+    with Connect() as c:
+        ch = UserCharacter(c, 71, UserOnline(c, user_id))
+        ch.select_character_info()
+        try:
+            ch.character_uncap()
+            # ensure no error raised
+        except ArcError:
+            pass
+
+        return success_return({
+            'user_id': user_id,
+            'updated_characters': [ch.to_dict()]
+        })
+
+
+@bp.route('/unlock/me/konzetsu_saya', methods=['POST'])
+@auth_required(request)
+@arc_try
+def konzetsu_saya(user_id):
+    with Connect() as c:
+        item = ItemCharacter(c)
+        item.set_id('97')  # Saya (Absolution)
+        item.user_claim_item(UserOnline(c, user_id))
+        user = UserOnline(c, user_id)
+        user.select_user()
+        user.select_characters()
+        user.characters.select_characters_info()
+        return success_return({
+            'characters': [i.to_dict() for i in user.characters.characters]
+        })
+
+
+@bp.route('/unlock/me/konzetsu_insight', methods=['POST'])
+@auth_required(request)
+@arc_try
+def konzetsu_insight(user_id):
+    with Connect() as c:
+        item = ItemCharacter(c)
+        item.set_id('98')  # Insight (Nullified)
+        item.user_claim_item(UserOnline(c, user_id))
+        user = UserOnline(c, user_id)
+        user.select_user()
+        user.select_characters()
+        user.characters.select_characters_info()
+        return success_return({
+            'characters': [i.to_dict() for i in user.characters.characters]
         })
 
 

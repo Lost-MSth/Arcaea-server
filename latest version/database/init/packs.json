@@ -1006,5 +1006,167 @@
 		],
 		"orig_price": 500,
 		"price": 500
+	},
+	{
+		"name": "anima_append_1",
+		"items": [
+			{
+				"id": "anima_append_1",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 5,
+				"is_available": true
+			}
+		],
+		"orig_price": 500,
+		"price": 500
+	},
+	{
+		"name": "eclipse",
+		"items": [
+			{
+				"id": "eclipse",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 5,
+				"is_available": true
+			}
+		],
+		"orig_price": 500,
+		"price": 500
+	},
+	{
+		"name": "extend_4",
+		"items": [
+			{
+				"id": "extend_4",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 7,
+				"is_available": true
+			}
+		],
+		"orig_price": 700,
+		"price": 700
+	},
+	{
+		"name": "nextstage",
+		"items": [
+			{
+				"id": "nextstage",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 5,
+				"is_available": true
+			}
+		],
+		"orig_price": 500,
+		"price": 500
+	},
+	{
+		"name": "megarex",
+		"items": [
+			{
+				"id": "megarex",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 5,
+				"is_available": true
+			}
+		],
+		"orig_price": 500,
+		"price": 500
+	},
+	{
+		"name": "undertale_append_1",
+		"items": [
+			{
+				"id": "undertale_append_1",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 3,
+				"is_available": true
+			}
+		],
+		"orig_price": 300,
+		"price": 300
+	},
+	{
+		"name": "virtualsingers",
+		"items": [
+			{
+				"id": "virtualsingers",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 5,
+				"is_available": true
+			}
+		],
+		"orig_price": 500,
+		"price": 500
+	},
+	{
+		"name": "konzetsu",
+		"items": [
+			{
+				"id": "konzetsu",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 5,
+				"is_available": true
+			}
+		],
+		"orig_price": 500,
+		"price": 500
+	},
+	{
+		"name": "diversesystem",
+		"items": [
+			{
+				"id": "diversesystem",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 5,
+				"is_available": true
+			}
+		],
+		"orig_price": 500,
+		"price": 500
 	}
 ]

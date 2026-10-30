@@ -10,7 +10,7 @@ PADDING = [b(i) * i for i in range(16)] + [b'']
 class CommandSender:
 
     PROTOCOL_NAME = b'\x06\x16'
-    PROTOCOL_VERSION = b'\x0D'
+    PROTOCOL_VERSION = b'\x0E'
 
     def __init__(self, room: Room = None) -> None:
         self.room = room
@@ -55,9 +55,11 @@ class CommandSender:
 
     def command_0e(self, player_index: int):
         # 分数广播
-        # 我猜，616 写错了，首先 4 个 00 大概是分数使用了 8 bytes 转换，其次上一个分数根本就不需要哈哈哈哈哈哈！
         player = self.room.players[player_index]
-        return self.command_encode((*self.command_prefix(b'\x0e'), player.info, b(player.last_score.score, 4), b'\x00' * 4, b(player.last_score.timer, 4), b'\x00' * 4))
+        # 我猜，616 写错了，首先 4 个 00 大概是分数使用了 8 bytes 转换，其次上一个分数根本就不需要哈哈哈哈哈哈！
+        # return self.command_encode((*self.command_prefix(b'\x0e'), player.info, b(player.last_score.score, 4), b'\x00' * 4, b(player.last_score.timer, 4), b'\x00' * 4))
+        # 好像修了？
+        return self.command_encode((*self.command_prefix(b'\x0e'), player.info, b(player.last_score.score, 4), b(player.last_score.timer, 4)))
 
     def command_0f(self, player_index: int, song_idx: int):
         # 歌曲推荐

@@ -1,3 +1,4 @@
+from .error import ArcError
 from .item import Fragment, ItemCore, ItemStamina, PickTicket, WorldSong
 
 
@@ -36,10 +37,15 @@ class Mission:
 
         return 'locked'
 
-    def user_claim_mission(self, user):
+    def user_claim_mission(self, user=None):
         # param: user - User 类或子类的实例
         if user is not None:
             self.user = user
+
+        if self._status is None:
+            self.select_user_mission()
+        if self._status == 4 or self._status == 1:
+            raise ArcError('Mission not cleared or already claimed')
 
         self.c.execute('''insert or replace into user_mission (user_id, mission_id, status) values (?, ?, 4)''',
                        (self.user.user_id, self.mission_id))
@@ -47,7 +53,7 @@ class Mission:
             i.user_claim_item(self.user)
         self._status = 4
 
-    def user_clear_mission(self, user):
+    def user_clear_mission(self, user=None):
         # param: user - User 类或子类的实例
         if user is not None:
             self.user = user
@@ -56,7 +62,7 @@ class Mission:
                        (self.user.user_id, self.mission_id))
         self._status = 2
 
-    def select_user_mission(self, user):
+    def select_user_mission(self, user=None):
         # param: user - User 类或子类的实例
         if user is not None:
             self.user = user

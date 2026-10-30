@@ -246,9 +246,16 @@ class UserCharacter(Character):
 
     @property
     def skill_state(self) -> str:
-        if self.skill_id_displayed == 'skill_maya':
+        s = self.skill_id_displayed
+        if s == 'skill_maya':
             return 'add_random' if self.skill_flag else 'remove_random'
+        elif s == 'skill_insight_konzetsu':
+            return str(self.skill_state_insight_konzetsu)
         return None
+
+    @property
+    def skill_state_insight_konzetsu(self) -> int:
+        return min(self.user.select_user_beyond_score_count(), Constant.INSIGHT_KONZETSU_MAX_VALUE)
 
     def select_character_uncap_condition(self, user=None):
         # parameter: user - User类或子类的实例

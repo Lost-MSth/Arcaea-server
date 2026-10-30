@@ -9,6 +9,17 @@ from .func import arc_try, success_return
 bp = Blueprint('friend', __name__, url_prefix='/friend')
 
 
+@bp.route('/me', methods=['GET'])  # 好友列表
+@auth_required(request)
+@arc_try
+def friend_get(user_id):
+    with Connect() as c:
+        user = UserOnline(c, user_id)
+        return success_return({
+            "friends": user.friends
+        })
+
+
 @bp.route('/me/add', methods=['POST'])  # 加好友
 @auth_required(request)
 @arc_try

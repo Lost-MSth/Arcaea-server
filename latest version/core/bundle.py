@@ -11,6 +11,13 @@ from .error import NoAccess, NoData, RateLimit
 from .limiter import ArcLimiter
 
 
+class BundlePart:
+    def __init__(self) -> None:
+        self.path: str = None  # relative path
+        self.size: int = 0
+        self.url: str = None
+
+
 class ContentBundle:
 
     def __init__(self) -> None:
@@ -18,14 +25,14 @@ class ContentBundle:
         self.prev_version: str = None
         self.app_version: str = None
         self.uuid: str = None
+        self.part_num: int = None
 
         self.json_size: int = None
-        self.bundle_size: int = None
+        # self.bundle_size: int = None
         self.json_path: str = None  # relative path
-        self.bundle_path: str = None  # relative path
+        self.bundle_parts: 'list[BundlePart]' = []
 
         self.json_url: str = None
-        self.bundle_url: str = None
 
     @staticmethod
     def parse_version(version: str) -> tuple:
@@ -46,6 +53,7 @@ class ContentBundle:
         x.prev_version = json_data['previousVersionNumber']
         x.app_version = json_data['applicationVersionNumber']
         x.uuid = json_data['uuid']
+        x.part_num = json_data.get('totalPartitions', 1)
         if x.prev_version is None:
             x.prev_version = '0.0.0'
         return x
@@ -55,18 +63,25 @@ class ContentBundle:
             'contentBundleVersion': self.version,
             'appVersion': self.app_version,
             'jsonSize': self.json_size,
-            'bundleSize': self.bundle_size,
         }
-        if self.json_url and self.bundle_url:
+        if self.json_url:
             r['jsonUrl'] = self.json_url
-            r['bundleUrl'] = self.bundle_url
+            parts = []
+            for p in self.bundle_parts:
+                part = {'bundleSize': p.size}
+                if p.url:
+                    part['bundleUrl'] = p.url
+                parts.append(part)
+            if parts:
+                r['bundleParts'] = parts
         return r
 
     def calculate_size(self) -> None:
         self.json_size = os.path.getsize(os.path.join(
             Constant.CONTENT_BUNDLE_FOLDER_PATH, self.json_path))
-        self.bundle_size = os.path.getsize(os.path.join(
-            Constant.CONTENT_BUNDLE_FOLDER_PATH, self.bundle_path))
+        for part in self.bundle_parts:
+            part.size = os.path.getsize(os.path.join(
+                Constant.CONTENT_BUNDLE_FOLDER_PATH, part.path))
 
 
 class BundleParser:
@@ -100,7 +115,7 @@ class BundleParser:
                     continue
 
                 json_path = os.path.join(root, file)
-                bundle_path = os.path.join(root, f'{file[:-5]}.cb')
+                stem = file[:-5]
 
                 with open(json_path, 'rb') as f:
                     data = json.load(f)
@@ -109,15 +124,33 @@ class BundleParser:
 
                 x.json_path = os.path.relpath(
                     json_path, Constant.CONTENT_BUNDLE_FOLDER_PATH)
-                x.bundle_path = os.path.relpath(
-                    bundle_path, Constant.CONTENT_BUNDLE_FOLDER_PATH)
+                # x.bundle_path = os.path.relpath(
+                #     bundle_path, Constant.CONTENT_BUNDLE_FOLDER_PATH)
 
                 x.json_path = x.json_path.replace('\\', '/')
-                x.bundle_path = x.bundle_path.replace('\\', '/')
+                # x.bundle_path = x.bundle_path.replace('\\', '/')
 
-                if not os.path.isfile(bundle_path):
+                # Single-file bundle (backward compat)
+                single = os.path.join(root, f'{stem}.cb')
+                if os.path.isfile(single):
+                    part = BundlePart()
+                    part.path = os.path.relpath(
+                        single, Constant.CONTENT_BUNDLE_FOLDER_PATH).replace('\\', '/')
+                    x.bundle_parts.append(part)
+                else:
+                    # Multi-part bundles: stem_0.cb, stem_1.cb, ...
+                    for part_idx in range(x.part_num):
+                        part_path = os.path.join(root, f'{stem}_{part_idx}.cb')
+                        if not os.path.isfile(part_path):
+                            break
+                        part = BundlePart()
+                        part.path = os.path.relpath(
+                            part_path, Constant.CONTENT_BUNDLE_FOLDER_PATH).replace('\\', '/')
+                        x.bundle_parts.append(part)
+
+                if not x.bundle_parts:
                     raise FileNotFoundError(
-                        f'Bundle file not found: {bundle_path}')
+                        f'Bundle file(s) not found for: {json_path}')
                 x.calculate_size()
 
                 self.bundles.setdefault(x.app_version, []).append(x)
@@ -132,7 +165,7 @@ class BundleParser:
             self.max_bundle_version[k] = v[-1].version
 
     @staticmethod
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=Constant.LRU_CACHE_MAX_SIZE['get_bundles'])
     def get_bundles(app_ver: str, b_ver: str) -> 'list[ContentBundle]':
         if Config.BUNDLE_STRICT_MODE:
             return BundleParser.bundles.get(app_ver, [])
@@ -214,13 +247,15 @@ class BundleDownload:
             if x.version_tuple <= ContentBundle.parse_version(self.client_bundle_version):
                 continue
             t1 = os.urandom(64).hex()
-            t2 = os.urandom(64).hex()
 
             x.json_url = url_func(t1)
-            x.bundle_url = url_func(t2)
 
             sql_list.append((t1, x.json_path, now, self.device_id))
-            sql_list.append((t2, x.bundle_path, now, self.device_id))
+            for part in x.bundle_parts:
+                t = os.urandom(64).hex()
+                part.url = url_func(t)
+                sql_list.append((t, part.path, now, self.device_id))
+
             r.append(x.to_dict())
 
         if not sql_list:

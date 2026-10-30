@@ -9,7 +9,7 @@ import web.webscore
 from core.init import FileChecker
 from core.operation import (DeleteUserScore, RefreshAllScoreRating,
                             RefreshBundleCache, RefreshSongFileCache,
-                            SaveUpdateScore, UnlockUserItem)
+                            SaveUpdateScore, UnlockUserItem, RefreshWorldMapCache)
 from core.rank import RankList
 from core.score import Potential
 from core.sql import Connect
@@ -316,6 +316,17 @@ def update_content_bundle():
         flash('Something error!')
     return render_template('web/updatedatabase.html')
 
+@bp.route('/updatedatabase/refreshworldmap', methods=['POST'])
+@login_required
+def update_world_map():
+    # 更新 world map
+    try:
+        RefreshWorldMapCache().run()
+        flash('数据刷新成功 Success refresh data.')
+    except:
+        flash('Something error!')
+    return render_template('web/updatedatabase.html')
+
 
 @bp.route('/updatedatabase/refreshsongrating', methods=['POST'])
 @login_required
@@ -443,7 +454,7 @@ def all_character():
 def change_character():
     # 修改角色数据
     skill_ids = ['No_skill', 'gauge_easy', 'note_mirror', 'gauge_hard', 'frag_plus_10_pack_stellights', 'gauge_easy|frag_plus_15_pst&prs', 'gauge_hard|fail_frag_minus_100', 'frag_plus_5_side_light', 'visual_hide_hp', 'frag_plus_5_side_conflict', 'challenge_fullcombo_0gauge', 'gauge_overflow', 'gauge_easy|note_mirror', 'note_mirror', 'visual_tomato_pack_tonesphere',
-                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami', 'skill_elizabeth', 'skill_lily', 'skill_kanae_midsummer', 'eto_uncap', 'luna_uncap', 'frags_preferred_song', 'visual_ghost_skynotes', 'ayu_uncap', 'skill_vita', 'skill_fatalis', 'skill_reunion', 'frags_ongeki_slash', 'frags_ongeki_hard', 'skill_amane', 'skill_kou_winter', 'gauge_hard|note_mirror', 'skill_shama', 'skill_milk', 'skill_shikoku', 'skill_mika', 'ilith_awakened_skill', 'skill_mithra', 'skill_toa', 'skill_nami_twilight', 'skill_ilith_ivy', 'skill_hikari_vanessa', 'skill_maya', 'skill_luin', 'skill_luin_uncap', 'skill_kanae_uncap', 'skill_doroc_uncap', 'skill_saya_uncap', 'skill_luna_ilot', 'skill_eto_hoppe', 'skill_aichan', 'skill_nell', 'skill_chinatsu', 'skill_tsumugi', 'skill_nai', 'skill_selene', 'skill_salt', 'skill_acid', 'skill_hikari_selene', 'skill_hikari_clear', 'skill_tairitsu_fail', 'skill_nami_sui']
+                 'frag_rng_ayu', 'gaugestart_30|gaugegain_70', 'combo_100-frag_1', 'audio_gcemptyhit_pack_groovecoaster', 'gauge_saya', 'gauge_chuni', 'kantandeshou', 'gauge_haruna', 'frags_nono', 'gauge_pandora', 'gauge_regulus', 'omatsuri_daynight', 'sometimes(note_mirror|frag_plus_5)', 'scoreclear_aa|visual_scoregauge', 'gauge_tempest', 'gauge_hard', 'gauge_ilith_summer', 'frags_kou', 'visual_ink', 'shirabe_entry_fee', 'frags_yume', 'note_mirror|visual_hide_far', 'frags_ongeki', 'gauge_areus', 'gauge_seele', 'gauge_isabelle', 'gauge_exhaustion', 'skill_lagrange', 'gauge_safe_10', 'frags_nami', 'skill_elizabeth', 'skill_lily', 'skill_kanae_midsummer', 'eto_uncap', 'luna_uncap', 'frags_preferred_song', 'visual_ghost_skynotes', 'ayu_uncap', 'skill_vita', 'skill_fatalis', 'skill_reunion', 'frags_ongeki_slash', 'frags_ongeki_hard', 'skill_amane', 'skill_kou_winter', 'gauge_hard|note_mirror', 'skill_shama', 'skill_milk', 'skill_shikoku', 'skill_mika', 'ilith_awakened_skill', 'skill_mithra', 'skill_toa', 'skill_nami_twilight', 'skill_ilith_ivy', 'skill_hikari_vanessa', 'skill_maya', 'skill_luin', 'skill_luin_uncap', 'skill_kanae_uncap', 'skill_doroc_uncap', 'skill_saya_uncap', 'skill_luna_ilot', 'skill_eto_hoppe', 'skill_aichan', 'skill_nell', 'skill_chinatsu', 'skill_tsumugi', 'skill_nai', 'skill_selene', 'skill_salt', 'skill_acid', 'skill_hikari_selene', 'skill_hikari_clear', 'skill_tairitsu_fail', 'skill_nami_sui', 'skill_nonoka', 'skill_nonoka_uncap', 'skill_vita_arc', 'skill_maya_uncap', 'skill_hikari_tairitsu_debut', 'skill_hp_slow_drain', 'skill_lost_to_85', 'skill_hprate_based_on_hp', 'skill_frag_doubled_after_earning_X', 'skill_saya_konzetsu', 'skill_insight_konzetsu', 'skill_ilith_halloween', 'skill_stream_palette']
     return render_template('web/changechar.html', skill_ids=skill_ids)
 
 

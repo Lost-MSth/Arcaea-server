@@ -133,7 +133,8 @@ class CommandParser:
 
     def command_07(self):
         self.s.random_code = self.command[16:24]
-        self.room.players[self.player_index].song_unlock = self.command[24:536]
+        self.room.players[self.player_index].song_unlock = self.command[24:24 +
+                                                                        Config.LINK_PLAY_UNLOCK_LENGTH]
         self.room.update_song_unlock()
 
         self.room.command_queue.append(self.s.command_14())

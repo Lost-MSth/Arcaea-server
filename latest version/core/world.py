@@ -21,6 +21,8 @@ class MapParser:
     # 章节包含的地图（不包含可重复地图）
     chapter_info_without_repeatable: 'dict[int, list[str]]' = {}
 
+    world_song_rewards: 'set[str]' = set()  # 作为世界模式奖励的歌曲 ID
+
     def __init__(self) -> None:
         if not self.map_id_path:
             self.parse()
@@ -44,24 +46,31 @@ class MapParser:
                 if not is_repeatable:
                     self.chapter_info_without_repeatable.setdefault(
                         chapter, []).append(map_id)
+                steps = map_data.get('steps', [])
                 self.world_info[map_id] = {
                     'chapter': chapter,
                     'is_repeatable': is_repeatable,
                     'is_beyond': map_data.get('is_beyond', False),
                     'is_legacy': map_data.get('is_legacy', False),
-                    'step_count': len(map_data.get('steps', [])),
+                    'step_count': len(steps),
                 }
+
+                for step in steps:
+                    for item in step.get('items', []):
+                        if item.get('type') == 'world_song' and 'id' in item:
+                            self.world_song_rewards.add(item['id'])
 
     def re_init(self) -> None:
         self.map_id_path.clear()
         self.world_info.clear()
         self.chapter_info.clear()
         self.chapter_info_without_repeatable.clear()
+        self.world_song_rewards.clear()
         self.get_world_info.cache_clear()
         self.parse()
 
     @staticmethod
-    @lru_cache(maxsize=128)
+    @lru_cache(maxsize=Constant.LRU_CACHE_MAX_SIZE['get_world_info'])
     def get_world_info(map_id: str) -> dict:
         '''读取json文件内容，返回字典'''
         world_info = {}
@@ -160,11 +169,12 @@ class Map:
         self.require_localunlock_challengeid: str = None
         self.chain_info: dict = None
 
-        # self.requires: list[dict] = None
+        self.requires: 'list[dict]' = None
         self.requires_any: 'list[dict]' = None
 
         self.disable_over: bool = None
         self.new_law: str = None
+        self.is_linkplay_allowed: bool = None
 
     @property
     def rewards(self) -> list:
@@ -219,6 +229,10 @@ class Map:
             r['new_law'] = self.new_law
         if self.requires_any:
             r['requires_any'] = self.requires_any
+        if self.requires:
+            r['requires'] = self.requires
+        if self.is_linkplay_allowed:
+            r['is_linkplay_allowed'] = self.is_linkplay_allowed
         return r
 
     def from_dict(self, raw_dict: dict) -> 'Map':
@@ -245,9 +259,11 @@ class Map:
         self.chain_info = raw_dict.get('chain_info')
         self.steps = [Step().from_dict(s) for s in raw_dict.get('steps')]
 
+        self.is_linkplay_allowed = raw_dict.get('is_linkplay_allowed', False)
         self.disable_over = raw_dict.get('disable_over')
         self.new_law = raw_dict.get('new_law')
         self.requires_any = raw_dict.get('requires_any')
+        self.requires = raw_dict.get('requires')
         return self
 
     def select_map_info(self):
@@ -485,7 +501,7 @@ class UserStamina(Stamina):
 
     def select(self):
         '''获取用户体力信息'''
-        self.c.execute('''select max_stamina_ts, staminafrom user where user_id = :a''',
+        self.c.execute('''select max_stamina_ts, stamina from user where user_id = :a''',
                        {'a': self.user.user_id})
         x = self.c.fetchone()
         if not x:
@@ -519,6 +535,10 @@ class WorldSkillMixin:
             'skill_salt': self._skill_salt,
             'skill_hikari_selene': self._skill_hikari_selene,
             'skill_nami_sui': self._skill_nami_sui,
+            'skill_vita_arc': self._skill_vita_arc,
+            'skill_maya_uncap': self._skill_maya_uncap,
+            'skill_hikari_tairitsu_debut': self._skill_hikari_tairitsu_debut,
+            'skill_stream_palette': self._skill_stream_palette,
         }
         if self.user_play.beyond_gauge == 0 and self.character_used.character_id == 35 and self.character_used.skill_id_displayed:
             self._special_tempest()
@@ -537,6 +557,7 @@ class WorldSkillMixin:
             'skill_kanae_uncap': self._skill_kanae_uncap,
             'skill_eto_hoppe': self._skill_eto_hoppe,
             'skill_intruder': self._skill_intruder,
+            'skill_nonoka_uncap': self._skill_nonoka_uncap,
         }
         if self.character_used.skill_id_displayed in factory_dict:
             factory_dict[self.character_used.skill_id_displayed]()
@@ -585,7 +606,7 @@ class WorldSkillMixin:
         '''luna觉醒技能，限制格开始时世界模式进度加 7，偷懒重爬（因为 map 信息还未获取）'''
         x: 'Step' = self.user.current_map.steps_for_climbing[0]
         if x.restrict_id and x.restrict_type:
-            self.self.character_bonus_progress_normalized = Constant.LUNA_UNCAP_BONUS_PROGRESS
+            self.character_bonus_progress_normalized = Constant.LUNA_UNCAP_BONUS_PROGRESS
             self.user.current_map.reclimb(self.final_progress)
 
     def _ayu_uncap(self) -> None:
@@ -750,6 +771,57 @@ class WorldSkillMixin:
 
         self.character_bonus_progress_normalized = self.user_play.fever_bonus / 1000
 
+    def _skill_nonoka_uncap(self) -> None:
+        '''
+        nonoka 觉醒技能，技能等级 * 10% 的世界进度奖励
+        '''
+        if self.user_play.rank_bonus is None:
+            return
+
+        self.character_bonus_progress_normalized = self.user_play.rank_bonus * \
+            0.1 * self.progress_normalized
+        self.user.current_map.reclimb(self.final_progress)
+
+    def _skill_vita_arc(self) -> None:
+        '''
+            vita 技能 2 far 会减少 1 over
+        '''
+        x = self.user_play.near_count // 2
+        over = self.character_used.overdrive.get_value(
+            self.character_used.level)
+        self.over_skill_increase = -min(x, over)
+
+    def _skill_maya_uncap(self) -> None:
+        '''
+        maya 觉醒技能，歌曲游玩抵达全曲 1/4 进度时，回忆率将全部转化为角色能力加成 stat bonus
+        '''
+        if self.user_play.maya_gauge is None:
+            return
+        if self.user_play.maya_gauge >= 0:
+            self.over_skill_increase = self.user_play.maya_gauge
+            self.prog_skill_increase = self.user_play.maya_gauge
+
+    def _skill_hikari_tairitsu_debut(self) -> None:
+        '''
+        hikari & tairitsu 每日首次游玩 Next Stage 曲目时，角色所有能力数值 +20
+        '''
+        if self.user_play.nextstage_bonus is None:
+            return
+        if self.user_play.nextstage_bonus > 0:
+            self.over_skill_increase = 20
+            self.prog_skill_increase = 20
+
+    def _skill_stream_palette(self) -> None:
+        '''
+        NENE & silky6 技能，LP 获胜时所有能力 +20
+        '''
+        if self.user_play.sp_lp_win_bonus is None:
+            return
+
+        if self.user_play.sp_lp_win_bonus > 0:
+            self.over_skill_increase = 20
+            self.prog_skill_increase = 20
+
 
 class BaseWorldPlay(WorldSkillMixin):
     '''
@@ -800,14 +872,16 @@ class BaseWorldPlay(WorldSkillMixin):
             # 'wpaid': 'helloworld',  # world play id ???
             'progress_before_sub_boost': self.final_progress,
             'progress_sub_boost_amount': 0,
+            'partner_multiply': self.partner_multiply,
             # 'subscription_multiply'
 
             # lephon_final: bool  dynamic map info
             # lephon_active: bool  dynamic map info
             # 'steps_modified': False,
+
         }
 
-        if self.character_used.skill_id_displayed == 'skill_maya':
+        if self.character_used.skill_id_displayed in ('skill_maya', 'skill_insight_konzetsu'):
             r['char_stats']['skill_state'] = self.character_used.skill_state
 
         if self.user_play.stamina_multiply != 1:
@@ -816,6 +890,15 @@ class BaseWorldPlay(WorldSkillMixin):
             r['fragment_multiply'] = self.user_play.fragment_multiply
         if self.user_play.prog_boost_multiply != 0:  # 源韵强化
             r['prog_boost_multiply'] = self.user_play.prog_boost_multiply
+
+            # progress_linkplay_boost_amount
+            # linkplay_boost
+            # progress_before_linkplay_boost
+        if arcmap.is_linkplay_allowed:
+            r['linkplay_boost'] = self.linkplay_boost  # 同步率
+            r['progress_before_linkplay_boost'] = self.progress_before_linkplay_boost
+            r['progress_linkplay_boost_amount'] = self.progress_before_linkplay_boost * \
+                (self.linkplay_boost - 1) * self.step_times
 
         return r
 
@@ -847,6 +930,32 @@ class BaseWorldPlay(WorldSkillMixin):
     @property
     def final_progress(self) -> float:
         raise NotImplementedError
+
+    @property
+    def partner_multiply(self) -> float:
+        raise NotImplementedError
+
+    @property
+    def progress_before_linkplay_boost(self) -> float:
+        return self.progress_normalized
+
+    @property
+    def linkplay_boost(self) -> float:
+        if not self.user.current_map.is_linkplay_allowed:
+            return 1.0
+        score = self.user_play.room_total_score
+        player_count = self.user_play.room_total_players
+        if score and player_count:
+            if player_count >= 4:
+                factor = 80_000_000
+            elif player_count == 3:
+                factor = 100_000_000
+            elif player_count == 2:
+                factor = 200_000_000
+            else:
+                return 1.0
+            return 1 + score / factor
+        return 1.0
 
     def before_update(self) -> None:
         if self.user_play.prog_boost_multiply != 0:
@@ -953,6 +1062,7 @@ class WorldPlay(BaseWorldPlay):
 
         r["user_map"]["steps"] = [x.to_dict()
                                   for x in self.user.current_map.steps_for_climbing]
+
         return r
 
     @property
@@ -969,7 +1079,11 @@ class WorldPlay(BaseWorldPlay):
 
     @property
     def final_progress(self) -> float:
-        return (self.progress_normalized + (self.character_bonus_progress_normalized or 0)) * self.step_times + (self.kanae_added_progress or 0) - (self.kanae_stored_progress or 0)
+        return self.progress_before_linkplay_boost * self.linkplay_boost * self.step_times + (self.kanae_added_progress or 0) - (self.kanae_stored_progress or 0)
+
+    @property
+    def progress_before_linkplay_boost(self) -> float:
+        return self.progress_normalized + (self.character_bonus_progress_normalized or 0)
 
     @property
     def partner_adjusted_prog(self) -> float:
@@ -979,11 +1093,17 @@ class WorldPlay(BaseWorldPlay):
             prog += self.prog_tempest
         if self.prog_skill_increase:
             prog += self.prog_skill_increase
+        if self.character_used.skill_id_displayed == 'skill_insight_konzetsu':
+            prog += self.character_used.skill_state_insight_konzetsu
         return prog
 
     @property
+    def partner_multiply(self) -> float:
+        return self.partner_adjusted_prog / 50
+
+    @property
     def progress_normalized(self) -> float:
-        return self.base_progress * (self.partner_adjusted_prog / 50)
+        return self.base_progress * self.partner_multiply
 
     def after_update(self) -> None:
         '''世界模式更新'''
@@ -1033,11 +1153,16 @@ class BeyondWorldPlay(BaseWorldPlay):
 
     @property
     def progress_normalized(self) -> float:
+        return self.base_progress * self.partner_multiply * self.affinity_multiplier
+
+    @property
+    def partner_multiply(self) -> float:
         overdrive = self.character_used.overdrive_value
         if self.over_skill_increase:
             overdrive += self.over_skill_increase
-
-        return self.base_progress * (overdrive / 50) * self.affinity_multiplier
+        if self.character_used.skill_id_displayed == 'skill_insight_konzetsu':
+            overdrive += self.character_used.skill_state_insight_konzetsu
+        return overdrive / 50
 
     def to_dict(self) -> dict:
         r = super().to_dict()
@@ -1045,8 +1170,6 @@ class BeyondWorldPlay(BaseWorldPlay):
         # byd 进度 没有加上源韵强化 和 boost 的数值
         r['pre_boost_progress'] = self.progress_normalized * \
             self.user_play.fragment_multiply / 100
-
-        # r['partner_multiply'] = self.affinity_multiplier  # ?
 
         if self.over_skill_increase is not None:
             r['char_stats']['over_skill_increase'] = self.over_skill_increase
@@ -1075,7 +1198,21 @@ class WorldLawMixin:
             'over100_step50': self._over100_step50,
             'frag50': self._frag50,
             'lowlevel': self._lowlevel,
-            'antiheroism': self._antiheroism
+            'antiheroism': self._antiheroism,
+
+            # 下面的是本地作用的，服务端无需处理
+            # 'non_support_damage400': self._non_support_damage400,
+            # 'non_balance_damage400': self._non_balance_damage400,
+            # 'damage_over40': self._damage_over40,
+
+            # TODO: 下面的和曲目数据有关，目前很难处理
+            # 'fixed_bpm_low': self._fixed_bpm_low,
+            # 'fixed_bpm_high': self._fixed_bpm_high,
+            # 'bonus_contest2020_conflict': self._bonus_contest2020_conflict,
+            # 'bonus_contest2020_light': self._bonus_contest2020_light,
+            # 'bonus_bg_prelude_conflict': self._bonus_bg_prelude_conflict,
+            # 'bonus_single_etrbyd': self._bonus_single_etrbyd,
+            # 'bonus_damage_rating': self._bonus_damage_rating,
         }
         if self.user.current_map.new_law in factory_dict:
             factory_dict[self.user.current_map.new_law]()
