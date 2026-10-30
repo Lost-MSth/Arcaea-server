@@ -160,6 +160,23 @@ def konzetsu_saya(user_id):
         })
 
 
+@bp.route('/unlock/me/konzetsu_insight', methods=['POST'])
+@auth_required(request)
+@arc_try
+def konzetsu_insight(user_id):
+    with Connect() as c:
+        item = ItemCharacter(c)
+        item.set_id('98')  # Insight (Nullified)
+        item.user_claim_item(UserOnline(c, user_id))
+        user = UserOnline(c, user_id)
+        user.select_user()
+        user.select_characters()
+        user.characters.select_characters_info()
+        return success_return({
+            'characters': [i.to_dict() for i in user.characters.characters]
+        })
+
+
 @bp.route('/applog/me/log', methods=['POST'])
 def applog_me():
     # 异常日志，不处理

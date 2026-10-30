@@ -2422,5 +2422,41 @@
 		],
 		"orig_price": 100,
 		"price": 100
+	},
+	{
+		"name": "chateaudecartes",
+		"items": [
+			{
+				"id": "chateaudecartes",
+				"type": "single",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 1,
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
+	},
+	{
+		"name": "trickmaster",
+		"items": [
+			{
+				"id": "trickmaster",
+				"type": "single",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 1,
+				"is_available": true
+			}
+		],
+		"orig_price": 100,
+		"price": 100
 	}
 ]

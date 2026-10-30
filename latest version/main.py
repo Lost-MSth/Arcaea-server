@@ -87,6 +87,7 @@ _import_after_config()
 
 
 app = Flask(__name__)
+app.config['MAX_FORM_MEMORY_SIZE'] = 10 * 1024 * 1024  # 10MB
 
 if Config.USE_PROXY_FIX:
     # 代理修复

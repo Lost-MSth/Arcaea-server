@@ -246,8 +246,11 @@ class UserCharacter(Character):
 
     @property
     def skill_state(self) -> str:
-        if self.skill_id_displayed == 'skill_maya':
+        s = self.skill_id_displayed
+        if s == 'skill_maya':
             return 'add_random' if self.skill_flag else 'remove_random'
+        elif s == 'skill_insight_konzetsu':
+            return str(self.user.select_user_beyond_score_count())
         return None
 
     def select_character_uncap_condition(self, user=None):

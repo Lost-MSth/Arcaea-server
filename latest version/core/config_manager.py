@@ -12,7 +12,7 @@ class Config:
 
     SONG_FILE_HASH_PRE_CALCULATE = True
 
-    GAME_API_PREFIX = ['/brieflywingtip/41', '/']  # str | list[str]
+    GAME_API_PREFIX = ['/concentrateavailable/43', '/']  # str | list[str]
     OLD_GAME_API_PREFIX = []  # str | list[str]
 
     ALLOW_APPVERSION = []  # list[str]

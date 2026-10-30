@@ -810,6 +810,17 @@ class WorldSkillMixin:
             self.over_skill_increase = 20
             self.prog_skill_increase = 20
 
+    def _skill_stream_palette(self) -> None:
+        '''
+        NENE & silky6 技能，LP 获胜时所有能力 +20
+        '''
+        if self.user_play.sp_lp_win_bonus is None:
+            return
+
+        if self.user_play.sp_lp_win_bonus > 0:
+            self.over_skill_increase = 20
+            self.prog_skill_increase = 20
+
 
 class BaseWorldPlay(WorldSkillMixin):
     '''

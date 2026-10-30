@@ -238,8 +238,7 @@ class Sql:
         if not d:
             return None
         sql_list = []
-        sql = f"update {table_name} set {','.join([f'{k}=?' for k in d.keys(
-        )])}"
+        sql = f"update {table_name} set {','.join([f'{k}=?' for k in d])}"
         sql_list.extend(d.values())
 
         if query is None:

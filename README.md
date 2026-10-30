@@ -152,6 +152,11 @@ It is just so interesting. What it can do is under exploration.
 
 [中文 / English](https://github.com/Lost-MSth/Arcaea-server/wiki/Q&A)
 
+## AI 使用声明 AI usage statement
+
+在本项目中 AI 仅用于辅助开发，代码仍主要由人工编写。  
+The AI tools used in this project are only for assisting development and will not replace manually written code.
+
 ## 鸣谢 Thanks
 
 歌曲数据库来自 Using song database from
@@ -169,11 +174,11 @@ It is just so interesting. What it can do is under exploration.
 如有必要，可以联系本人 Contact me if necessary  
 邮箱 Email：arcaea@lost-msth.cn
 
-## 支持一下 Support me
+<!-- ## 支持一下 Support me
 
 生活不易。 Life is not easy.  
 [支付宝 Alipay](https://github.com/Lost-MSth/Arcaea-server/blob/master/pic/Alipay.jpg)  
-[微信 WeChat](https://github.com/Lost-MSth/Arcaea-server/blob/master/pic/WeChat.png)
+[微信 WeChat](https://github.com/Lost-MSth/Arcaea-server/blob/master/pic/WeChat.png) -->
 
 ## 使用许可 Use license
 

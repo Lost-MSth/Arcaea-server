@@ -182,7 +182,6 @@ def users_user_b30_get(user, user_id):
         if not x.scores:
             raise NoData(
                 f'No best30 data of user `{user_id}`', api_error_code=-3)
-        x.select_song_name()
         r = x.to_dict_list()
         rating_sum = sum(i.rating for i in x.scores)
         return success_return({'user_id': user_id, 'b30_ptt': rating_sum / 30, 'data': r})
@@ -210,6 +209,7 @@ def users_user_best_get(data, user, user_id):
         if not x.scores:
             raise NoData(
                 f'No best score data of user `{user_id}`', api_error_code=-3)
+        
         r = x.to_dict_list()
         return success_return({'user_id': user_id, 'data': r})
 

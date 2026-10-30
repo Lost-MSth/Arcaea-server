@@ -860,6 +860,19 @@ class UserInfo(User):
         if x is not None:
             kvd['total_step_count'] = x[0] or 0
 
+    def select_user_beyond_score_count(self) -> int:
+        '''
+            查询用户上传过分数的 beyond 难度谱面成绩的数量
+            洞烛（Nullified）技能需要
+        '''
+        self.c.execute(
+            '''select count(*) from best_score where user_id = ? and difficulty = 3''', (self.user_id,)
+        )
+        x = self.c.fetchone()
+        if x is None:
+            return 0
+        return x[0]
+
     def select_user_one_column(self, column_name: str, default_value=None, data_type=None) -> None:
         '''
             查询user表的某个属性

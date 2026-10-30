@@ -136,6 +136,7 @@ def song_score_post(user_id):
         x.rank_bonus = f.get('rank_bonus', type=int)
         x.maya_gauge = f.get('maya_gauge', type=int)
         x.nextstage_bonus = f.get('nextstage_bonus', type=int)
+        x.sp_lp_win_bonus = f.get('sp_lp_win_bonus', type=int)
         x.highest_health = f.get("highest_health", type=int)
         x.lowest_health = f.get("lowest_health", type=int)
         x.room_code = f.get('room_code')

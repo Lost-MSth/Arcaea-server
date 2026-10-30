@@ -254,6 +254,7 @@ class UserPlay(UserScore):
         self.rank_bonus: int = None  # 不能给 None 以外的默认值
         self.maya_gauge: int = None  # 不能给 None 以外的默认值
         self.nextstage_bonus: int = None  # 不能给 None 以外的默认值
+        self.sp_lp_win_bonus: int = None  # 不能给 None 以外的默认值
         self.skill_cytusii_flag: str = None
         self.skill_chinatsu_flag: str = None
         self.highest_health: int = None
@@ -727,13 +728,29 @@ class UserScoreList:
         x = Sql(self.c).select('best_score', query=self.query)
 
         self.scores = [UserScore(self.c, self.user).from_list(i) for i in x]
+        self.select_song_name()
 
     def select_song_name(self) -> None:
         '''为所有成绩中的song_id查询song_name'''
         if self.scores is None:
             return
-        for score in self.scores:
+
+        scores_without_song_name = [
+            score for score in self.scores if score.song.song_name is None
+        ]
+        if not scores_without_song_name:
+            return
+
+        song_ids = list(dict.fromkeys(
+            score.song.song_id for score in scores_without_song_name))
+        song_names = {}
+        for index in range(0, len(song_ids), 900):
+            song_id_batch = song_ids[index:index + 900]
+            placeholders = ', '.join('?' for _ in song_id_batch)
             self.c.execute(
-                '''select name from chart where song_id = ?''', (score.song.song_id,))
-            x = self.c.fetchone()
-            score.song.song_name = x[0] if x else ''
+                f'''select song_id, name from chart where song_id in ({placeholders})''',
+                song_id_batch)
+            song_names.update(self.c.fetchall())
+
+        for score in scores_without_song_name:
+            score.song.song_name = song_names.get(score.song.song_id, '')

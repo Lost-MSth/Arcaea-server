@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 
 from core.config_manager import Config
+from core.constant import Constant
 from core.error import ArcError
 from core.linkplay import MatchStore, Player, RemoteMultiPlayer, Room
 from core.notification import RoomInviteNotification
@@ -35,6 +36,9 @@ def room_create(user_id):
 @auth_required(request)
 @arc_try
 def room_join(user_id, room_code):
+    if room_code.strip().upper() == 'NEWEYE':
+        # 7.0.0~256 解谜
+        raise ArcError('Konzetsu Link Play reveal', 1299, status=400)
     if not Config.LINKPLAY_HOST:
         raise ArcError('The link play server is unavailable.', 151, status=404)
 
