@@ -130,7 +130,7 @@ class SonglistParser:
             return
         with open(self.path, 'rb') as f:
             self.data = loads(f.read()).get('songs', [])
-        self.has_songlist = True
+        SonglistParser.has_songlist = True
         for x in self.data:
             self.songs.update(self.parse_one(x))
             self.parse_one_unlock(x)
@@ -238,7 +238,8 @@ class DownloadList(UserDownload):
         if Config.SONG_FILE_HASH_PRE_CALCULATE:
             x = cls()
             x.url_flag = False
-            x.add_songs()
+            for song_id in x.get_all_song_ids():
+                x.add_one_song(song_id)
             del x
 
     @staticmethod

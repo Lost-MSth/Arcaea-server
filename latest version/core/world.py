@@ -1132,6 +1132,7 @@ class BeyondWorldPlay(BaseWorldPlay):
     def __init__(self, c=None, user=None, user_play=None) -> None:
         super().__init__(c, user, user_play)
         self.over_skill_increase: float = None
+        self.prog_skill_increase: float = None
 
     @property
     def step_times(self) -> float:
@@ -1219,8 +1220,9 @@ class WorldLawMixin:
 
     def _over100_step50(self) -> None:
         '''PROG = OVER + STEP / 2'''
-        over = self.character_used.overdrive_value + self.over_skill_increase
-        prog = self.character_used.prog_value + self.prog_skill_increase
+        over = self.character_used.overdrive_value + \
+            (self.over_skill_increase or 0)
+        prog = self.character_used.prog_value + (self.prog_skill_increase or 0)
         self.new_law_prog = over + prog / 2
 
     def _frag50(self) -> None:
@@ -1234,8 +1236,9 @@ class WorldLawMixin:
 
     def _antiheroism(self) -> None:
         '''PROG = OVER - ||OVER-FRAG|-|OVER-STEP||'''
-        over = self.character_used.overdrive_value + self.over_skill_increase
-        prog = self.character_used.prog_value + self.prog_skill_increase
+        over = self.character_used.overdrive_value + \
+            (self.over_skill_increase or 0)
+        prog = self.character_used.prog_value + (self.prog_skill_increase or 0)
         x = abs(over - self.character_used.frag_value)
         y = abs(over - prog)
         self.new_law_prog = over - abs(x - y)

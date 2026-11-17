@@ -1168,5 +1168,33 @@
 		],
 		"orig_price": 500,
 		"price": 500
+	},
+	{
+		"name": "arknights",
+		"items": [
+			{
+				"id": "arknights",
+				"type": "pack",
+				"is_available": true
+			},
+			{
+				"id": "core_generic",
+				"type": "core",
+				"amount": 10,
+				"is_available": true
+			},
+			{
+				"id": "scenery_arknights",
+				"type": "world_unlock",
+				"is_available": true
+			},
+			{
+				"id": "amiya",
+				"type": "character",
+				"is_available": true
+			}
+		],
+		"orig_price": 1000,
+		"price": 1000
 	}
 ]
